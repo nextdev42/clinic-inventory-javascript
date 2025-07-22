@@ -1,4 +1,7 @@
-FROM node:18-slim
+FROM node:20-slim
 
-# Sakinisha git na packages nyingine muhimu
-RUN apt-get update && apt-get install -y git curl nano && apt-get clean
+RUN apt-get update && \
+    apt-get install -y git && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace/app
