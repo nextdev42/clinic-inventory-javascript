@@ -1,11 +1,15 @@
-const express = require('express');
-const app = express();
-const path = require('path');
-const { Low } = require('lowdb');
-const { JSONFile } = require('lowdb/node');
-const { nanoid } = require('nanoid');
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { Low } from 'lowdb';
+import { JSONFile } from 'lowdb/node';
+import { nanoid } from 'nanoid';
 
-const db = new Low(new JSONFile('data/db.json'));
+const app = express();
+
+// Fix __dirname in ES Module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function init() {
   await db.read();
