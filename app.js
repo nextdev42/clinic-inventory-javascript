@@ -7,92 +7,137 @@ import { nanoid } from 'nanoid';
 
 const app = express();
 
-// Fix __dirname in ES Module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Tangaza db hapa kabla ya kuitumia
 const adapter = new JSONFile(path.join(__dirname, 'data', 'db.json'));
 const db = new Low(adapter);
 
 async function init() {
-  await db.read();
-db.data ||= { dawa: [], watumiaji: [], matumizi: [] };
-  app.set('view engine', 'ejs');
-  app.set('views', path.join(__dirname, 'views'));
-  app.use(express.urlencoded({ extended: true }));
-  app.use(express.static('public'));
-
-  // 🏠 Dashboard
-  app.get('/', async (req, res) => {
+  try {
     await db.read();
-    const dawa = db.data.dawa;
-    const matumizi = db.data.matumizi;
+    db.data ||= { dawa: [], watumiaji: [], matumizi: [] };
 
-    const ripoti = dawa.map(d => {
-      const jumla = matumizi
-        .filter(m => m.dawaId === d.id)
-        .reduce((sum, m) => sum + Number(m.kiasi), 0);
-      return {
-        ...d,
-        jumlaMatumizi: jumla,
-        kilichobaki: d.kiasi - jumla
-      };
+    app.set('view engine', 'ejs');
+    app.set('views', path.join(__dirname, 'views'));
+    app.use(express.urlencoded({ extended: true }));
+    app.use(express.static('public'));
+
+    // --- Routes ---
+
+    // Dashboard
+    app.get('/', async (req, res, next) => {
+      try {
+        await db.read();
+        const dawa = db.data.dawa;
+        const matumizi = db.data.matumizi;
+
+        const ripoti = dawa.map(d => {
+          const jumla = matumizi
+            .filter(m => m.dawaId === d.id)
+            .reduce((sum, m) => sum + Number(m.kiasi), 0);
+          return {
+            ...d,
+            jumlaMatumizi: jumla,
+            kilichobaki: d.kiasi - jumla,
+          };
+        });
+
+        res.render('dashboard', { dawa: ripoti });
+      } catch (error) {
+        next(error);
+      }
     });
 
-    res.render('dashboard', { dawa: ripoti });
-  });
+    // Add medicine form
+    app.get('/dawa/ongeza', (req, res) => {
+      res.render('add-medicine');
+    });
 
-  // Ongeza dawa
-  app.get('/dawa/ongeza', (req, res) => {
-    res.render('add-medicine');
-  });
+    // Add medicine POST
+    app.post('/dawa/ongeza', async (req, res, next) => {
+      try {
+        const { jina, aina, kiasi } = req.body;
+        if (!jina || !aina || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
+          return res.status(400).send('All fields are required and kiasi must be a positive number');
+        }
+        db.data.dawa.push({ id: nanoid(), jina, aina, kiasi: Number(kiasi) });
+        await db.write();
+        res.redirect('/');
+      } catch (error) {
+        next(error);
+      }
+    });
 
-  app.post('/dawa/ongeza', async (req, res) => {
-    const { jina, aina, kiasi } = req.body;
-    db.data.dawa.push({ id: nanoid(), jina, aina, kiasi: Number(kiasi) });
-    await db.write();
-    res.redirect('/');
-  });
+    // Add user form
+    app.get('/mtumiaji/ongeza', (req, res) => {
+      res.render('add-user');
+    });
 
-  // Ongeza mtumiaji
-  app.get('/mtumiaji/ongeza', (req, res) => {
-    res.render('add-user');
-  });
+    // Add user POST
+    app.post('/mtumiaji/ongeza', async (req, res, next) => {
+      try {
+        const { jina } = req.body;
+        if (!jina) {
+          return res.status(400).send('Jina is required');
+        }
+        db.data.watumiaji.push({ id: nanoid(), jina });
+        await db.write();
+        res.redirect('/');
+      } catch (error) {
+        next(error);
+      }
+    });
 
-  app.post('/mtumiaji/ongeza', async (req, res) => {
-    const { jina } = req.body;
-    db.data.watumiaji.push({ id: nanoid(), jina });
-    await db.write();
-    res.redirect('/');
-  });
+    // Log usage form
+    app.get('/matumizi/sajili', async (req, res, next) => {
+      try {
+        await db.read();
+        res.render('log-usage', { dawa: db.data.dawa, watumiaji: db.data.watumiaji });
+      } catch (error) {
+        next(error);
+      }
+    });
 
-  // Sajili matumizi ya dawa
-  app.get('/matumizi/sajili', async (req, res) => {
-    await db.read();
-    res.render('log-usage', { dawa: db.data.dawa, watumiaji: db.data.watumiaji });
-  });
+    // Log usage POST
+    app.post('/matumizi/sajili', async (req, res, next) => {
+      try {
+        const { mtumiajiId, dawaId, kiasi, imethibitishwa } = req.body;
+        if (!imethibitishwa) {
+          return res.redirect('/');
+        }
+        if (!mtumiajiId || !dawaId || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
+          return res.status(400).send('All fields are required and kiasi must be a positive number');
+        }
+        db.data.matumizi.push({
+          id: nanoid(),
+          mtumiajiId,
+          dawaId,
+          kiasi: Number(kiasi),
+          tarehe: new Date().toISOString().slice(0, 10),
+        });
+        await db.write();
+        res.redirect('/');
+      } catch (error) {
+        next(error);
+      }
+    });
 
-  app.post('/matumizi/sajili', async (req, res) => {
-    const { mtumiajiId, dawaId, kiasi, imethibitishwa } = req.body;
-    if (imethibitishwa) {
-      db.data.matumizi.push({
-        id: nanoid(),
-        mtumiajiId,
-        dawaId,
-        kiasi: Number(kiasi),
-        tarehe: new Date().toISOString().slice(0, 10)
-      });
-      await db.write();
-    }
-    res.redirect('/');
-  });
+    // --- Global error handler ---
+    app.use((err, req, res, next) => {
+      console.error(err.stack);
+      res.status(500).send('Server error, please try again later');
+    });
 
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () =>
-    console.log(`✅ Server inakimbia kwenye http://localhost:${PORT}`)
-  );
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () =>
+      console.log(`✅ Server inakimbia kwenye http://localhost:${PORT}`)
+    );
+  } catch (error) {
+    console.error('Failed to initialize server:', error);
+    process.exit(1);
+  }
 }
 
-// Anzisha app baada ya kusoma DB
+// Start the app
 init();
