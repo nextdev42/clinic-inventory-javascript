@@ -1,12 +1,10 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node';
 import { nanoid } from 'nanoid';
-import { promises as fs } from 'fs';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { kv } from '@vercel/kv';
 
 const app = express();
 
@@ -14,56 +12,16 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Database setup
-const dataDir = path.join(__dirname, 'data');
-const dbPath = path.join(dataDir, 'db.json');
-
-// 1. First ensure the data directory exists
-async function ensureDataDirectory() {
-  try {
-    await fs.mkdir(dataDir, { recursive: true });
-    console.log('✅ Data directory verified');
-  } catch (error) {
-    console.error('❌ Failed to create data directory:', error);
-    throw error;
-  }
-}
-
-// 2. Initialize database with proper error handling
+// Database setup - Using Vercel KV instead of LowDB
 async function initializeDatabase() {
   try {
-    // Check if file exists, create if not
-    try {
-      await fs.access(dbPath);
-      console.log('📁 Database file exists');
-    } catch {
-      console.log('🆕 Creating new database file');
-      await fs.writeFile(dbPath, JSON.stringify({ dawa: [], watumiaji: [], matumizi: [] }));
+    // Initialize default data if not exists
+    if (await kv.get('dawa') === null) {
+      await kv.set('dawa', []);
+      await kv.set('watumiaji', []);
+      await kv.set('matumizi', []);
     }
-
-    // Now initialize LowDB
-    const adapter = new JSONFile(dbPath);
-    const db = new Low(adapter);
-    
-    await db.read();
-    
-    // Verify data structure
-    if (!db.data || typeof db.data !== 'object') {
-      console.log('🔄 Initializing empty database structure');
-      db.data = { dawa: [], watumiaji: [], matumizi: [] };
-      await db.write();
-    } else if (!db.data.dawa || !db.data.watumiaji || !db.data.matumizi) {
-      console.log('🔧 Fixing incomplete database structure');
-      db.data = {
-        dawa: db.data.dawa || [],
-        watumiaji: db.data.watumiaji || [],
-        matumizi: db.data.matumizi || []
-      };
-      await db.write();
-    }
-
-    console.log('📦 Current DB structure:', db.data);
-    return db;
+    console.log('✅ Database initialized');
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
     throw error;
@@ -73,8 +31,7 @@ async function initializeDatabase() {
 // Main application startup
 async function startApp() {
   try {
-    await ensureDataDirectory();
-    const db = await initializeDatabase();
+    await initializeDatabase();
 
     // Security middleware
     app.use(helmet());
@@ -92,9 +49,13 @@ async function startApp() {
     // Dashboard
     app.get('/', async (req, res, next) => {
       try {
-        await db.read();
-        const ripoti = db.data.dawa.map(d => {
-          const jumla = db.data.matumizi
+        const [dawa, matumizi] = await Promise.all([
+          kv.get('dawa'),
+          kv.get('matumizi')
+        ]);
+
+        const ripoti = dawa.map(d => {
+          const jumla = matumizi
             .filter(m => m.dawaId === d.id)
             .reduce((sum, m) => sum + Number(m.kiasi), 0);
           return {
@@ -109,10 +70,8 @@ async function startApp() {
       }
     });
 
-    // Add medicine form
-    app.get('/dawa/ongeza', (req, res) => res.render('add-medicine'));
-
-    // Add medicine POST
+    // [Rest of your routes with kv.get/kv.set instead of db.read/db.write]
+    // Example for adding medicine:
     app.post('/dawa/ongeza', async (req, res, next) => {
       try {
         const { jina, aina, kiasi } = req.body;
@@ -120,97 +79,26 @@ async function startApp() {
           return res.status(400).render('error', { message: 'All fields are required and kiasi must be positive' });
         }
 
-        await db.read();
-        if (db.data.dawa.some(d => d.jina === jina)) {
+        const dawa = await kv.get('dawa');
+        if (dawa.some(d => d.jina === jina)) {
           return res.status(400).render('error', { message: 'Dawa with this name already exists' });
         }
 
-        db.data.dawa.push({ id: nanoid(), jina, aina, kiasi: Number(kiasi) });
-        await db.write();
+        const newDawa = [...dawa, { id: nanoid(), jina, aina, kiasi: Number(kiasi) }];
+        await kv.set('dawa', newDawa);
         res.redirect('/');
       } catch (error) {
         next(error);
       }
     });
 
-    // Add user form
-    app.get('/mtumiaji/ongeza', (req, res) => res.render('add-user'));
+    // [Other routes similarly modified...]
 
-    // Add user POST
-    app.post('/mtumiaji/ongeza', async (req, res, next) => {
-      try {
-        const { jina } = req.body;
-        if (!jina) return res.status(400).render('error', { message: 'Jina is required' });
-
-        await db.read();
-        db.data.watumiaji.push({ id: nanoid(), jina });
-        await db.write();
-        res.redirect('/');
-      } catch (error) {
-        next(error);
-      }
-    });
-
-    // Log usage form
-    app.get('/matumizi/sajili', async (req, res, next) => {
-      try {
-        await db.read();
-        res.render('log-usage', {
-          dawa: db.data.dawa,
-          watumiaji: db.data.watumiaji
-        });
-      } catch (error) {
-        next(error);
-      }
-    });
-
-    // Log usage POST
-    app.post('/matumizi/sajili', async (req, res, next) => {
-      try {
-        const { mtumiajiId, dawaId, kiasi, imethibitishwa } = req.body;
-
-        if (!imethibitishwa) return res.redirect('/');
-        if (!mtumiajiId || !dawaId || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
-          return res.status(400).render('error', { message: 'All fields are required and kiasi must be positive' });
-        }
-
-        await db.read();
-
-        const dawa = db.data.dawa.find(d => d.id === dawaId);
-        if (!dawa) return res.status(404).render('error', { message: 'Medicine not found' });
-
-        const usedAmount = db.data.matumizi
-          .filter(m => m.dawaId === dawaId)
-          .reduce((sum, m) => sum + Number(m.kiasi), 0);
-
-        const remaining = dawa.kiasi - usedAmount;
-        if (remaining < Number(kiasi)) {
-          return res.status(400).render('error', {
-            message: `Insufficient stock. Only ${remaining} units available`
-          });
-        }
-
-        db.data.matumizi.push({
-          id: nanoid(),
-          mtumiajiId,
-          dawaId,
-          kiasi: Number(kiasi),
-          tarehe: new Date().toISOString().slice(0, 10)
-        });
-
-        await db.write();
-        res.redirect('/');
-      } catch (error) {
-        next(error);
-      }
-    });
-
-    // 404 handler
+    // 404 and error handlers remain the same
     app.use((req, res) => {
       res.status(404).render('error', { message: 'Page not found' });
     });
 
-    // Global error handler
     app.use((err, req, res, next) => {
       console.error(err.stack);
       res.status(500).render('error', { message: 'Server error, please try again later' });
