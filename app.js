@@ -1,10 +1,9 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node';
 import { nanoid } from 'nanoid';
 import { promises as fs } from 'fs';
+import { writeFile, utils } from 'xlsx';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
@@ -14,47 +13,59 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Database setup - works on both local and Vercel
-const dbPath = path.join(process.env.VERCEL ? '/tmp' : __dirname, 'db.json');
+// Database setup - Excel files
+const dataDir = path.join(__dirname, 'data');
+const excelPath = path.join(dataDir, 'database.xlsx');
 
-// Improved database initialization with retries
+// Excel sheet names
+const SHEETS = {
+  DAWA: 'Dawa',
+  WATUMIAJI: 'Watumiaji',
+  MATUMIZI: 'Matumizi'
+};
+
+// Initialize Excel database
 async function initializeDatabase() {
-  let retries = 3;
-  
-  while (retries > 0) {
+  try {
+    await fs.mkdir(dataDir, { recursive: true });
+    
     try {
-      // Create file if it doesn't exist
-      try {
-        await fs.access(dbPath);
-      } catch {
-        await fs.writeFile(dbPath, JSON.stringify({ dawa: [], watumiaji: [], matumizi: [] }));
-      }
-
-      const adapter = new JSONFile(dbPath);
-      const db = new Low(adapter);
+      await fs.access(excelPath);
+      console.log('📁 Excel database exists');
+    } catch {
+      console.log('🆕 Creating new Excel database');
       
-      await db.read();
+      // Create workbook with empty sheets
+      const workbook = utils.book_new();
+      utils.book_append_sheet(workbook, utils.json_to_sheet([]), SHEETS.DAWA);
+      utils.book_append_sheet(workbook, utils.json_to_sheet([]), SHEETS.WATUMIAJI);
+      utils.book_append_sheet(workbook, utils.json_to_sheet([]), SHEETS.MATUMIZI);
       
-      // Ensure data structure exists
-      if (!db.data || typeof db.data !== 'object') {
-        db.data = { dawa: [], watumiaji: [], matumizi: [] };
-        await db.write();
-      }
-      
-      return db;
-    } catch (error) {
-      retries--;
-      console.error(`Database init failed (${retries} retries left):`, error);
-      if (retries === 0) throw error;
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await writeFile(workbook, excelPath);
     }
+  } catch (error) {
+    console.error('Database initialization failed:', error);
+    throw error;
   }
+}
+
+// Read data from Excel sheet
+async function readSheet(sheetName) {
+  const workbook = (await import('xlsx')).readFile(excelPath);
+  return utils.sheet_to_json(workbook.Sheets[sheetName]);
+}
+
+// Write data to Excel sheet
+async function writeSheet(sheetName, data) {
+  const workbook = (await import('xlsx')).readFile(excelPath);
+  utils.book_append_sheet(workbook, utils.json_to_sheet(data), sheetName, true);
+  await writeFile(workbook, excelPath);
 }
 
 // Main application startup
 async function startApp() {
   try {
-    const db = await initializeDatabase();
+    await initializeDatabase();
 
     // Security middleware
     app.use(helmet());
@@ -67,203 +78,151 @@ async function startApp() {
     app.set('view engine', 'ejs');
     app.set('views', path.join(__dirname, 'views'));
     app.use(express.urlencoded({ extended: true }));
-    app.use(express.static(path.join(__dirname, 'public'), { fallthrough: true }));
+    app.use(express.static(path.join(__dirname, 'public')));
 
-    // Health check endpoint
-    app.get('/health', (req, res) => {
-      res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
-    });
-
-    // Dashboard - Show all medicines with usage summary
+    // Dashboard
     app.get('/', async (req, res, next) => {
       try {
-        await db.read();
-        const ripoti = db.data.dawa.map(d => ({
-          ...d,
-          jumlaMatumizi: db.data.matumizi
+        const [dawa, matumizi] = await Promise.all([
+          readSheet(SHEETS.DAWA),
+          readSheet(SHEETS.MATUMIZI)
+        ]);
+
+        const ripoti = dawa.map(d => {
+          const jumla = matumizi
             .filter(m => m.dawaId === d.id)
-            .reduce((sum, m) => sum + Number(m.kiasi), 0),
-          kilichobaki: d.kiasi - db.data.matumizi
-            .filter(m => m.dawaId === d.id)
-            .reduce((sum, m) => sum + Number(m.kiasi), 0)
-        }));
+            .reduce((sum, m) => sum + Number(m.kiasi), 0);
+          return {
+            ...d,
+            jumlaMatumizi: jumla,
+            kilichobaki: d.kiasi - jumla,
+          };
+        });
         res.render('dashboard', { dawa: ripoti });
       } catch (error) {
         next(error);
       }
     });
 
-    // Add Medicine - Form
-    app.get('/dawa/ongeza', (req, res) => {
-      res.render('add-medicine');
-    });
+    // Add medicine form
+    app.get('/dawa/ongeza', (req, res) => res.render('add-medicine'));
 
-    // Add Medicine - POST Handler
+    // Add medicine POST
     app.post('/dawa/ongeza', async (req, res, next) => {
       try {
         const { jina, aina, kiasi } = req.body;
-        
-        // Validation
         if (!jina || !aina || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
-          return res.status(400).render('error', { 
-            message: 'Hakikisha umejaza sehemu zote na kiasi ni namba chanya' 
-          });
+          return res.status(400).render('error', { message: 'All fields are required and kiasi must be positive' });
         }
 
-        await db.read();
-        
-        // Check for duplicate medicine
-        if (db.data.dawa.some(d => d.jina === jina)) {
-          return res.status(400).render('error', { 
-            message: 'Dawa yenye jina hili tayari ipo kwenye mfumo' 
-          });
+        const dawa = await readSheet(SHEETS.DAWA);
+        if (dawa.some(d => d.jina === jina)) {
+          return res.status(400).render('error', { message: 'Dawa with this name already exists' });
         }
 
-        // Add new medicine
-        db.data.dawa.push({ 
-          id: nanoid(), 
-          jina, 
-          aina, 
-          kiasi: Number(kiasi) 
-        });
-        await db.write();
-        
+        const newDawa = [...dawa, { id: nanoid(), jina, aina, kiasi: Number(kiasi) }];
+        await writeSheet(SHEETS.DAWA, newDawa);
         res.redirect('/');
       } catch (error) {
         next(error);
       }
     });
 
-    // Add User - Form
-    app.get('/mtumiaji/ongeza', (req, res) => {
-      res.render('add-user');
-    });
+    // Add user form
+    app.get('/mtumiaji/ongeza', (req, res) => res.render('add-user'));
 
-    // Add User - POST Handler
+    // Add user POST
     app.post('/mtumiaji/ongeza', async (req, res, next) => {
       try {
         const { jina } = req.body;
-        
-        // Validation
-        if (!jina || jina.trim() === '') {
-          return res.status(400).render('error', { 
-            message: 'Jina la mtumiaji linahitajika' 
-          });
-        }
+        if (!jina) return res.status(400).render('error', { message: 'Jina is required' });
 
-        await db.read();
-        
-        // Add new user
-        db.data.watumiaji.push({ 
-          id: nanoid(), 
-          jina: jina.trim() 
-        });
-        await db.write();
-        
+        const watumiaji = await readSheet(SHEETS.WATUMIAJI);
+        const newWatumiaji = [...watumiaji, { id: nanoid(), jina }];
+        await writeSheet(SHEETS.WATUMIAJI, newWatumiaji);
         res.redirect('/');
       } catch (error) {
         next(error);
       }
     });
 
-    // Log Usage - Form
+    // Log usage form
     app.get('/matumizi/sajili', async (req, res, next) => {
       try {
-        await db.read();
-        res.render('log-usage', { 
-          dawa: db.data.dawa, 
-          watumiaji: db.data.watumiaji 
-        });
+        const [dawa, watumiaji] = await Promise.all([
+          readSheet(SHEETS.DAWA),
+          readSheet(SHEETS.WATUMIAJI)
+        ]);
+        res.render('log-usage', { dawa, watumiaji });
       } catch (error) {
         next(error);
       }
     });
 
-    // Log Usage - POST Handler
+    // Log usage POST
     app.post('/matumizi/sajili', async (req, res, next) => {
       try {
         const { mtumiajiId, dawaId, kiasi, imethibitishwa } = req.body;
 
-        // Check if confirmed
-        if (!imethibitishwa) {
-          return res.redirect('/');
-        }
-
-        // Validation
+        if (!imethibitishwa) return res.redirect('/');
         if (!mtumiajiId || !dawaId || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
-          return res.status(400).render('error', { 
-            message: 'Hakikisha umechagua mtumiaji, dawa na kiasi sahihi' 
-          });
+          return res.status(400).render('error', { message: 'All fields are required and kiasi must be positive' });
         }
 
-        await db.read();
+        const [dawaList, matumizi] = await Promise.all([
+          readSheet(SHEETS.DAWA),
+          readSheet(SHEETS.MATUMIZI)
+        ]);
 
-        // Check medicine exists
-        const dawa = db.data.dawa.find(d => d.id === dawaId);
-        if (!dawa) {
-          return res.status(404).render('error', { 
-            message: 'Dawa hiyo haipo kwenye mfumo' 
-          });
-        }
+        const dawa = dawaList.find(d => d.id === dawaId);
+        if (!dawa) return res.status(404).render('error', { message: 'Medicine not found' });
 
-        // Calculate remaining stock
-        const usedAmount = db.data.matumizi
+        const usedAmount = matumizi
           .filter(m => m.dawaId === dawaId)
           .reduce((sum, m) => sum + Number(m.kiasi), 0);
 
         const remaining = dawa.kiasi - usedAmount;
-        
-        // Check sufficient stock
         if (remaining < Number(kiasi)) {
           return res.status(400).render('error', {
-            message: `Hakuna dawa ya kutosha. Kiasi kilichobaki: ${remaining}`
+            message: `Insufficient stock. Only ${remaining} units available`
           });
         }
 
-        // Record usage
-        db.data.matumizi.push({
+        const newMatumizi = [...matumizi, {
           id: nanoid(),
           mtumiajiId,
           dawaId,
           kiasi: Number(kiasi),
           tarehe: new Date().toISOString().slice(0, 10)
-        });
+        }];
 
-        await db.write();
+        await writeSheet(SHEETS.MATUMIZI, newMatumizi);
         res.redirect('/');
       } catch (error) {
         next(error);
       }
     });
 
-    // 404 Handler
+    // 404 handler
     app.use((req, res) => {
-      res.status(404).render('error', { 
-        message: 'Ukurasa ulioutafuta haupatikani' 
-      });
+      res.status(404).render('error', { message: 'Page not found' });
     });
 
-    // Global Error Handler
+    // Global error handler
     app.use((err, req, res, next) => {
-      console.error('🔥 Hitilafu:', err.stack);
-      res.status(500).render('error', { 
-        message: 'Kuna tatizo la seva, tafadhali jaribu tena baadaye' 
-      });
+      console.error(err.stack);
+      res.status(500).render('error', { message: 'Server error, please try again later' });
     });
 
-    // Start server
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`🚀 Mfumo wa dawa unakimbia kwenye http://localhost:${PORT}`);
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error('💥 Hitilafu kubwa ya kuanzisha mfumo:', error);
+    console.error('💥 Critical startup error:', error);
     process.exit(1);
   }
 }
 
-// Start the application with error handling
-startApp().catch(err => {
-  console.error('💥 Mfumu haujaweza kuanzishwa:', err);
-  process.exit(1);
-});
+// Start the application
+startApp();
