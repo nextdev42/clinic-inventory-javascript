@@ -1,0 +1,15 @@
+{
+  "name": "mfumo-wa-dawa",
+  "version": "1.0.0",
+  "description": "Mfumo wa kuhifadhi na kufuatilia matumizi ya dawa kwa Kiswahili",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ejs": "^3.1.9",
+    "lowdb": "^6.0.1",
+    "nanoid": "^4.0.0"
+  }
+}
