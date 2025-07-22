@@ -18,10 +18,6 @@ const db = new Low(adapter);
 async function init() {
   await db.read();
   db.data ||= { dawa: [], watumiaji: [],
-async function init() {
-  await db.read();
-  db.data ||= { dawa: [], watumiaji: [], matumizi: [] };
-
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, 'views'));
   app.use(express.urlencoded({ extended: true }));
