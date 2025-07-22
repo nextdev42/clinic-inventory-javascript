@@ -1,6 +1,7 @@
 {
   "name": "mfumo-wa-dawa",
   "version": "1.0.0",
+  "type": "module",
   "description": "Mfumo wa kuhifadhi na kufuatilia matumizi ya dawa kwa Kiswahili",
   "main": "app.js",
   "scripts": {
