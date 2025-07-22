@@ -23,17 +23,18 @@ const db = new Low(adapter);
 // Security middleware
 app.use(helmet());
 app.use(rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100
 }));
 
 async function initializeDatabase() {
   try {
-    // Create data directory if it doesn't exist
     await fs.mkdir(dataDir, { recursive: true });
-    
-    // Read database or initialize if empty
     await db.read();
+
+    // Log current DB state
+    console.log('📦 Initial DB state:', db.data);
+
     if (!db.data || Object.keys(db.data).length === 0) {
       db.data = { dawa: [], watumiaji: [], matumizi: [] };
       await db.write();
@@ -49,18 +50,16 @@ async function startServer() {
   try {
     await initializeDatabase();
 
-    // App configuration
     app.set('view engine', 'ejs');
     app.set('views', path.join(__dirname, 'views'));
     app.use(express.urlencoded({ extended: true }));
     app.use(express.static(path.join(__dirname, 'public')));
 
-    // --- Routes ---
-
     // Dashboard
     app.get('/', async (req, res, next) => {
       try {
         await db.read();
+        console.log('📊 Dashboard Load DB:', db.data);
         const ripoti = db.data.dawa.map(d => {
           const jumla = db.data.matumizi
             .filter(m => m.dawaId === d.id)
@@ -77,51 +76,52 @@ async function startServer() {
       }
     });
 
-    // Medicine routes
     app.get('/dawa/ongeza', (req, res) => res.render('add-medicine'));
+
     app.post('/dawa/ongeza', async (req, res, next) => {
       try {
         const { jina, aina, kiasi } = req.body;
         if (!jina || !aina || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
           return res.status(400).render('error', { message: 'All fields are required and kiasi must be positive' });
         }
-        
+
         await db.read();
         if (db.data.dawa.some(d => d.jina === jina)) {
           return res.status(400).render('error', { message: 'Dawa with this name already exists' });
         }
-        
+
         db.data.dawa.push({ id: nanoid(), jina, aina, kiasi: Number(kiasi) });
         await db.write();
+        console.log('🆕 Dawa added:', db.data.dawa);
         res.redirect('/');
       } catch (error) {
         next(error);
       }
     });
 
-    // User routes
     app.get('/mtumiaji/ongeza', (req, res) => res.render('add-user'));
+
     app.post('/mtumiaji/ongeza', async (req, res, next) => {
       try {
         const { jina } = req.body;
         if (!jina) return res.status(400).render('error', { message: 'Jina is required' });
-        
+
         await db.read();
         db.data.watumiaji.push({ id: nanoid(), jina });
         await db.write();
+        console.log('👤 Mtumiaji added:', db.data.watumiaji);
         res.redirect('/');
       } catch (error) {
         next(error);
       }
     });
 
-    // Usage routes
     app.get('/matumizi/sajili', async (req, res, next) => {
       try {
         await db.read();
-        res.render('log-usage', { 
-          dawa: db.data.dawa, 
-          watumiaji: db.data.watumiaji 
+        res.render('log-usage', {
+          dawa: db.data.dawa,
+          watumiaji: db.data.watumiaji
         });
       } catch (error) {
         next(error);
@@ -131,29 +131,28 @@ async function startServer() {
     app.post('/matumizi/sajili', async (req, res, next) => {
       try {
         const { mtumiajiId, dawaId, kiasi, imethibitishwa } = req.body;
-        
+
         if (!imethibitishwa) return res.redirect('/');
         if (!mtumiajiId || !dawaId || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
           return res.status(400).render('error', { message: 'All fields are required and kiasi must be positive' });
         }
-        
+
         await db.read();
-        
-        // Check medicine availability
+
         const dawa = db.data.dawa.find(d => d.id === dawaId);
         if (!dawa) return res.status(404).render('error', { message: 'Medicine not found' });
-        
+
         const usedAmount = db.data.matumizi
           .filter(m => m.dawaId === dawaId)
           .reduce((sum, m) => sum + Number(m.kiasi), 0);
-        
+
         const remaining = dawa.kiasi - usedAmount;
         if (remaining < Number(kiasi)) {
-          return res.status(400).render('error', { 
-            message: `Insufficient stock. Only ${remaining} units available` 
+          return res.status(400).render('error', {
+            message: `Insufficient stock. Only ${remaining} units available`
           });
         }
-        
+
         db.data.matumizi.push({
           id: nanoid(),
           mtumiajiId,
@@ -161,20 +160,19 @@ async function startServer() {
           kiasi: Number(kiasi),
           tarehe: new Date().toISOString().slice(0, 10)
         });
-        
+
         await db.write();
+        console.log('📝 Matumizi logged:', db.data.matumizi);
         res.redirect('/');
       } catch (error) {
         next(error);
       }
     });
 
-    // 404 handler
     app.use((req, res) => {
       res.status(404).render('error', { message: 'Page not found' });
     });
 
-    // Global error handler
     app.use((err, req, res, next) => {
       console.error(err.stack);
       res.status(500).render('error', { message: 'Server error, please try again later' });
@@ -190,5 +188,4 @@ async function startServer() {
   }
 }
 
-// Start the application
 startServer();
