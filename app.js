@@ -11,6 +11,13 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ✅ Tangaza db hapa kabla ya kuitumia
+const adapter = new JSONFile(path.join(__dirname, 'data', 'db.json'));
+const db = new Low(adapter);
+
+async function init() {
+  await db.read();
+  db.data ||= { dawa: [], watumiaji: [],
 async function init() {
   await db.read();
   db.data ||= { dawa: [], watumiaji: [], matumizi: [] };
