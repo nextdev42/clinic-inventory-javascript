@@ -1,4 +1,4 @@
 FROM node:18-slim
 
-# Optional: install nano, curl etc.
-RUN apt-get update && apt-get install -y nano curl
+# Sakinisha git na packages nyingine muhimu
+RUN apt-get update && apt-get install -y git curl nano && apt-get clean
