@@ -2,10 +2,20 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - name: Install na start server
-    init: npm install
+  - name: Setup Application
+    init: |
+      mkdir -p data
+      touch data/database.xlsx
+      chmod 644 data/database.xlsx
+      npm install
     command: npm start
 
 ports:
   - port: 3000
     onOpen: open-preview
+    visibility: public
+
+vscode:
+  extensions:
+    - eamodio.gitlens
+    - dbaeumer.vscode-eslint
