@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { nanoid } from 'nanoid';
 import { promises as fs } from 'fs';
-import { writeFile, utils } from 'xlsx';
+import { readFile, writeFile, utils } from 'xlsx';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
@@ -51,13 +51,13 @@ async function initializeDatabase() {
 
 // Read data from Excel sheet
 async function readSheet(sheetName) {
-  const workbook = (await import('xlsx')).readFile(excelPath);
+  const workbook = readFile(excelPath);
   return utils.sheet_to_json(workbook.Sheets[sheetName]);
 }
 
 // Write data to Excel sheet
 async function writeSheet(sheetName, data) {
-  const workbook = (await import('xlsx')).readFile(excelPath);
+  const workbook = readFile(excelPath);
   utils.book_append_sheet(workbook, utils.json_to_sheet(data), sheetName, true);
   await writeFile(workbook, excelPath);
 }
