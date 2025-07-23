@@ -73,8 +73,16 @@
               <li>
                 - <strong><%= item.dawa %></strong>: <%= item.kiasi %> &nbsp;
                 <small>(
-                  <%= new Date(item.saa).toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %>
-                )</small>
+  <% 
+    const time = new Date(item.saa);
+    if (!isNaN(time)) {
+      %><%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %><%
+    } else {
+      %>hakujulikana<%
+    }
+  %>
+)</small>
+
               </li>
             <% }) %>
           </ul>
