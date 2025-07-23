@@ -36,7 +36,7 @@ async function initializeDatabase() {
       const emptySheets = {
         [SHEETS.DAWA]: [{ id: '', jina: '', aina: '', kiasi: '' }],
         [SHEETS.MATUMIZI]: [{ dawaId: '', kiasi: '', tarehe: '' }],
-        [SHEETS.WATUMIAJI]: [{ id: '', jina: '', kundi: '' }]
+        [SHEETS.WATUMIAJI]: [{ id: '', jina: '', }]
       };
 
       Object.entries(emptySheets).forEach(([sheetName, headers]) => {
