@@ -70,7 +70,8 @@ async function writeSheet(sheetKey, data) {
     const worksheet = xlsx.utils.json_to_sheet(
      data.map(item => ({
      ...item,
-    tarehe: item.tarehe?.toString?.() // ⚠️ Force tarehe kuwa string
+    tarehe: item.tarehe ? new Date(item.tarehe).toISOString() : ''
+ // ⚠️ Force tarehe kuwa string
   })),
   { header: config.headers }
 );
