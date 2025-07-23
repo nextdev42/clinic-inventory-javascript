@@ -16,14 +16,14 @@ const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, 'data');
 const excelPath = path.join(dataDir, 'database.xlsx');
 
-// 2. Sheet Configuration
+// 2. Sheet Names
 const SHEETS = {
   DAWA: 'Dawa',
   WATUMIAJI: 'Watumiaji',
   MATUMIZI: 'Matumizi'
 };
 
-// 3. Database Functions
+// 3. Database Initialization
 async function initializeDatabase() {
   try {
     await fs.mkdir(dataDir, { recursive: true });
@@ -33,35 +33,35 @@ async function initializeDatabase() {
       console.log('✅ Database file exists');
     } catch {
       const workbook = xlsx.utils.book_new();
-
       const headers = {
         [SHEETS.DAWA]: [['id', 'jina', 'aina', 'kiasi']],
-        [SHEETS.MATUMIZI]: [['dawaId', 'kiasi', 'tarehe']],
-        [SHEETS.WATUMIAJI]: [['id', 'jina']]
+        [SHEETS.WATUMIAJI]: [['id', 'jina']],
+        [SHEETS.MATUMIZI]: [['dawaId', 'kiasi', 'tarehe', 'mtumiajiId']]
       };
 
-      Object.entries(headers).forEach(([sheetName, headerRow]) => {
+      Object.entries(headers).forEach(([name, headerRow]) => {
         const sheet = xlsx.utils.aoa_to_sheet(headerRow);
-        xlsx.utils.book_append_sheet(workbook, sheet, sheetName);
+        xlsx.utils.book_append_sheet(workbook, sheet, name);
       });
 
       await xlsx.writeFile(workbook, excelPath);
-      console.log('📄 Created new database file with proper header rows');
+      console.log('📄 Created new database with headers');
     }
   } catch (error) {
-    console.error('❌ Database initialization failed:', error);
+    console.error('❌ Failed to initialize database:', error);
     throw error;
   }
 }
 
+// 4. Excel Read/Write Functions
 async function readSheet(sheetName) {
   try {
     const workbook = xlsx.readFile(excelPath);
     const sheet = workbook.Sheets[sheetName];
     const data = sheet ? xlsx.utils.sheet_to_json(sheet) : [];
 
-    // Debug logs
-    const raw = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+    // Debug
+    const raw = sheet ? xlsx.utils.sheet_to_json(sheet, { header: 1 }) : [];
     console.log(`${sheetName} headers:`, Object.keys(data[0] || {}));
     console.log(`${sheetName} raw headers:`, raw[0]);
     console.log(`${sheetName} raw rows:`, raw.slice(1));
@@ -76,10 +76,10 @@ async function readSheet(sheetName) {
 async function writeSheet(sheetName, data) {
   try {
     const workbook = xlsx.readFile(excelPath);
-    const worksheet = xlsx.utils.json_to_sheet(data);
-    workbook.Sheets[sheetName] = worksheet;
+    const sheet = xlsx.utils.json_to_sheet(data);
+    workbook.Sheets[sheetName] = sheet;
     await xlsx.writeFile(workbook, excelPath);
-    console.log(`📝 Updated ${sheetName} sheet successfully`);
+    console.log(`📝 ${sheetName} updated`);
     return true;
   } catch (error) {
     console.error(`❌ Error writing ${sheetName}:`, error);
@@ -87,23 +87,19 @@ async function writeSheet(sheetName, data) {
   }
 }
 
-// 4. Application Setup
+// 5. App Startup
 async function startApp() {
   await initializeDatabase();
 
   app.use(helmet());
-  app.use(rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    standardHeaders: true,
-    legacyHeaders: false
-  }));
+  app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, 'views'));
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // Routes
+  // 6. Routes
+
   app.get('/', async (req, res, next) => {
     try {
       const [dawa, matumizi] = await Promise.all([
@@ -113,8 +109,8 @@ async function startApp() {
 
       const ripoti = dawa.map(medicine => {
         const totalUsed = matumizi
-          .filter(usage => usage.dawaId === medicine.id)
-          .reduce((sum, usage) => sum + (Number(usage.kiasi) || 0), 0);
+          .filter(m => m.dawaId === medicine.id)
+          .reduce((sum, m) => sum + (Number(m.kiasi) || 0), 0);
 
         return {
           ...medicine,
@@ -140,9 +136,9 @@ async function startApp() {
     try {
       const { jina } = req.body;
 
-      if (!jina) {
+      if (!jina || jina.trim().length < 2) {
         return res.status(400).render('error', {
-          message: 'Tafadhali jaza jina la mtumiaji'
+          message: 'Tafadhali jaza jina sahihi la mtumiaji'
         });
       }
 
@@ -152,7 +148,7 @@ async function startApp() {
 
       if (!success) {
         return res.status(500).render('error', {
-          message: 'Imeshindikana kuongeza mtumiaji'
+          message: 'Imeshindikana kuhifadhi mtumiaji mpya'
         });
       }
 
@@ -175,7 +171,7 @@ async function startApp() {
 
       if (!dawaId || !mtumiajiId || !imethibitishwa || isNaN(kiasi) || Number(kiasi) <= 0) {
         return res.status(400).render('error', {
-          message: 'Jaza taarifa zote sahihi kuhusu matumizi ya dawa'
+          message: 'Tafadhali jaza taarifa zote sahihi'
         });
       }
 
@@ -186,7 +182,7 @@ async function startApp() {
 
       if (!success) {
         return res.status(500).render('error', {
-          message: 'Imeshindikana kusajili matumizi ya dawa'
+          message: 'Imeshindikana kusajili matumizi'
         });
       }
 
@@ -202,6 +198,7 @@ async function startApp() {
     res.json({ dawa, matumizi });
   });
 
+  // Error Handlers
   app.use((req, res) => {
     res.status(404).render('error', { message: 'Ukurasa haupatikani' });
   });
