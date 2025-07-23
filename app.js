@@ -271,19 +271,19 @@ function formatTime(dateStr) {
       const byDate = {};
 
       userUsages.forEach(usage => {
-        const day = formatDate(usage.tarehe);
-        if (!byDate[day]) byDate[day] = [];
-        // Find medicine name
-        const medicine = dawa.find(d => d.id === usage.dawaId);
-        const formattedTime = formatTime(usage.tarehe);
+  const day = formatDate(usage.tarehe);
+  if (!byDate[day]) byDate[day] = [];
 
-      if (!byDate[formattedDate]) byDate[formattedDate] = [];
+  const medicine = dawa.find(d => d.id === usage.dawaId);
+  const formattedTime = formatTime(usage.tarehe);
 
-byDate[formattedDate].push({
-  dawa: medicine ? medicine.jina : 'Haijulikani',
-  kiasi: usage.kiasi,
-  saa: formattedTime
+  byDate[day].push({
+    dawa: medicine ? medicine.jina : 'Haijulikani',
+    kiasi: usage.kiasi,
+    saa: formattedTime
+  });
 });
+
 
       });
 
