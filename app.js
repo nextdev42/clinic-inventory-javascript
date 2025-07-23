@@ -9,21 +9,30 @@ import rateLimit from 'express-rate-limit';
 
 const app = express();
 
-// 1. Configuration
+// ========== CONFIGURATION ========== //
 app.set('trust proxy', 1);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, 'data');
 const excelPath = path.join(dataDir, 'database.xlsx');
 
-// 2. Sheet Names
+// Sheet configuration with headers
 const SHEETS = {
-  DAWA: 'Dawa',
-  WATUMIAJI: 'Watumiaji',
-  MATUMIZI: 'Matumizi'
+  DAWA: {
+    name: 'Dawa',
+    headers: ['id', 'jina', 'aina', 'kiasi']
+  },
+  WATUMIAJI: {
+    name: 'Watumiaji',
+    headers: ['id', 'jina']
+  },
+  MATUMIZI: {
+    name: 'Matumizi',
+    headers: ['id', 'dawaId', 'mtumiajiId', 'kiasi', 'tarehe']
+  }
 };
 
-// 3. Database Initialization
+// ========== DATABASE FUNCTIONS ========== //
 async function initializeDatabase() {
   try {
     await fs.mkdir(dataDir, { recursive: true });
@@ -31,75 +40,98 @@ async function initializeDatabase() {
     try {
       await fs.access(excelPath);
       console.log('✅ Database file exists');
-    } catch {
+      
+      // Verify all sheets exist with correct headers
+      const workbook = xlsx.readFile(excelPath);
+      for (const [key, config] of Object.entries(SHEETS)) {
+        if (!workbook.Sheets[config.name]) {
+          throw new Error(`Missing sheet: ${config.name}`);
+        }
+        
+        // Verify headers
+        const sheet = workbook.Sheets[config.name];
+        const sheetHeaders = xlsx.utils.sheet_to_json(sheet, { header: 1 })[0] || [];
+        
+        if (sheetHeaders.length === 0) {
+          console.warn(`Sheet ${config.name} has no headers, recreating...`);
+          const newSheet = xlsx.utils.json_to_sheet([{}], { header: config.headers });
+          workbook.Sheets[config.name] = newSheet;
+          await xlsx.writeFile(workbook, excelPath);
+        }
+      }
+    } catch (error) {
+      console.log('Initializing new database file...');
       const workbook = xlsx.utils.book_new();
-      const headers = {
-        [SHEETS.DAWA]: [['id', 'jina', 'aina', 'kiasi']],
-        [SHEETS.WATUMIAJI]: [['id', 'jina']],
-        [SHEETS.MATUMIZI]: [['dawaId', 'kiasi', 'tarehe', 'mtumiajiId']]
-      };
-
-      Object.entries(headers).forEach(([name, headerRow]) => {
-        const sheet = xlsx.utils.aoa_to_sheet(headerRow);
-        xlsx.utils.book_append_sheet(workbook, sheet, name);
-      });
-
+      
+      // Create each sheet with proper headers
+      for (const [key, config] of Object.entries(SHEETS)) {
+        const worksheet = xlsx.utils.json_to_sheet([{}], { header: config.headers });
+        xlsx.utils.book_append_sheet(workbook, worksheet, config.name);
+      }
+      
       await xlsx.writeFile(workbook, excelPath);
-      console.log('📄 Created new database with headers');
+      console.log('📄 Created new database with all sheets');
     }
   } catch (error) {
-    console.error('❌ Failed to initialize database:', error);
+    console.error('❌ Database initialization failed:', error);
     throw error;
   }
 }
 
-// 4. Excel Read/Write Functions
-async function readSheet(sheetName) {
+async function readSheet(sheetKey) {
   try {
+    const config = SHEETS[sheetKey];
     const workbook = xlsx.readFile(excelPath);
-    const sheet = workbook.Sheets[sheetName];
-    const data = sheet ? xlsx.utils.sheet_to_json(sheet) : [];
-
-    // Debug
-    const raw = sheet ? xlsx.utils.sheet_to_json(sheet, { header: 1 }) : [];
-    console.log(`${sheetName} headers:`, Object.keys(data[0] || {}));
-    console.log(`${sheetName} raw headers:`, raw[0]);
-    console.log(`${sheetName} raw rows:`, raw.slice(1));
-
+    const sheet = workbook.Sheets[config.name];
+    
+    if (!sheet) {
+      console.warn(`Sheet ${config.name} not found`);
+      return [];
+    }
+    
+    // Get headers from sheet or use configured ones
+    const sheetHeaders = xlsx.utils.sheet_to_json(sheet, { header: 1 })[0] || [];
+    const headers = sheetHeaders.length > 0 ? sheetHeaders : config.headers;
+    
+    // Convert to JSON with proper headers
+    const data = xlsx.utils.sheet_to_json(sheet, { header: headers });
+    
+    console.log(`Read ${data.length} records from ${config.name}`);
     return data;
   } catch (error) {
-    console.error(`❌ Error reading ${sheetName}:`, error);
+    console.error(`❌ Error reading ${sheetKey}:`, error);
     return [];
   }
 }
 
-async function writeSheet(sheetName, data) {
+async function writeSheet(sheetKey, data) {
   try {
+    const config = SHEETS[sheetKey];
     const workbook = xlsx.readFile(excelPath);
-    const sheet = workbook.Sheets[sheetName];
-
-    // Safisha sheet kwanza na headers as array-of-arrays
-    const headers = Object.keys(data[0] || {});
-    const headerRow = [headers];
-    const newSheet = xlsx.utils.aoa_to_sheet(headerRow);
-
-    // Ongeza rows kuanzia safu ya 2
-    xlsx.utils.sheet_add_json(newSheet, data, { skipHeader: true, origin: -1 });
-
-    workbook.Sheets[sheetName] = newSheet;
+    
+    // Get existing headers or use configured ones
+    const sheet = workbook.Sheets[config.name];
+    const sheetHeaders = sheet ? (xlsx.utils.sheet_to_json(sheet, { header: 1 })[0] || [] : [];
+    const headers = sheetHeaders.length > 0 ? sheetHeaders : config.headers;
+    
+    // Create new worksheet with headers
+    const worksheet = xlsx.utils.json_to_sheet(data, { header: headers });
+    workbook.Sheets[config.name] = worksheet;
+    
     await xlsx.writeFile(workbook, excelPath);
-    console.log(`📝 ${sheetName} updated with preserved headers`);
+    console.log(`📝 Updated ${config.name} with ${data.length} records`);
     return true;
   } catch (error) {
-    console.error(`❌ Error writing ${sheetName}:`, error);
+    console.error(`❌ Error writing ${sheetKey}:`, error);
     return false;
   }
 }
 
-// 5. App Startup
+// ========== APPLICATION SETUP ========== //
 async function startApp() {
   await initializeDatabase();
 
+  // Middleware
   app.use(helmet());
   app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
   app.set('view engine', 'ejs');
@@ -107,28 +139,29 @@ async function startApp() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // 6. Routes
+  // ========== ROUTES ========== //
 
+  // Dashboard
   app.get('/', async (req, res, next) => {
     try {
       const [dawa, matumizi] = await Promise.all([
-        readSheet(SHEETS.DAWA),
-        readSheet(SHEETS.MATUMIZI)
+        readSheet('DAWA'),
+        readSheet('MATUMIZI')
       ]);
 
       const ripoti = dawa.map(medicine => {
         const totalUsed = matumizi
-          .filter(m => m.dawaId === medicine.id)
-          .reduce((sum, m) => sum + (Number(m.kiasi) || 0), 0);
-
+          .filter(usage => usage.dawaId === medicine.id)
+          .reduce((sum, usage) => sum + (Number(usage.kiasi) || 0), 0);
+        
         return {
           ...medicine,
           jumlaMatumizi: totalUsed,
-          kilichobaki: (Number(medicine.kiasi) || 0) - totalUsed
+          kilichobaki: (Number(medicine.kiasi) || 0 - totalUsed
         };
       });
 
-      res.render('dashboard', {
+      res.render('dashboard', { 
         dawa: ripoti,
         error: ripoti.length === 0 ? 'Hakuna data ya dawa kupatikana' : null
       });
@@ -137,28 +170,40 @@ async function startApp() {
     }
   });
 
-  app.get('/mtumiaji/ongeza', (req, res) => {
-    res.render('add-user');
-  });
-
-  app.post('/mtumiaji/ongeza', async (req, res, next) => {
+  // Add Medicine
+  app.get('/dawa/ongeza', (req, res) => res.render('add-medicine'));
+  app.post('/dawa/ongeza', async (req, res, next) => {
     try {
-      const { jina } = req.body;
-
-      if (!jina || jina.trim().length < 2) {
-        return res.status(400).render('error', {
-          message: 'Tafadhali jaza jina sahihi la mtumiaji'
+      const { jina, aina, kiasi } = req.body;
+      
+      // Validation
+      if (!jina || !aina || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
+        return res.status(400).render('error', { 
+          message: 'Tafadhali jaza taarifa zote sahihi' 
         });
       }
 
-      const users = await readSheet(SHEETS.WATUMIAJI);
-      const newUser = { id: nanoid(), jina };
-      const success = await writeSheet(SHEETS.WATUMIAJI, [...users, newUser]);
-
-      if (!success) {
-        return res.status(500).render('error', {
-          message: 'Imeshindikana kuhifadhi mtumiaji mpya'
+      const dawa = await readSheet('DAWA');
+      
+      // Check for duplicates
+      if (dawa.some(d => d.jina?.toLowerCase() === jina.toLowerCase())) {
+        return res.status(400).render('error', { 
+          message: 'Dawa yenye jina hili tayari ipo' 
         });
+      }
+
+      // Add new medicine
+      const newMedicine = {
+        id: nanoid(),
+        jina,
+        aina,
+        kiasi: Number(kiasi)
+      };
+
+      const success = await writeSheet('DAWA', [...dawa, newMedicine]);
+      
+      if (!success) {
+        throw new Error('Failed to save medicine');
       }
 
       res.redirect('/');
@@ -167,61 +212,127 @@ async function startApp() {
     }
   });
 
-  app.get('/matumizi/sajili', async (req, res) => {
-    const dawa = await readSheet(SHEETS.DAWA);
-    const watumiaji = await readSheet(SHEETS.WATUMIAJI);
-    res.render('log-usage', { dawa, watumiaji });
+  // Add User
+  app.get('/mtumiaji/ongeza', (req, res) => res.render('add-user'));
+  app.post('/mtumiaji/ongeza', async (req, res, next) => {
+    try {
+      const { jina } = req.body;
+      
+      if (!jina || jina.trim().length < 2) {
+        return res.status(400).render('error', {
+          message: 'Jina la mtumiaji linahitajika'
+        });
+      }
+
+      const watumiaji = await readSheet('WATUMIAJI');
+      const newUser = { 
+        id: nanoid(), 
+        jina: jina.trim() 
+      };
+
+      await writeSheet('WATUMIAJI', [...watumiaji, newUser]);
+      res.redirect('/');
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Log Usage
+  app.get('/matumizi/sajili', async (req, res, next) => {
+    try {
+      const [dawa, watumiaji] = await Promise.all([
+        readSheet('DAWA'),
+        readSheet('WATUMIAJI')
+      ]);
+      
+      res.render('log-usage', { 
+        dawa, 
+        watumiaji,
+        error: dawa.length === 0 ? 'Hakuna dawa zilizosajiliwa' : 
+              watumiaji.length === 0 ? 'Hakuna watumiaji waliosajiliwa' : null
+      });
+    } catch (error) {
+      next(error);
+    }
   });
 
   app.post('/matumizi/sajili', async (req, res, next) => {
     try {
-      const { dawaId, kiasi, mtumiajiId, imethibitishwa } = req.body;
+      const { dawaId, mtumiajiId, kiasi } = req.body;
       const tarehe = new Date().toISOString().split('T')[0];
 
-      if (!dawaId || !mtumiajiId || !imethibitishwa || isNaN(kiasi) || Number(kiasi) <= 0) {
+      // Validation
+      if (!dawaId || !mtumiajiId || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
         return res.status(400).render('error', {
-          message: 'Tafadhali jaza taarifa zote sahihi'
+          message: 'Tafadhali jaza taarifa zote kwa usahihi'
         });
       }
 
-      const matumizi = await readSheet(SHEETS.MATUMIZI);
-      const newUsage = { dawaId, kiasi: Number(kiasi), tarehe, mtumiajiId };
+      const [dawaList, matumizi] = await Promise.all([
+        readSheet('DAWA'),
+        readSheet('MATUMIZI')
+      ]);
 
-      const success = await writeSheet(SHEETS.MATUMIZI, [...matumizi, newUsage]);
-
-      if (!success) {
-        return res.status(500).render('error', {
-          message: 'Imeshindikana kusajili matumizi'
+      // Check medicine exists
+      const dawa = dawaList.find(d => d.id === dawaId);
+      if (!dawa) {
+        return res.status(404).render('error', {
+          message: 'Dawa hiyo haipo kwenye mfumo'
         });
       }
 
+      // Calculate remaining quantity
+      const used = matumizi
+        .filter(m => m.dawaId === dawaId)
+        .reduce((sum, m) => sum + (Number(m.kiasi) || 0, 0);
+      
+      const remaining = (dawa.kiasi || 0) - used;
+      
+      if (remaining < Number(kiasi)) {
+        return res.status(400).render('error', {
+          message: `Kiasi kilichobaki (${remaining}) hakitoshi`
+        });
+      }
+
+      // Record usage
+      const newUsage = {
+        id: nanoid(),
+        dawaId,
+        mtumiajiId,
+        kiasi: Number(kiasi),
+        tarehe
+      };
+
+      await writeSheet('MATUMIZI', [...matumizi, newUsage]);
       res.redirect('/');
     } catch (error) {
       next(error);
     }
   });
 
+  // ========== ADMIN ROUTES ========== //
   app.get('/admin/headers-check', async (req, res) => {
-  try {
-    const workbook = xlsx.readFile(excelPath);
-    const results = Object.keys(SHEETS).map(key => {
-      const name = SHEETS[key];
-      const sheet = workbook.Sheets[name];
-      const raw = xlsx.utils.sheet_to_json(sheet || {}, { header: 1 });
+    try {
+      const workbook = xlsx.readFile(excelPath);
+      const results = Object.entries(SHEETS).map(([key, config]) => {
+        const sheet = workbook.Sheets[config.name];
+        const raw = sheet ? xlsx.utils.sheet_to_json(sheet, { header: 1 }) : [];
+        
+        return {
+          sheet: config.name,
+          expectedHeaders: config.headers,
+          actualHeaders: raw[0] || [],
+          recordCount: raw.length - 1,
+          status: raw[0]?.length === config.headers.length ? '✅' : '❌'
+        };
+      });
 
-      return {
-        jinaLaSheet: name,
-        headers: raw[0] || [],
-        count: raw.length - 1
-      };
-    });
-
-    res.render('headers-check', { results });
-  } catch (error) {
-    console.error('❌ Sheet header check failed:', error);
-    res.status(500).render('error', { message: 'Hitilafu katika ukaguzi wa headers' });
-  }
-});
+      res.render('headers-check', { results });
+    } catch (error) {
+      console.error('❌ Sheet header check failed:', error);
+      res.status(500).render('error', { message: 'Hitilafu katika ukaguzi wa headers' });
+    }
+  });
 
   app.get('/admin/sheet-dump', async (req, res) => {
   try {
@@ -237,25 +348,24 @@ async function startApp() {
     res.status(500).render('error', { message: 'Hitilafu katika kusoma data zote' });
   }
 });
-  app.get('/debug', async (req, res) => {
-    const dawa = await readSheet(SHEETS.DAWA);
-    const matumizi = await readSheet(SHEETS.MATUMIZI);
-    res.json({ dawa, matumizi });
-  });
 
-  // Error Handlers
+
+  // ========== ERROR HANDLERS ========== //
   app.use((req, res) => {
     res.status(404).render('error', { message: 'Ukurasa haupatikani' });
   });
 
   app.use((err, req, res, next) => {
-    console.error('🔥 Server error:', err);
-    res.status(500).render('error', { message: 'Hitilafu ya seva' });
+    console.error('🔥 Server Error:', err);
+    res.status(500).render('error', { 
+      message: 'Kuna tatizo la seva. Tafadhali jaribu tena baadaye.' 
+    });
   });
 
+  // ========== START SERVER ========== //
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Mfumo wa dawa unaendeshwa kwenye http://localhost:${PORT}`);
+    console.log(`🚀 Mfumo unatumika kwenye http://localhost:${PORT}`);
   });
 }
 
