@@ -27,17 +27,25 @@ const SHEETS = {
 async function initializeDatabase() {
   try {
     await fs.mkdir(dataDir, { recursive: true });
-    
+
     try {
       await fs.access(excelPath);
       console.log('✅ Database file exists');
     } catch {
       const workbook = xlsx.utils.book_new();
-      Object.values(SHEETS).forEach(sheet => {
-        xlsx.utils.book_append_sheet(workbook, xlsx.utils.json_to_sheet([]), sheet);
+      const emptySheets = {
+        [SHEETS.DAWA]: [{ id: '', jina: '', aina: '', kiasi: '' }],
+        [SHEETS.MATUMIZI]: [{ dawaId: '', kiasi: '', tarehe: '' }],
+        [SHEETS.WATUMIAJI]: [{ id: '', jina: '', kundi: '' }]
+      };
+
+      Object.entries(emptySheets).forEach(([sheetName, headers]) => {
+        const sheet = xlsx.utils.json_to_sheet(headers);
+        xlsx.utils.book_append_sheet(workbook, sheet, sheetName);
       });
+
       await xlsx.writeFile(workbook, excelPath);
-      console.log('📄 Created new database file');
+      console.log('📄 Created new database file with seeded headers');
     }
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
@@ -49,7 +57,9 @@ async function readSheet(sheetName) {
   try {
     const workbook = xlsx.readFile(excelPath);
     const sheet = workbook.Sheets[sheetName];
-    return sheet ? xlsx.utils.sheet_to_json(sheet) : [];
+    const data = sheet ? xlsx.utils.sheet_to_json(sheet) : [];
+    console.log(`${sheetName} headers:`, Object.keys(data[0] || {}));
+    return data;
   } catch (error) {
     console.error(`❌ Error reading ${sheetName}:`, error);
     return [];
@@ -95,14 +105,14 @@ async function startApp() {
         readSheet(SHEETS.MATUMIZI)
       ]);
 
-      console.log('Debug - Dawa data:', dawa); // Debug log
-      console.log('Debug - Matumizi data:', matumizi); // Debug log
+      console.log('Debug - Dawa data:', dawa);
+      console.log('Debug - Matumizi data:', matumizi);
 
       const ripoti = dawa.map(medicine => {
         const totalUsed = matumizi
           .filter(usage => usage.dawaId === medicine.id)
           .reduce((sum, usage) => sum + (Number(usage.kiasi) || 0), 0);
-        
+
         return {
           ...medicine,
           jumlaMatumizi: totalUsed,
@@ -110,7 +120,7 @@ async function startApp() {
         };
       });
 
-      res.render('dashboard', { 
+      res.render('dashboard', {
         dawa: ripoti,
         error: ripoti.length === 0 ? 'Hakuna data ya dawa kupatikana' : null
       });
@@ -123,24 +133,21 @@ async function startApp() {
   app.post('/dawa/ongeza', async (req, res, next) => {
     try {
       const { jina, aina, kiasi } = req.body;
-      
-      // Validation
+
       if (!jina || !aina || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
-        return res.status(400).render('error', { 
-          message: 'Tafadhali jaza taarifa zote sahihi' 
+        return res.status(400).render('error', {
+          message: 'Tafadhali jaza taarifa zote sahihi'
         });
       }
 
       const dawaList = await readSheet(SHEETS.DAWA);
-      
-      // Check for duplicate medicine names (case insensitive)
+
       if (dawaList.some(d => d.jina?.toLowerCase() === jina.toLowerCase())) {
-        return res.status(400).render('error', { 
-          message: 'Dawa hiyo tayari ipo' 
+        return res.status(400).render('error', {
+          message: 'Dawa hiyo tayari ipo'
         });
       }
 
-      // Add new medicine
       const newMedicine = {
         id: nanoid(),
         jina,
@@ -149,7 +156,7 @@ async function startApp() {
       };
 
       const success = await writeSheet(SHEETS.DAWA, [...dawaList, newMedicine]);
-      
+
       if (!success) {
         return res.status(500).render('error', {
           message: 'Imeshindikana kuhifadhi dawa mpya'
@@ -162,7 +169,12 @@ async function startApp() {
     }
   });
 
-  // Other routes remain the same...
+  // 🔍 Debug route for raw data
+  app.get('/debug', async (req, res) => {
+    const dawa = await readSheet(SHEETS.DAWA);
+    const matumizi = await readSheet(SHEETS.MATUMIZI);
+    res.json({ dawa, matumizi });
+  });
 
   // Error Handlers
   app.use((req, res) => {
@@ -174,7 +186,6 @@ async function startApp() {
     res.status(500).render('error', { message: 'Hitilafu ya seva' });
   });
 
-  // Start Server
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Mfumo wa dawa unaendeshwa kwenye http://localhost:${PORT}`);
