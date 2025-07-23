@@ -72,7 +72,8 @@
             <% user.matumiziByDate[date].forEach(item => { %>
               <li>
                 - <strong><%= item.dawa %></strong>: <%= item.kiasi %> &nbsp;
-                <small>(<%= new Date(item.tareheKamili).toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %>)</small>
+                <small>(<%= item.saa %>)</small>
+
               </li>
             <% }) %>
           </ul>
