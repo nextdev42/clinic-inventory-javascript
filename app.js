@@ -192,6 +192,27 @@ async function startApp() {
     }
   });
 
+  app.get('/admin/headers-check', async (req, res) => {
+  try {
+    const workbook = xlsx.readFile(excelPath);
+    const results = Object.keys(SHEETS).map(key => {
+      const name = SHEETS[key];
+      const sheet = workbook.Sheets[name];
+      const raw = xlsx.utils.sheet_to_json(sheet || {}, { header: 1 });
+
+      return {
+        jinaLaSheet: name,
+        headers: raw[0] || [],
+        count: raw.length - 1
+      };
+    });
+
+    res.render('headers-check', { results });
+  } catch (error) {
+    console.error('❌ Sheet header check failed:', error);
+    res.status(500).render('error', { message: 'Hitilafu katika ukaguzi wa headers' });
+  }
+});
   app.get('/debug', async (req, res) => {
     const dawa = await readSheet(SHEETS.DAWA);
     const matumizi = await readSheet(SHEETS.MATUMIZI);
