@@ -244,25 +244,28 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       readSheet('MATUMIZI')
     ]);
 
-    function formatDate(dateStr) {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('sw-TZ', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'Africa/Nairobi'
-      });
-    }
+  function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return 'Tarehe haijulikani';
+  return date.toLocaleDateString('sw-TZ', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Africa/Nairobi'
+  });
+}
 
-    function formatTime(dateStr) {
-      const date = new Date(dateStr);
-      return date.toLocaleTimeString('sw-TZ', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Africa/Nairobi'
-      });
-    }
+function formatTime(dateStr) {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '--:--';
+  return date.toLocaleTimeString('sw-TZ', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Africa/Nairobi'
+  });
+}
+
 
     const report = watumiaji.map(user => {
       const userUsages = matumizi.filter(m => m.mtumiajiId === user.id);
