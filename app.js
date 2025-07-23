@@ -188,7 +188,7 @@ async function startApp() {
   app.post('/matumizi/sajili', async (req, res, next) => {
     try {
       const { dawaId, mtumiajiId, kiasi } = req.body;
-      const tarehe = new Date().toISOString().split('T')[0];
+      const tarehe = new Date().toISOString(); // Hifadhi tarehe na saa kamili
       if (!dawaId || !mtumiajiId || isNaN(kiasi) || Number(kiasi) <= 0) {
         return res.status(400).render('error', {
           message: 'Tafadhali jaza taarifa zote kwa usahihi'
