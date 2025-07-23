@@ -26,7 +26,7 @@
       margin-top: 15px;
       font-size: 16px;
     }
-    select, input[type="number"], input[type="text"] {
+    select, input[type="number"], input[type="text"], input[type="datetime-local"] {
       width: 100%;
       padding: 12px;
       font-size: 16px;
@@ -101,9 +101,14 @@
     <div id="kiasiError" class="error"></div>
 
     <label>
-      <input type="checkbox" name="imethibitishwa" value="true" required>
+      <input type="checkbox" id="imethibitishwa" name="imethibitishwa" value="true" required>
       ✅ Imethibitishwa: Mtumiaji ametumia dawa
     </label>
+
+    <div id="tareheGroup" style="display:none; margin-top: 10px;">
+      <label for="tarehe">Tarehe na Saa ya Matumizi:</label>
+      <input type="datetime-local" id="tarehe" name="tarehe" />
+    </div>
 
     <button type="submit">💾 Hifadhi Matumizi</button>
   </form>
@@ -123,6 +128,15 @@
         return false;
       }
 
+      const imethibitishwa = document.getElementById('imethibitishwa');
+      const tareheInput = document.getElementById('tarehe');
+
+      if (imethibitishwa.checked && !tareheInput.value) {
+        alert('Tafadhali chagua tarehe na saa ya matumizi.');
+        tareheInput.focus();
+        return false;
+      }
+
       document.getElementById('success').style.display = 'block';
       setTimeout(() => {
         document.getElementById('success').style.display = 'none';
@@ -130,6 +144,23 @@
 
       return true;
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const checkbox = document.getElementById('imethibitishwa');
+      const tareheGroup = document.getElementById('tareheGroup');
+      const tareheInput = document.getElementById('tarehe');
+
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          tareheGroup.style.display = 'block';
+          tareheInput.required = true;
+        } else {
+          tareheGroup.style.display = 'none';
+          tareheInput.required = false;
+          tareheInput.value = '';
+        }
+      });
+    });
   </script>
 
 </body>
