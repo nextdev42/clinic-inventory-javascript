@@ -264,6 +264,29 @@ function formatTime(dateStr) {
 
     // Group by user and then by date
     const report = watumiaji.map(user => {
+  const userUsages = matumizi.filter(m => m.mtumiajiId === user.id);
+  const byDate = {};
+
+  userUsages.forEach(usage => {
+    const day = formatDate(usage.tarehe);
+    if (!byDate[day]) byDate[day] = [];
+
+    const medicine = dawa.find(d => d.id === usage.dawaId);
+    const formattedTime = formatTime(usage.tarehe);
+
+    byDate[day].push({
+      dawa: medicine ? medicine.jina : 'Haijulikani',
+      kiasi: usage.kiasi,
+      saa: formattedTime
+    });
+  });
+
+  return {
+    jina: user.jina,
+    matumiziByDate: byDate
+  };
+});
+
       // Filter all usage by this user
       const userUsages = matumizi.filter(m => m.mtumiajiId === user.id);
 
