@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <title>Ukaguzi wa Muundo wa Sheets</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+    table { background: white; width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; font-size: 14px; }
+    th { background: #eee; }
+    h2 { margin-bottom: 10px; }
+    a { display: inline-block; margin-top: 20px; color: green; text-decoration: none; font-weight: bold; }
+    .bad { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>📊 Ukaguzi wa Muundo wa Sheets</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Sheet</th>
+        <th>Header Safu ya 1</th>
+        <th>Idadi ya Rows</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% results.forEach(r => { %>
+        <tr>
+          <td><%= r.jinaLaSheet %></td>
+          <td>
+            <% if (r.headers.length === 0) { %>
+              <span class="bad">⚠️ Hakuna headers</span>
+            <% } else { %>
+              <%= r.headers.join(', ') %>
+            <% } %>
+          </td>
+          <td><%= r.count %> data rows</td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <a href="/">⬅️ Rudi kwenye Dashibodi</a>
+
+</body>
+</html>
