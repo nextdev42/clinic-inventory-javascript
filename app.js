@@ -33,19 +33,20 @@ async function initializeDatabase() {
       console.log('✅ Database file exists');
     } catch {
       const workbook = xlsx.utils.book_new();
-      const emptySheets = {
-        [SHEETS.DAWA]: [{ id: '', jina: '', aina: '', kiasi: '' }],
-        [SHEETS.MATUMIZI]: [{ dawaId: '', kiasi: '', tarehe: '' }],
-        [SHEETS.WATUMIAJI]: [{ id: '', jina: '', }]
+
+      const headers = {
+        [SHEETS.DAWA]: [['id', 'jina', 'aina', 'kiasi']],
+        [SHEETS.MATUMIZI]: [['dawaId', 'kiasi', 'tarehe']],
+        [SHEETS.WATUMIAJI]: [['id', 'jina']]
       };
 
-      Object.entries(emptySheets).forEach(([sheetName, headers]) => {
-        const sheet = xlsx.utils.json_to_sheet(headers);
+      Object.entries(headers).forEach(([sheetName, headerRow]) => {
+        const sheet = xlsx.utils.aoa_to_sheet(headerRow);
         xlsx.utils.book_append_sheet(workbook, sheet, sheetName);
       });
 
       await xlsx.writeFile(workbook, excelPath);
-      console.log('📄 Created new database file with seeded headers');
+      console.log('📄 Created new database file with proper header rows');
     }
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
@@ -58,10 +59,13 @@ async function readSheet(sheetName) {
     const workbook = xlsx.readFile(excelPath);
     const sheet = workbook.Sheets[sheetName];
     const data = sheet ? xlsx.utils.sheet_to_json(sheet) : [];
-    console.log(`${sheetName} headers:`, Object.keys(data[0] || {}));
+
+    // Debug logs
     const raw = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+    console.log(`${sheetName} headers:`, Object.keys(data[0] || {}));
     console.log(`${sheetName} raw headers:`, raw[0]);
     console.log(`${sheetName} raw rows:`, raw.slice(1));
+
     return data;
   } catch (error) {
     console.error(`❌ Error reading ${sheetName}:`, error);
@@ -87,7 +91,6 @@ async function writeSheet(sheetName, data) {
 async function startApp() {
   await initializeDatabase();
 
-  // Middleware
   app.use(helmet());
   app.use(rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -100,16 +103,13 @@ async function startApp() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // 5. Routes
+  // Routes
   app.get('/', async (req, res, next) => {
     try {
       const [dawa, matumizi] = await Promise.all([
         readSheet(SHEETS.DAWA),
         readSheet(SHEETS.MATUMIZI)
       ]);
-
-      console.log('Debug - Dawa data:', dawa);
-      console.log('Debug - Matumizi data:', matumizi);
 
       const ripoti = dawa.map(medicine => {
         const totalUsed = matumizi
@@ -133,81 +133,75 @@ async function startApp() {
   });
 
   app.get('/mtumiaji/ongeza', (req, res) => {
-  res.render('add-user'); // Hakikisha kuna add-user.ejs
-});
+    res.render('add-user');
+  });
 
-app.get('/mtumiaji/ongeza', (req, res) => {
-  res.render('add-user');
-});
+  app.post('/mtumiaji/ongeza', async (req, res, next) => {
+    try {
+      const { jina } = req.body;
 
-app.post('/mtumiaji/ongeza', async (req, res, next) => {
-  try {
-    const { jina } = req.body;
+      if (!jina) {
+        return res.status(400).render('error', {
+          message: 'Tafadhali jaza jina la mtumiaji'
+        });
+      }
 
-    if (!jina) {
-      return res.status(400).render('error', {
-        message: 'Tafadhali jaza jina la mtumiaji'
-      });
+      const users = await readSheet(SHEETS.WATUMIAJI);
+      const newUser = { id: nanoid(), jina };
+      const success = await writeSheet(SHEETS.WATUMIAJI, [...users, newUser]);
+
+      if (!success) {
+        return res.status(500).render('error', {
+          message: 'Imeshindikana kuongeza mtumiaji'
+        });
+      }
+
+      res.redirect('/');
+    } catch (error) {
+      next(error);
     }
+  });
 
-    const users = await readSheet(SHEETS.WATUMIAJI);
-    const newUser = { id: nanoid(), jina }; // ✅ kundi removed
+  app.get('/matumizi/sajili', async (req, res) => {
+    const dawa = await readSheet(SHEETS.DAWA);
+    const watumiaji = await readSheet(SHEETS.WATUMIAJI);
+    res.render('log-usage', { dawa, watumiaji });
+  });
 
-    const success = await writeSheet(SHEETS.WATUMIAJI, [...users, newUser]);
+  app.post('/matumizi/sajili', async (req, res, next) => {
+    try {
+      const { dawaId, kiasi, mtumiajiId, imethibitishwa } = req.body;
+      const tarehe = new Date().toISOString().split('T')[0];
 
-    if (!success) {
-      return res.status(500).render('error', {
-        message: 'Imeshindikana kuongeza mtumiaji'
-      });
+      if (!dawaId || !mtumiajiId || !imethibitishwa || isNaN(kiasi) || Number(kiasi) <= 0) {
+        return res.status(400).render('error', {
+          message: 'Jaza taarifa zote sahihi kuhusu matumizi ya dawa'
+        });
+      }
+
+      const matumizi = await readSheet(SHEETS.MATUMIZI);
+      const newUsage = { dawaId, kiasi: Number(kiasi), tarehe, mtumiajiId };
+
+      const success = await writeSheet(SHEETS.MATUMIZI, [...matumizi, newUsage]);
+
+      if (!success) {
+        return res.status(500).render('error', {
+          message: 'Imeshindikana kusajili matumizi ya dawa'
+        });
+      }
+
+      res.redirect('/');
+    } catch (error) {
+      next(error);
     }
+  });
 
-    res.redirect('/');
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.get('/matumizi/sajili', async (req, res) => {
-  const dawa = await readSheet(SHEETS.DAWA);
-  res.render('log-usage', { dawa }); // Hakikisha kuna log-usage.ejs
-});
-
-app.post('/matumizi/sajili', async (req, res, next) => {
-  try {
-    const { dawaId, kiasi } = req.body;
-    const tarehe = new Date().toISOString().split('T')[0];
-
-    if (!dawaId || isNaN(kiasi) || Number(kiasi) <= 0) {
-      return res.status(400).render('error', {
-        message: 'Chagua dawa na kiasi sahihi'
-      });
-    }
-
-    const matumizi = await readSheet(SHEETS.MATUMIZI);
-    const newUsage = { dawaId, kiasi: Number(kiasi), tarehe };
-
-    const success = await writeSheet(SHEETS.MATUMIZI, [...matumizi, newUsage]);
-
-    if (!success) {
-      return res.status(500).render('error', {
-        message: 'Imeshindikana kusajili matumizi ya dawa'
-      });
-    }
-
-    res.redirect('/');
-  } catch (error) {
-    next(error);
-  }
-});
-
-  // 🔍 Debug route for raw data
   app.get('/debug', async (req, res) => {
     const dawa = await readSheet(SHEETS.DAWA);
     const matumizi = await readSheet(SHEETS.MATUMIZI);
     res.json({ dawa, matumizi });
   });
 
-  // Error Handlers
   app.use((req, res) => {
     res.status(404).render('error', { message: 'Ukurasa haupatikani' });
   });
