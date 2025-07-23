@@ -241,9 +241,26 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
     // Group data by user, then by date (tarehe), then dawa
 
     // Format date to YYYY-MM-DD only (strip time)
-    function formatDate(dateStr) {
-      return dateStr ? dateStr.split('T')[0] : '';
-    }
+  function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('sw-TZ', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Africa/Nairobi'
+  });
+}
+
+function formatTime(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleTimeString('sw-TZ', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Africa/Nairobi'
+  });
+}
+
 
     // Group by user and then by date
     const report = watumiaji.map(user => {
@@ -258,11 +275,16 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
         if (!byDate[day]) byDate[day] = [];
         // Find medicine name
         const medicine = dawa.find(d => d.id === usage.dawaId);
-        byDate[day].push({
-          dawa: medicine ? medicine.jina : 'Haijulikani',
-          kiasi: usage.kiasi,
-          tareheKamili: usage.tarehe
-        });
+        const formattedTime = formatTime(usage.tarehe);
+
+      if (!byDate[formattedDate]) byDate[formattedDate] = [];
+
+byDate[formattedDate].push({
+  dawa: medicine ? medicine.jina : 'Haijulikani',
+  kiasi: usage.kiasi,
+  saa: formattedTime
+});
+
       });
 
       return {
