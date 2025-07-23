@@ -4,20 +4,84 @@
   <meta charset="UTF-8">
   <title>Sajili Matumizi ya Dawa</title>
   <style>
-    body { font-family: sans-serif; background: #f9f9f9; padding: 20px; }
-    form { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; }
-    label { display: block; margin-top: 15px; }
-    select, input[type="number"] { width: 100%; padding: 8px; margin-top: 5px; }
-    input[type="checkbox"] { margin-top: 10px; }
-    button { margin-top: 20px; padding: 10px; background: green; color: white; border: none; cursor: pointer; }
-    a { display: block; margin-top: 20px; text-align: center; }
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-size: 16px;
+    }
+    select, input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 5px;
+    }
+    input[type="checkbox"] {
+      margin-top: 10px;
+      transform: scale(1.2);
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px;
+      background: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      border-radius: 6px;
+    }
+    a {
+      display: block;
+      margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
+      color: #007acc;
+      text-decoration: none;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .success-message {
+      display: none;
+      text-align: center;
+      padding: 15px;
+      margin-top: 20px;
+      background-color: #e0ffe0;
+      color: green;
+      font-weight: bold;
+      border-radius: 6px;
+      animation: fadeIn 1s ease-in forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
   </style>
 </head>
 <body>
 
   <h2>📝 Sajili Matumizi ya Dawa</h2>
 
-  <form action="/matumizi/sajili" method="POST">
+  <form id="matumiziForm" action="/matumizi/sajili" method="POST" onsubmit="return validateMatumizi()">
     <label for="mtumiajiId">Chagua Mtumiaji:</label>
     <select id="mtumiajiId" name="mtumiajiId" required>
       <% watumiaji.forEach(u => { %>
@@ -34,6 +98,7 @@
 
     <label for="kiasi">Kiasi Kilichotumika:</label>
     <input type="number" id="kiasi" name="kiasi" min="1" required>
+    <div id="kiasiError" class="error"></div>
 
     <label>
       <input type="checkbox" name="imethibitishwa" value="true" required>
@@ -43,7 +108,29 @@
     <button type="submit">💾 Hifadhi Matumizi</button>
   </form>
 
+  <div id="success" class="success-message">✅ Matumizi ya dawa yamehifadhiwa vizuri!</div>
+
   <a href="/">⬅️ Rudi kwenye Dashibodi</a>
+
+  <script>
+    function validateMatumizi() {
+      const kiasi = document.getElementById('kiasi').value;
+      const errorDiv = document.getElementById('kiasiError');
+      errorDiv.textContent = '';
+
+      if (!kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
+        errorDiv.textContent = 'Kiasi lazima kiwe namba sahihi zaidi ya sifuri.';
+        return false;
+      }
+
+      document.getElementById('success').style.display = 'block';
+      setTimeout(() => {
+        document.getElementById('success').style.display = 'none';
+      }, 3000);
+
+      return true;
+    }
+  </script>
 
 </body>
 </html>
