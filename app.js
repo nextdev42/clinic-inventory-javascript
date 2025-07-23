@@ -121,7 +121,7 @@ async function startApp() {
   });
 
   app.get('/mtumiaji/ongeza', (req, res) => {
-    res.render('mtumiaji-form');
+    res.render('add-user');
   });
 
   app.get('/matumizi/sajili', async (req, res, next) => {
