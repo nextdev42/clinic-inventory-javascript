@@ -67,7 +67,14 @@ async function writeSheet(sheetKey, data) {
   try {
     const config = SHEETS[sheetKey];
     const workbook = xlsx.readFile(excelPath);
-    const worksheet = xlsx.utils.json_to_sheet(data, { header: config.headers });
+    const worksheet = xlsx.utils.json_to_sheet(
+     data.map(item => ({
+     ...item,
+    tarehe: item.tarehe?.toString?.() // ⚠️ Force tarehe kuwa string
+  })),
+  { header: config.headers }
+);
+
     workbook.Sheets[config.name] = worksheet;
     await xlsx.writeFile(workbook, excelPath);
     return true;
