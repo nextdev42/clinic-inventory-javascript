@@ -136,18 +136,22 @@ async function startApp() {
   res.render('add-user'); // Hakikisha kuna add-user.ejs
 });
 
+app.get('/mtumiaji/ongeza', (req, res) => {
+  res.render('add-user');
+});
+
 app.post('/mtumiaji/ongeza', async (req, res, next) => {
   try {
-    const { jina, kundi } = req.body;
+    const { jina } = req.body;
 
-    if (!jina || !kundi) {
+    if (!jina) {
       return res.status(400).render('error', {
-        message: 'Tafadhali jaza jina na kundi la mtumiaji'
+        message: 'Tafadhali jaza jina la mtumiaji'
       });
     }
 
     const users = await readSheet(SHEETS.WATUMIAJI);
-    const newUser = { id: nanoid(), jina, kundi };
+    const newUser = { id: nanoid(), jina }; // ✅ kundi removed
 
     const success = await writeSheet(SHEETS.WATUMIAJI, [...users, newUser]);
 
