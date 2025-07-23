@@ -227,6 +227,57 @@ async function startApp() {
     }
   });
 
+  // app.js snippet - on your Express app, ndani ya startApp()
+
+app.get('/ripoti/matumizi', async (req, res, next) => {
+  try {
+    const [watumiaji, dawa, matumizi] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('DAWA'),
+      readSheet('MATUMIZI')
+    ]);
+
+    // Tukachanganya data kwa mtumiaji
+    // Group data by user, then by date (tarehe), then dawa
+
+    // Format date to YYYY-MM-DD only (strip time)
+    function formatDate(dateStr) {
+      return dateStr ? dateStr.split('T')[0] : '';
+    }
+
+    // Group by user and then by date
+    const report = watumiaji.map(user => {
+      // Filter all usage by this user
+      const userUsages = matumizi.filter(m => m.mtumiajiId === user.id);
+
+      // Group usage by date
+      const byDate = {};
+
+      userUsages.forEach(usage => {
+        const day = formatDate(usage.tarehe);
+        if (!byDate[day]) byDate[day] = [];
+        // Find medicine name
+        const medicine = dawa.find(d => d.id === usage.dawaId);
+        byDate[day].push({
+          dawa: medicine ? medicine.jina : 'Haijulikani',
+          kiasi: usage.kiasi,
+          tareheKamili: usage.tarehe
+        });
+      });
+
+      return {
+        jina: user.jina,
+        matumiziByDate: byDate
+      };
+    });
+
+    res.render('report-usage', { report });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
   // 404 and error handlers
   app.use((req, res) => {
     res.status(404).render('error', { message: 'Ukurasa haupatikani' });
