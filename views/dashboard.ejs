@@ -4,46 +4,96 @@
   <meta charset="UTF-8">
   <title>Dashibodi ya Dawa</title>
   <style>
-    body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
-    th { background: #eee; }
-    h1 { color: #333; }
-    a { text-decoration: none; color: blue; margin-right: 10px; }
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .nav-links a {
+      display: inline-block;
+      padding: 10px 15px;
+      background: #007acc;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin: 5px 5px 10px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background: #eee;
+    }
+    .no-data {
+      background: #fff0f0;
+      color: red;
+      padding: 15px;
+      text-align: center;
+      border-radius: 5px;
+    }
+
+    @media screen and (max-width: 500px) {
+      th, td {
+        font-size: 12px;
+        padding: 8px;
+      }
+      .nav-links a {
+        display: block;
+        margin-bottom: 10px;
+      }
+    }
   </style>
 </head>
 <body>
+
   <h1>📦 Dashibodi ya Dawa</h1>
 
-  <div>
+  <div class="nav-links">
     <a href="/dawa/ongeza">➕ Ongeza Dawa</a>
     <a href="/mtumiaji/ongeza">👤 Ongeza Mtumiaji</a>
     <a href="/matumizi/sajili">📝 Sajili Matumizi ya Dawa</a>
   </div>
 
-  <br>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Jina la Dawa</th>
-        <th>Aina</th>
-        <th>Kiasi Kilicholetwa</th>
-        <th>Kiasi Kilichotumika</th>
-        <th>Kilichobaki</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% dawa.forEach(d => { %>
+  <% if (dawa.length > 0) { %>
+    <table>
+      <thead>
         <tr>
-          <td><%= d.jina %></td>
-          <td><%= d.aina %></td>
-          <td><%= d.kiasi %></td>
-          <td><%= d.jumlaMatumizi %></td>
-          <td><%= d.kilichobaki %></td>
+          <th>Jina la Dawa</th>
+          <th>Aina</th>
+          <th>Kiasi Kilicholetwa</th>
+          <th>Kiasi Kilichotumika</th>
+          <th>Kilichobaki</th>
         </tr>
-      <% }) %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <% dawa.forEach(d => { %>
+          <tr>
+            <td><%= d.jina %></td>
+            <td><%= d.aina %></td>
+            <td><%= d.kiasi %></td>
+            <td><%= d.jumlaMatumizi %></td>
+            <td><%= d.kilichobaki %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } else { %>
+    <div class="no-data">
+      <p><%= error || "Hakuna data ya dawa kupatikana kwa sasa." %></p>
+    </div>
+  <% } %>
+
 </body>
 </html>
