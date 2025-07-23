@@ -132,45 +132,69 @@ async function startApp() {
     }
   });
 
-  app.get('/dawa/ongeza', (req, res) => res.render('add-medicine'));
-  app.post('/dawa/ongeza', async (req, res, next) => {
-    try {
-      const { jina, aina, kiasi } = req.body;
+  app.get('/mtumiaji/ongeza', (req, res) => {
+  res.render('add-user'); // Hakikisha kuna add-user.ejs
+});
 
-      if (!jina || !aina || !kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
-        return res.status(400).render('error', {
-          message: 'Tafadhali jaza taarifa zote sahihi'
-        });
-      }
+app.post('/mtumiaji/ongeza', async (req, res, next) => {
+  try {
+    const { jina, kundi } = req.body;
 
-      const dawaList = await readSheet(SHEETS.DAWA);
-
-      if (dawaList.some(d => d.jina?.toLowerCase() === jina.toLowerCase())) {
-        return res.status(400).render('error', {
-          message: 'Dawa hiyo tayari ipo'
-        });
-      }
-
-      const newMedicine = {
-        id: nanoid(),
-        jina,
-        aina,
-        kiasi: Number(kiasi)
-      };
-
-      const success = await writeSheet(SHEETS.DAWA, [...dawaList, newMedicine]);
-
-      if (!success) {
-        return res.status(500).render('error', {
-          message: 'Imeshindikana kuhifadhi dawa mpya'
-        });
-      }
-
-      res.redirect('/');
-    } catch (error) {
-      next(error);
+    if (!jina || !kundi) {
+      return res.status(400).render('error', {
+        message: 'Tafadhali jaza jina na kundi la mtumiaji'
+      });
     }
-  });
+
+    const users = await readSheet(SHEETS.WATUMIAJI);
+    const newUser = { id: nanoid(), jina, kundi };
+
+    const success = await writeSheet(SHEETS.WATUMIAJI, [...users, newUser]);
+
+    if (!success) {
+      return res.status(500).render('error', {
+        message: 'Imeshindikana kuongeza mtumiaji'
+      });
+    }
+
+    res.redirect('/');
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/matumizi/sajili', async (req, res) => {
+  const dawa = await readSheet(SHEETS.DAWA);
+  res.render('log-usage', { dawa }); // Hakikisha kuna log-usage.ejs
+});
+
+app.post('/matumizi/sajili', async (req, res, next) => {
+  try {
+    const { dawaId, kiasi } = req.body;
+    const tarehe = new Date().toISOString().split('T')[0];
+
+    if (!dawaId || isNaN(kiasi) || Number(kiasi) <= 0) {
+      return res.status(400).render('error', {
+        message: 'Chagua dawa na kiasi sahihi'
+      });
+    }
+
+    const matumizi = await readSheet(SHEETS.MATUMIZI);
+    const newUsage = { dawaId, kiasi: Number(kiasi), tarehe };
+
+    const success = await writeSheet(SHEETS.MATUMIZI, [...matumizi, newUsage]);
+
+    if (!success) {
+      return res.status(500).render('error', {
+        message: 'Imeshindikana kusajili matumizi ya dawa'
+      });
+    }
+
+    res.redirect('/');
+  } catch (error) {
+    next(error);
+  }
+});
 
   // 🔍 Debug route for raw data
   app.get('/debug', async (req, res) => {
