@@ -72,16 +72,21 @@
             <% user.matumiziByDate[date].forEach(item => { %>
               <li>
                 - <strong><%= item.dawa %></strong>: <%= item.kiasi %> &nbsp;
-                <small>(
-  <% 
-    const time = new Date(item.saa);
-    if (!isNaN(time)) {
-      %><%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %><%
-    } else {
-      %>hakujulikana<%
-    }
-  %>
-)</small>
+                <small> <% 
+  let time;
+  if (item.saa?.includes(':')) {
+    time = new Date("1970-01-01T" + item.saa);
+  } else {
+    time = new Date(item.saa);
+  }
+
+  if (!isNaN(time)) {
+    %><%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %><%
+  } else {
+    %>hakujulikana<%
+  }
+%>
+ </small>
 
               </li>
             <% }) %>
