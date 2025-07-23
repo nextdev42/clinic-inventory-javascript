@@ -130,7 +130,7 @@ async function startApp() {
         readSheet('DAWA'),
         readSheet('WATUMIAJI')
       ]);
-      res.render('matumizi-form', { dawa, watumiaji });
+      res.render('log-usage', { dawa, watumiaji });
     } catch (error) {
       next(error);
     }
