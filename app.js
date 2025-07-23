@@ -3,10 +3,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { nanoid } from 'nanoid';
 import { promises as fs } from 'fs';
-import { readFile, writeFile, utils } from 'xlsx';
+import xlsx from 'xlsx';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
+const { readFile, writeFile, utils } = xlsx;
 const app = express();
 
 // Fix __dirname in ES Module
