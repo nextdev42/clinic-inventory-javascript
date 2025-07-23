@@ -76,10 +76,19 @@ async function readSheet(sheetName) {
 async function writeSheet(sheetName, data) {
   try {
     const workbook = xlsx.readFile(excelPath);
-    const sheet = xlsx.utils.json_to_sheet(data);
-    workbook.Sheets[sheetName] = sheet;
+    const sheet = workbook.Sheets[sheetName];
+
+    // Safisha sheet kwanza na headers as array-of-arrays
+    const headers = Object.keys(data[0] || {});
+    const headerRow = [headers];
+    const newSheet = xlsx.utils.aoa_to_sheet(headerRow);
+
+    // Ongeza rows kuanzia safu ya 2
+    xlsx.utils.sheet_add_json(newSheet, data, { skipHeader: true, origin: -1 });
+
+    workbook.Sheets[sheetName] = newSheet;
     await xlsx.writeFile(workbook, excelPath);
-    console.log(`📝 ${sheetName} updated`);
+    console.log(`📝 ${sheetName} updated with preserved headers`);
     return true;
   } catch (error) {
     console.error(`❌ Error writing ${sheetName}:`, error);
