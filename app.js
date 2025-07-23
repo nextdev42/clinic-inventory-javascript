@@ -59,6 +59,9 @@ async function readSheet(sheetName) {
     const sheet = workbook.Sheets[sheetName];
     const data = sheet ? xlsx.utils.sheet_to_json(sheet) : [];
     console.log(`${sheetName} headers:`, Object.keys(data[0] || {}));
+    const raw = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+    console.log(`${sheetName} raw headers:`, raw[0]);
+    console.log(`${sheetName} raw rows:`, raw.slice(1));
     return data;
   } catch (error) {
     console.error(`❌ Error reading ${sheetName}:`, error);
