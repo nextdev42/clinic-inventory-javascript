@@ -92,6 +92,7 @@ async function startApp() {
     await initializeDatabase();
 
     // Enhanced security middleware with proxy support
+    app.use(helmet());
     app.use(rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100,
