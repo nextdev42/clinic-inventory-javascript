@@ -222,6 +222,21 @@ async function startApp() {
     res.status(500).render('error', { message: 'Hitilafu katika ukaguzi wa headers' });
   }
 });
+
+  app.get('/admin/sheet-dump', async (req, res) => {
+  try {
+    const [dawa, matumizi, watumiaji] = await Promise.all([
+      readSheet(SHEETS.DAWA),
+      readSheet(SHEETS.MATUMIZI),
+      readSheet(SHEETS.WATUMIAJI)
+    ]);
+
+    res.render('sheet-dump', { dawa, matumizi, watumiaji });
+  } catch (error) {
+    console.error('❌ Sheet dump failed:', error);
+    res.status(500).render('error', { message: 'Hitilafu katika kusoma data zote' });
+  }
+});
   app.get('/debug', async (req, res) => {
     const dawa = await readSheet(SHEETS.DAWA);
     const matumizi = await readSheet(SHEETS.MATUMIZI);
