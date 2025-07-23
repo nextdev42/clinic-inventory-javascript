@@ -9,7 +9,6 @@ import rateLimit from 'express-rate-limit';
 
 const app = express();
 
-// ========== CONFIGURATION ========== //
 app.set('trust proxy', 1);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,18 +16,9 @@ const dataDir = path.join(__dirname, 'data');
 const excelPath = path.join(dataDir, 'database.xlsx');
 
 const SHEETS = {
-  DAWA: {
-    name: 'Dawa',
-    headers: ['id', 'jina', 'aina', 'kiasi']
-  },
-  WATUMIAJI: {
-    name: 'Watumiaji',
-    headers: ['id', 'jina']
-  },
-  MATUMIZI: {
-    name: 'Matumizi',
-    headers: ['id', 'dawaId', 'mtumiajiId', 'kiasi', 'tarehe']
-  }
+  DAWA: { name: 'Dawa', headers: ['id', 'jina', 'aina', 'kiasi'] },
+  WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina'] },
+  MATUMIZI: { name: 'Matumizi', headers: ['id', 'dawaId', 'mtumiajiId', 'kiasi', 'tarehe'] }
 };
 
 async function initializeDatabase() {
@@ -38,7 +28,7 @@ async function initializeDatabase() {
     try {
       await fs.access(excelPath);
       const workbook = xlsx.readFile(excelPath);
-      for (const [key, config] of Object.entries(SHEETS)) {
+      for (const config of Object.values(SHEETS)) {
         if (!workbook.Sheets[config.name]) {
           const worksheet = xlsx.utils.aoa_to_sheet([config.headers]);
           xlsx.utils.book_append_sheet(workbook, worksheet, config.name);
@@ -89,6 +79,7 @@ async function writeSheet(sheetKey, data) {
 
 async function startApp() {
   await initializeDatabase();
+
   app.use(helmet());
   app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
   app.set('view engine', 'ejs');
@@ -96,6 +87,7 @@ async function startApp() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, 'public')));
 
+  // Dashboard
   app.get('/', async (req, res, next) => {
     try {
       const [dawa, matumizi] = await Promise.all([
@@ -123,6 +115,28 @@ async function startApp() {
     }
   });
 
+  // GET forms for adding data
+  app.get('/dawa/ongeza', (req, res) => {
+    res.render('add-medicine');
+  });
+
+  app.get('/mtumiaji/ongeza', (req, res) => {
+    res.render('mtumiaji-form');
+  });
+
+  app.get('/matumizi/sajili', async (req, res, next) => {
+    try {
+      const [dawa, watumiaji] = await Promise.all([
+        readSheet('DAWA'),
+        readSheet('WATUMIAJI')
+      ]);
+      res.render('matumizi-form', { dawa, watumiaji });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // POST routes for submitting data
   app.post('/dawa/ongeza', async (req, res, next) => {
     try {
       const { jina, aina, kiasi } = req.body;
@@ -213,6 +227,7 @@ async function startApp() {
     }
   });
 
+  // 404 and error handlers
   app.use((req, res) => {
     res.status(404).render('error', { message: 'Ukurasa haupatikani' });
   });
