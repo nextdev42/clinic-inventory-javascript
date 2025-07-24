@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Sajili Matumizi ya Dawa</title>
+  <style>
+    #maelezo-mtumiaji {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      font-weight: bold;
+      border: 1px solid #ccc;
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <h1>Sajili Matumizi ya Dawa</h1>
@@ -13,11 +23,14 @@
 
   <form method="POST" action="/matumizi/sajili">
     <label>Chagua Mtumiaji:</label>
-    <select name="mtumiajiId" required>
+    <select name="mtumiajiId" id="mtumiajiSelect" required>
+      <option value="">--Chagua--</option>
       <% watumiaji.forEach(m => { %>
-        <option value="<%= m.id %>"><%= m.jina %> - <%= m.maelezo || '' %></option>
+        <option value="<%= m.id %>" data-maelezo="<%= m.maelezo || '' %>"><%= m.jina %></option>
       <% }) %>
     </select>
+
+    <div id="maelezo-mtumiaji"></div>
 
     <h3>Chagua Dawa na Kiasi</h3>
     <% dawa.forEach((d, index) => { %>
@@ -36,5 +49,22 @@
 
   <br>
   <a href="/">Rudi Nyumbani</a>
+
+  <script>
+    const mtumiajiSelect = document.getElementById('mtumiajiSelect');
+    const maelezoDiv = document.getElementById('maelezo-mtumiaji');
+
+    mtumiajiSelect.addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+      const maelezo = selectedOption.getAttribute('data-maelezo');
+      if (maelezo && maelezo.trim() !== "") {
+        maelezoDiv.innerText = maelezo;
+        maelezoDiv.style.display = "block";
+      } else {
+        maelezoDiv.innerText = "";
+        maelezoDiv.style.display = "none";
+      }
+    });
+  </script>
 </body>
 </html>
