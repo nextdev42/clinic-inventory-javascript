@@ -32,8 +32,17 @@
       font-size: 16px;
       margin-top: 5px;
     }
-    input[type="checkbox"] {
-      margin-top: 10px;
+    .checkbox-group {
+      margin-top: 15px;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      font-size: 15px;
+    }
+    .checkbox-group input[type="checkbox"] {
+      margin-right: 10px;
       transform: scale(1.2);
     }
     button {
@@ -100,15 +109,10 @@
     <input type="number" id="kiasi" name="kiasi" min="1" required>
     <div id="kiasiError" class="error"></div>
 
-    <label>
-      <input type="checkbox" id="imethibitishwa" name="imethibitishwa" value="true" required>
-      ✅ Imethibitishwa: Mtumiaji ametumia dawa
-    </label>
+    <div id="checkboxContainer" class="checkbox-group"></div>
 
-    <div id="tareheGroup" style="display:none; margin-top: 10px;">
-      <label for="tarehe">Tarehe na Saa ya Matumizi:</label>
-      <input type="datetime-local" id="tarehe" name="tarehe" />
-    </div>
+    <label for="tarehe">Tarehe na Saa ya Matumizi:</label>
+    <input type="datetime-local" id="tarehe" name="tarehe" required>
 
     <button type="submit">💾 Hifadhi Matumizi</button>
   </form>
@@ -118,22 +122,40 @@
   <a href="/">⬅️ Rudi kwenye Dashibodi</a>
 
   <script>
+    function generateCheckboxes() {
+      const kiasi = parseInt(document.getElementById('kiasi').value);
+      const container = document.getElementById('checkboxContainer');
+      container.innerHTML = ''; // Clear previous
+
+      if (!isNaN(kiasi) && kiasi > 0) {
+        for (let i = 1; i <= kiasi; i++) {
+          const label = document.createElement('label');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.name = 'dose_confirmed[]';
+          checkbox.value = i;
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(`✅ Dawa imetumika - Dozi ${i}`));
+          container.appendChild(label);
+        }
+      }
+    }
+
+    document.getElementById('kiasi').addEventListener('input', generateCheckboxes);
+
     function validateMatumizi() {
-      const kiasi = document.getElementById('kiasi').value;
+      const kiasi = parseInt(document.getElementById('kiasi').value);
+      const checkboxes = document.querySelectorAll('input[name="dose_confirmed[]"]:checked');
       const errorDiv = document.getElementById('kiasiError');
       errorDiv.textContent = '';
 
-      if (!kiasi || isNaN(kiasi) || Number(kiasi) <= 0) {
+      if (isNaN(kiasi) || kiasi <= 0) {
         errorDiv.textContent = 'Kiasi lazima kiwe namba sahihi zaidi ya sifuri.';
         return false;
       }
 
-      const imethibitishwa = document.getElementById('imethibitishwa');
-      const tareheInput = document.getElementById('tarehe');
-
-      if (imethibitishwa.checked && !tareheInput.value) {
-        alert('Tafadhali chagua tarehe na saa ya matumizi.');
-        tareheInput.focus();
+      if (checkboxes.length === 0) {
+        errorDiv.textContent = 'Tafadhali thibitisha angalau dozi moja ilitumika.';
         return false;
       }
 
@@ -144,23 +166,6 @@
 
       return true;
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const checkbox = document.getElementById('imethibitishwa');
-      const tareheGroup = document.getElementById('tareheGroup');
-      const tareheInput = document.getElementById('tarehe');
-
-      checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          tareheGroup.style.display = 'block';
-          tareheInput.required = true;
-        } else {
-          tareheGroup.style.display = 'none';
-          tareheInput.required = false;
-          tareheInput.value = '';
-        }
-      });
-    });
   </script>
 
 </body>
