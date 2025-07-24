@@ -240,7 +240,6 @@ async function startApp() {
 
 
   app.get('/ripoti/matumizi', async (req, res, next) => {
-  app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
     const { mode, from, to } = req.query;
     const [watumiaji, dawa, matumizi] = await Promise.all([
