@@ -3,6 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <title>Sajili Matumizi ya Dawa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      max-width: 600px;
+    }
+
+    label, h3 {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    select, input[type="number"] {
+      padding: 5px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      width: 100%;
+    }
+
+    .dawa-item {
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: #f1f1f1;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      color: #007bff;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
   <h1>Sajili Matumizi ya Dawa</h1>
@@ -11,7 +71,7 @@
     <p style="color: red;"><%= error %></p>
   <% } %>
 
-  <form method="POST" action="/matumizi/sajili">
+  <form method="POST" action="/matumizi/sajili" onsubmit="return validateForm()">
     <label>Chagua Mtumiaji:</label>
     <select name="mtumiajiId" required>
       <% watumiaji.forEach(m => { %>
@@ -21,8 +81,8 @@
 
     <h3>Chagua Dawa na Kiasi</h3>
     <% dawa.forEach((d, index) => { %>
-      <div style="margin-bottom: 10px;">
-        <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true">
+      <div class="dawa-item">
+        <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox">
         <%= d.jina %> (<%= d.kiasi %> zipo) <br>
         <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
         Kiasi: 
@@ -36,5 +96,19 @@
 
   <br>
   <a href="/">Rudi Nyumbani</a>
+
+  <script>
+    function validateForm() {
+      const checkboxes = document.querySelectorAll('.checkbox');
+      const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+
+      if (!anyChecked) {
+        alert("Tafadhali chagua angalau dawa moja.");
+        return false;
+      }
+
+      return true;
+    }
+  </script>
 </body>
 </html>
