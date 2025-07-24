@@ -17,7 +17,7 @@ const excelPath = path.join(dataDir, 'database.xlsx');
 
 const SHEETS = {
   DAWA: { name: 'Dawa', headers: ['id', 'jina', 'aina', 'kiasi'] },
-  WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina' 'maelezo'] },
+  WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina',  'maelezo'] },
   MATUMIZI: { name: 'Matumizi', headers: ['id', 'dawaId', 'mtumiajiId', 'kiasi', 'tarehe'] }
 };
 
@@ -180,7 +180,7 @@ async function startApp() {
       }
 
       const watumiaji = await readSheet('WATUMIAJI');
-      const newUser = { id: nanoid(), jina: jina.trim() };
+      const newUser = { id: nanoid(), jina: jina.trim(), maelezo: description?.trim() || '' };
       await writeSheet('WATUMIAJI', [...watumiaji, newUser]);
       res.redirect('/');
     } catch (error) {
