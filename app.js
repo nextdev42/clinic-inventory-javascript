@@ -130,65 +130,16 @@ async function startApp() {
   });
 
   app.get('/matumizi/sajili', async (req, res, next) => {
-  try {
-    // Read data with timeout to prevent hanging
-    const [dawa, watumiaji] = await Promise.all([
-      readSheet('DAWA').catch(err => {
-        console.error('Error reading DAWA sheet:', err);
-        throw new Error('Imeshindwa kusoma taarifa za dawa');
-      }),
-      readSheet('WATUMIAJI').catch(err => {
-        console.error('Error reading WATUMIAJI sheet:', err);
-        throw new Error('Imeshindwa kusoma taarifa za watumiaji');
-      })
-    ]);
-
-    // Validate data structure
-    if (!Array.isArray(dawa) {
-      throw new Error('Data ya dawa haiko kwa muundo sahihi');
+    try {
+      const [dawa, watumiaji] = await Promise.all([
+        readSheet('DAWA'),
+        readSheet('WATUMIAJI')
+      ]);
+      res.render('log-usage', { dawa, watumiaji });
+    } catch (error) {
+      next(error);
     }
-    if (!Array.isArray(watumiaji)) {
-      throw new Error('Data ya watumiaji haiko kwa muundo sahihi');
-    }
-
-    // Transform user data to ensure consistent format
-    const cleanWatumiaji = watumiaji.map(user => ({
-      id: user.id || nanoid(), // Ensure ID exists
-      jina: user.jina || 'Jina haijulikani',
-      maelezo: user.maelezo || '', // Ensure maelezo exists even if empty
-      // Add any other required fields
-    }));
-
-    // Debug output
-    console.log('Watumiaji with descriptions:', 
-      cleanWatumiaji.filter(u => u.maelezo && u.maelezo.trim()).length,
-      'out of', cleanWatumiaji.length
-    );
-
-    res.render('log-usage', { 
-      dawa: dawa.filter(d => d.id && d.jina), // Filter invalid medicine entries
-      watumiaji: cleanWatumiaji,
-      currentDate: new Date().toISOString().split('T')[0] // Add current date for reference
-    });
-
-  } catch (error) {
-    console.error('Error in /matumizi/sajili route:', error);
-    
-    // Special handling for common errors
-    if (error.message.includes('ENOENT')) {
-      error.message = 'Faili ya database haipatikani';
-    } else if (error.message.includes('Unexpected token')) {
-      error.message = 'Taarifa za database ziko kwa muundo mbaya';
-    }
-
-    // Render error page with user-friendly message
-    res.status(500).render('error', {
-      title: 'Hitilafu ya Kupata Taarifa',
-      message: error.message || 'Kuna tatizo la kupata taarifa za matumizi',
-      details: process.env.NODE_ENV === 'development' ? error.stack : null
-    });
-  }
-});
+  });
 
   app.post('/dawa/ongeza', async (req, res, next) => {
     try {
