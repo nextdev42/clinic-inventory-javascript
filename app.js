@@ -17,9 +17,8 @@ const excelPath = path.join(dataDir, 'database.xlsx');
 
 const SHEETS = {
   DAWA: { name: 'Dawa', headers: ['id', 'jina', 'aina', 'kiasi'] },
-  WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina',  'maelezo'] },
-  MATUMIZI: { name: 'Matumizi', headers: ['id', 'dawaId', 'mtumiajiId', 'mtumiajiJina', 'maelezo', 'kiasi', 'tarehe'] }
-
+  WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina'] },
+  MATUMIZI: { name: 'Matumizi', headers: ['id', 'dawaId', 'mtumiajiId', 'kiasi', 'tarehe'] }
 };
 
 async function initializeDatabase() {
@@ -173,7 +172,7 @@ async function startApp() {
 
   app.post('/mtumiaji/ongeza', async (req, res, next) => {
     try {
-      const { jina, description} = req.body;
+      const { jina } = req.body;
       if (!jina || jina.trim().length < 2) {
         return res.status(400).render('error', {
           message: 'Jina la mtumiaji linahitajika'
@@ -181,7 +180,7 @@ async function startApp() {
       }
 
       const watumiaji = await readSheet('WATUMIAJI');
-      const newUser = { id: nanoid(), jina: jina.trim(), maelezo: description?.trim() || '' };
+      const newUser = { id: nanoid(), jina: jina.trim() };
       await writeSheet('WATUMIAJI', [...watumiaji, newUser]);
       res.redirect('/');
     } catch (error) {
@@ -199,10 +198,13 @@ async function startApp() {
       });
     }
 
+    // dawaList ni object yenye indices kama "0", "1"... tungependa kupata array
+    // Tuma dawaList kuwa array
     const dawaArray = Array.isArray(dawaList)
       ? dawaList
       : Object.values(dawaList);
 
+    // Chuja dawa zilizo confirmed
     const confirmedDawa = dawaArray.filter(d => d.confirmed === 'true');
 
     if (confirmedDawa.length === 0) {
@@ -217,19 +219,16 @@ async function startApp() {
       });
     }
 
-    const watumiaji = await readSheet('WATUMIAJI');
-    const mtumiaji = watumiaji.find(w => w.id === mtumiajiId);
-
+    // Andaa data ya kuandika, hakikisha kiasi ni namba na tarehe ipo sahihi
     const matumizi = confirmedDawa.map(d => ({
       id: nanoid(),
       mtumiajiId,
-      mtumiajiJina: mtumiaji?.jina || '',
-      maelezo: mtumiaji?.maelezo || '',
       dawaId: d.id,
       kiasi: parseInt(d.kiasi, 10) || 0,
       tarehe: d.tarehe || new Date().toISOString()
     }));
 
+    // Soma matumizi yaliyopo, ongeza yaliyopo na andika tena
     const existingMatumizi = await readSheet('MATUMIZI');
     await writeSheet('MATUMIZI', [...existingMatumizi, ...matumizi]);
 
@@ -238,7 +237,6 @@ async function startApp() {
     next(error);
   }
 });
-
 
 
   app.get('/ripoti/matumizi', async (req, res, next) => {
