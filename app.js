@@ -246,6 +246,33 @@ async function startApp() {
     }
   });
 
+  app.get('/ripoti/matumizi', async (req, res, next) => {
+  try {
+    const matumizi = await readSheet('MATUMIZI');
+    const dawa = await readSheet('DAWA');
+    const watumiaji = await readSheet('WATUMIAJI');
+
+    // Unganisha taarifa kwa majina na maelezo
+    const ripoti = matumizi.map(m => {
+      const mtumiaji = watumiaji.find(w => w.id === m.mtumiajiId) || {};
+      const dawaInfo = dawa.find(d => d.id === m.dawaId) || {};
+
+      return {
+        jina: mtumiaji.jina,
+        maelezo: mtumiaji.maelezo,
+        dawa: dawaInfo.jina,
+        kiasi: m.kiasi,
+        tarehe: m.tarehe
+      };
+    });
+
+    res.render('matumizi-report', { ripoti });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
   // ... other routes remain unchanged ...
 
   const PORT = process.env.PORT || 3000;
