@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Sajili Matumizi ya Dawa</title>
+  <style>
+    #user-info {
+      font-weight: bold;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    #user-info small {
+      color: gray;
+    }
+  </style>
 </head>
 <body>
   <h1>Sajili Matumizi ya Dawa</h1>
@@ -13,11 +23,20 @@
 
   <form method="POST" action="/matumizi/sajili">
     <label>Chagua Mtumiaji:</label>
-    <select name="mtumiajiId" required>
+    <select name="mtumiajiId" id="mtumiaji-select" required>
+      <option value="">-- Chagua Mtumiaji --</option>
       <% watumiaji.forEach(m => { %>
-        <option value="<%= m.id %>"><%= m.jina %> - <%= m.maelezo || '' %></option>
+        <option 
+          value="<%= m.id %>" 
+          data-jina="<%= m.jina %>" 
+          data-maelezo="<%= m.maelezo || '' %>">
+          <%= m.jina %>
+        </option>
       <% }) %>
     </select>
+
+    <!-- Maelezo ya mtumiaji yaliyochaguliwa -->
+    <div id="user-info"></div>
 
     <h3>Chagua Dawa na Kiasi</h3>
     <% dawa.forEach((d, index) => { %>
@@ -36,5 +55,22 @@
 
   <br>
   <a href="/">Rudi Nyumbani</a>
+
+  <script>
+    const select = document.getElementById('mtumiaji-select');
+    const infoDiv = document.getElementById('user-info');
+
+    select.addEventListener('change', function () {
+      const selected = select.options[select.selectedIndex];
+      const jina = selected.dataset.jina;
+      const maelezo = selected.dataset.maelezo;
+
+      if (jina && maelezo !== undefined) {
+        infoDiv.innerHTML = `${jina}<br><small>${maelezo}</small>`;
+      } else {
+        infoDiv.innerHTML = '';
+      }
+    });
+  </script>
 </body>
 </html>
