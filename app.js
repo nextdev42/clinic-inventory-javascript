@@ -197,34 +197,44 @@ async function startApp() {
   const { mtumiajiId, dawaList } = req.body;
 
   if (!mtumiajiId || !dawaList) {
-    return res.status(400).send("Ombi halijakamilika.");
+    return res.status(400).render("error", {
+      message: "Tafadhali chagua mtumiaji na angalau dawa moja."
+    });
   }
 
-  const matumiziYaliothibitishwa = Array.isArray(dawaList)
-  ? dawaList
-  : Object.entries(dawaList).map(([_, d]) => d);
- // in case it's an object (form encoding quirk)
+  // Convert to array if it's a single object
+  const dawaArray = Array.isArray(dawaList)
+    ? dawaList
+    : Object.values(dawaList);
 
-  const matumizi = matumiziYaliothibitishwa
-    .filter(d => d.confirmed) // Only ones that were checked
-    .map(d => ({
-      mtumiajiId,
-      dawaId: d.id,
-      kiasi: parseInt(d.kiasi || 0),
-      tarehe: d.tarehe || new Date().toISOString()
-    }));
-
-  if (matumizi.length === 0) {
-    return res.status(400).send("Hakuna dawa zilizo thibitishwa.");
+  // 🛡️ Validate: at least one confirmed medicine
+  const confirmedDawa = dawaArray.filter(d => d.confirmed === 'true');
+  if (confirmedDawa.length === 0) {
+    const [dawa, watumiaji] = await Promise.all([
+      readSheet('DAWA'),
+      readSheet('WATUMIAJI')
+    ]);
+    return res.render('log-usage', {
+      dawa,
+      watumiaji,
+      error: "Hakuna dawa zilizo thibitishwa kutolewa. Tafadhali chagua angalau dawa moja."
+    });
   }
 
-  // Save each usage to your data store (e.g., Excel, database, JSON)
-  for (const rekodi of matumizi) {
-    // saveMatumizi(rekodi); // Your actual saving logic
-    console.log("✅ Hifadhi:", rekodi);
-  }
+  // Create usage entries
+  const matumizi = confirmedDawa.map(d => ({
+    id: nanoid(),
+    mtumiajiId,
+    dawaId: d.id,
+    kiasi: parseInt(d.kiasi) || 0,
+    tarehe: d.tarehe || new Date().toISOString()
+  }));
 
-  return res.redirect('/matumizi/success'); // or render success page
+  // Read, save, and update Matumizi sheet
+  const existingMatumizi = await readSheet('MATUMIZI');
+  await writeSheet('MATUMIZI', [...existingMatumizi, ...matumizi]);
+
+  return res.redirect('/ripoti/matumizi');
 });
 
 
