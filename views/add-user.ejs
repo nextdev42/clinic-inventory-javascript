@@ -26,11 +26,13 @@
       margin-top: 15px;
       font-size: 16px;
     }
-    input {
+    input, textarea {
       width: 100%;
       padding: 12px;
       margin-top: 5px;
       font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
     }
     button {
       margin-top: 20px;
@@ -82,6 +84,10 @@
     <input type="text" id="jina" name="jina" required>
     <div id="jinaError" class="error"></div>
 
+    <label for="description">Maelezo ya Dawa (Description):</label>
+    <textarea id="description" name="description" placeholder="Mfano: Paracetamol 2x3, Amoxicillin 1x2 kwa siku" rows="4"></textarea>
+    <div id="descError" class="error"></div>
+
     <button type="submit">💾 Hifadhi</button>
   </form>
 
@@ -91,14 +97,27 @@
 
   <script>
     function validateForm() {
-      const jina = document.getElementById('jina').value;
-      const errorDiv = document.getElementById('jinaError');
-      errorDiv.textContent = '';
+      const jina = document.getElementById('jina').value.trim();
+      const desc = document.getElementById('description').value.trim();
 
-      if (!jina || jina.trim().length < 2) {
-        errorDiv.textContent = 'Tafadhali jaza jina sahihi (angalau herufi 2).';
-        return false;
+      const jinaError = document.getElementById('jinaError');
+      const descError = document.getElementById('descError');
+      jinaError.textContent = '';
+      descError.textContent = '';
+
+      let valid = true;
+
+      if (jina.length < 2) {
+        jinaError.textContent = 'Tafadhali jaza jina sahihi (angalau herufi 2).';
+        valid = false;
       }
+
+      if (desc.length < 5) {
+        descError.textContent = 'Tafadhali weka maelezo ya dawa yaliyo sahihi.';
+        valid = false;
+      }
+
+      if (!valid) return false;
 
       document.getElementById('success').style.display = 'block';
       setTimeout(() => {
