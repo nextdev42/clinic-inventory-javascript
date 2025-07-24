@@ -11,12 +11,15 @@
     }
     h2 {
       text-align: center;
+      margin-bottom: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
     }
     form {
       background: white;
       padding: 20px;
-      max-width: 700px;
-      margin: auto;
       border-radius: 8px;
       box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
@@ -27,147 +30,204 @@
     }
     .dawa-row {
       border: 1px solid #ddd;
-      padding: 10px;
+      padding: 15px;
       border-radius: 5px;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       background: #fafafa;
     }
     .dawa-row input[type="checkbox"] {
       transform: scale(1.3);
-      margin-top: 10px;
+      margin-right: 10px;
     }
-    button {
+    .button-group {
+      display: flex;
+      gap: 10px;
       margin-top: 20px;
+    }
+    .btn {
       padding: 12px;
-      background: green;
       color: white;
       border: none;
       cursor: pointer;
       font-size: 16px;
-      width: 100%;
       border-radius: 6px;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-primary {
+      background: #28a745;
+    }
+    .btn-secondary {
+      background: #6c757d;
     }
     .success-message {
       display: none;
       text-align: center;
       padding: 15px;
       margin-top: 20px;
-      background-color: #e0ffe0;
-      color: green;
-      font-weight: bold;
+      background-color: #d4edda;
+      color: #155724;
       border-radius: 6px;
     }
     .error {
-      color: red;
+      color: #dc3545;
       font-size: 14px;
       margin-top: 10px;
       text-align: center;
+      padding: 10px;
+      background-color: #f8d7da;
+      border-radius: 4px;
     }
     #userDescription {
-      margin-top: 10px;
-      padding: 10px;
-      background: #eef;
-      border-left: 5px solid #66a;
+      margin: 15px 0;
+      padding: 12px;
+      background: #e8f4fc;
+      border-left: 4px solid #3498db;
       border-radius: 6px;
-      display: none;
+    }
+    .description-text {
+      font-style: italic;
+      margin-top: 5px;
+    }
+    .back-button {
+      margin-bottom: 20px;
+    }
+    .back-button a {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 15px;
+      background: #6c757d;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    .back-button a:hover {
+      background: #5a6268;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <!-- Back Button at the top -->
+    <div class="back-button">
+      <a href="/">
+        <span style="margin-right: 5px;">←</span> Rudi Nyumbani
+      </a>
+    </div>
 
-  <h2>📝 Sajili Matumizi ya Dawa</h2>
+    <h2>📝 Sajili Matumizi ya Dawa</h2>
 
-  <form action="/matumizi/sajili" method="POST" onsubmit="return validateMatumizi()">
-    <label for="mtumiajiId">Chagua Mtumiaji:</label>
-    <select id="userSelect" name="mtumiajiId" required class="form-control">
-  <option value="">-- Chagua mtumiaji --</option>
-  <% watumiaji.forEach(user => { %>
-    <option 
-      value="<%= user.id %>" 
-      data-description="<%= user.maelezo || 'Hakuna maelezo' %>">
-      <%= user.jina %>
-    </option>
-  <% }) %>
-</select>
+    <form action="/matumizi/sajili" method="POST" id="matumiziForm">
+      <label for="userSelect">Chagua Mtumiaji:</label>
+      <select id="userSelect" name="mtumiajiId" required>
+        <option value="">-- Chagua mtumiaji --</option>
+        <% watumiaji.forEach(user => { %>
+          <option value="<%= user.id %>" 
+                  data-description="<%= user.maelezo || '' %>">
+            <%= user.jina %>
+            <% if (user.maelezo && user.maelezo.trim() !== '') { %>
+              (ina maelezo)
+            <% } %>
+          </option>
+        <% }) %>
+      </select>
 
+      <div id="userDescription">
+        <strong>Maelezo ya Matumizi:</strong>
+        <div id="descriptionText" class="description-text">Chagua mtumiaji kuona maelezo</div>
+      </div>
 
-    <div id="userDescription"></div>
+      <h3 style="margin-top: 20px;">Chagua Dawa na Kiasi:</h3>
+      <% dawa.forEach((d, index) => { %>
+        <fieldset class="dawa-row">
+          <legend><%= d.jina %> - <%= d.aina %></legend>
 
-    <h3>Chagua Dawa na Kiasi:</h3>
-    <% dawa.forEach((d, index) => { %>
-      <fieldset class="dawa-row">
-        <legend><%= d.jina %> - <%= d.aina %></legend>
+          <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>" />
 
-        <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>" />
+          <label>Kiasi:</label>
+          <input type="number" name="dawaList[<%= index %>][kiasi]" min="1" placeholder="e.g. 1" required />
 
-        <label>Kiasi:</label>
-        <input type="number" name="dawaList[<%= index %>][kiasi]" min="0" placeholder="e.g. 1" />
+          <label style="display: flex; align-items: center; margin-top: 10px;">
+            <input type="checkbox" class="confirm-checkbox" name="dawaList[<%= index %>][confirmed]" value="true" />
+            <span style="margin-left: 8px;">✅ Dawa imetolewa</span>
+          </label>
 
-        <label>
-          <input type="checkbox" class="confirm-checkbox" name="dawaList[<%= index %>][confirmed]" value="true" />
-          ✅ Dawa imetolewa
-        </label>
+          <input type="hidden" name="dawaList[<%= index %>][tarehe]" class="auto-tarehe" />
+        </fieldset>
+      <% }) %>
 
-        <input type="hidden" name="dawaList[<%= index %>][tarehe]" class="auto-tarehe" />
-      </fieldset>
-    <% }) %>
+      <div id="errorMsg" class="error"></div>
 
-    <div id="errorMsg" class="error"></div>
+      <div class="button-group">
+        <button type="submit" class="btn btn-primary">💾 Hifadhi Matumizi</button>
+        <button type="button" class="btn btn-secondary" onclick="window.location.href='/'">🏠 Rudi Nyumbani</button>
+      </div>
+    </form>
 
-    <button type="submit">💾 Hifadhi Matumizi</button>
-  </form>
-
-  <div id="success" class="success-message">✅ Matumizi ya dawa yamehifadhiwa vizuri!</div>
+    <div id="success" class="success-message">✅ Matumizi ya dawa yamehifadhiwa vizuri!</div>
+  </div>
 
   <script>
-    function getCurrentDatetimeLocal() {
-      const now = new Date();
-      const offset = now.getTimezoneOffset();
-      const localTime = new Date(now.getTime() - offset * 60000);
-      return localTime.toISOString();
-    }
-
-    function validateMatumizi() {
-      const confirmedCheckboxes = document.querySelectorAll('.confirm-checkbox');
-      const tareheInputs = document.querySelectorAll('.auto-tarehe');
-      const errorDiv = document.getElementById('errorMsg');
-      let atLeastOneConfirmed = false;
-
-      confirmedCheckboxes.forEach((checkbox, index) => {
-        if (checkbox.checked) {
-          tareheInputs[index].value = getCurrentDatetimeLocal();
-          atLeastOneConfirmed = true;
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize user description display
+      const userSelect = document.getElementById('userSelect');
+      const descText = document.getElementById('descriptionText');
+      
+      userSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const description = selectedOption.getAttribute('data-description');
+        
+        if (this.value && description && description.trim() !== '') {
+          descText.textContent = description;
+        } else if (this.value) {
+          descText.textContent = 'Hakuna maelezo ya matumizi kwa mtumiaji huyu';
         } else {
-          tareheInputs[index].value = '';
+          descText.textContent = 'Chagua mtumiaji kuona maelezo';
         }
       });
-
-      if (!atLeastOneConfirmed) {
-        errorDiv.textContent = "⚠️ Tafadhali thibitisha angalau dawa moja iliyotolewa.";
-        return false;
+      
+      // Initialize form validation
+      const form = document.getElementById('matumiziForm');
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const confirmed = document.querySelectorAll('.confirm-checkbox:checked').length > 0;
+        const errorDiv = document.getElementById('errorMsg');
+        const successDiv = document.getElementById('successMsg');
+        
+        if (!confirmed) {
+          errorDiv.textContent = 'Tafadhali thibitisha angalau dawa moja iliyotolewa';
+          errorDiv.style.display = 'block';
+          successDiv.style.display = 'none';
+          return false;
+        }
+        
+        // Set current date for confirmed medicines
+        const now = new Date().toISOString();
+        document.querySelectorAll('.confirm-checkbox:checked').forEach(checkbox => {
+          const index = checkbox.name.match(/\[(\d+)\]/)[1];
+          document.querySelector(`input[name="dawaList[${index}][tarehe]"]`).value = now;
+        });
+        
+        // Submit the form
+        this.submit();
+      });
+      
+      // Show success message if redirected with success parameter
+      if (new URLSearchParams(window.location.search).has('success')) {
+        document.getElementById('success').textContent = '✅ Matumizi ya dawa yamehifadhiwa kikamilifu!';
+        document.getElementById('success').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('success').style.display = 'none';
+        }, 3000);
       }
-
-      errorDiv.textContent = ''; // clear previous errors
-      return true;
-    }
-
-    function onMtumiajiChange() {
-      const select = document.getElementById("mtumiajiId");
-      const selectedOption = select.options[select.selectedIndex];
-      const description = selectedOption.getAttribute("data-description");
-      const descDiv = document.getElementById("userDescription");
-
-      if (description && description.trim()) {
-        descDiv.textContent = "📝 Maelezo kutoka kwa daktari: " + description;
-        descDiv.style.display = "block";
-      } else {
-        descDiv.textContent = "";
-        descDiv.style.display = "none";
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", onMtumiajiChange);
+      
+      // Trigger initial description update
+      userSelect.dispatchEvent(new Event('change'));
+    });
   </script>
-
 </body>
 </html>
