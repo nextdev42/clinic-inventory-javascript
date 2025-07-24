@@ -130,16 +130,20 @@ async function startApp() {
   });
 
   app.get('/matumizi/sajili', async (req, res, next) => {
-    try {
-      const [dawa, watumiaji] = await Promise.all([
-        readSheet('DAWA'),
-        readSheet('WATUMIAJI')
-      ]);
-      res.render('log-usage', { dawa, watumiaji });
-    } catch (error) {
-      next(error);
-    }
-  });
+  try {
+    const [dawa, watumiaji] = await Promise.all([
+      readSheet('DAWA'),
+      readSheet('WATUMIAJI')
+    ]);
+    
+    // Debug: log user data to console
+    console.log("Users data:", watumiaji.map(u => ({ jina: u.jina, maelezo: u.maelezo })));
+    
+    res.render('log-usage', { dawa, watumiaji });
+  } catch (error) {
+    next(error);
+  }
+});
 
   app.post('/dawa/ongeza', async (req, res, next) => {
     try {
