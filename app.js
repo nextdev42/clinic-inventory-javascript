@@ -337,7 +337,20 @@ async function startApp() {
   }
 });
 
+app.get('/admin/maelezo-dump', async (req, res, next) => {
+  try {
+    const watumiaji = await readSheet('WATUMIAJI');
+    const dump = watumiaji.map(u => ({
+      jina: u.jina,
+      maelezo: u.maelezo || '[hakuna]',
+      length: (u.maelezo || '').length
+    }));
 
+    res.render('maelezo-dump', { dump });
+  } catch (error) {
+    next(error);
+  }
+});
   app.use((req, res) => {
     res.status(404).render('error', { message: 'Ukurasa haupatikani' });
   });
