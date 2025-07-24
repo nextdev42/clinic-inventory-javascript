@@ -101,11 +101,13 @@
       <option value="range" <%= query.aina === 'range' ? 'selected' : '' %>>Tarehe Maalum</option>
     </select>
 
-    <label for="start">Tarehe ya mwanzo:</label>
-    <input type="date" name="start" id="start" value="<%= query.start || '' %>">
+    <% if (query.aina === 'range') { %>
+      <label for="start">Tarehe ya mwanzo:</label>
+      <input type="date" name="start" id="start" value="<%= query.start || '' %>">
 
-    <label for="end">Mpaka:</label>
-    <input type="date" name="end" id="end" value="<%= query.end || '' %>">
+      <label for="end">Mpaka:</label>
+      <input type="date" name="end" id="end" value="<%= query.end || '' %>">
+    <% } %>
 
     <button type="submit">📅 Tazama Ripoti</button>
   </form>
