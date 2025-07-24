@@ -79,11 +79,17 @@
 
   <form action="/matumizi/sajili" method="POST" onsubmit="return validateMatumizi()">
     <label for="mtumiajiId">Chagua Mtumiaji:</label>
-    <select name="mtumiajiId" id="mtumiajiId" required onchange="onMtumiajiChange()">
-      <% watumiaji.forEach(u => { %>
-        <option value="<%= u.id %>" data-description="<%= u.maelezo || '' %>"><%= u.jina %></option>
-      <% }) %>
-    </select>
+    <select id="userSelect" name="mtumiajiId" required class="form-control">
+  <option value="">-- Chagua mtumiaji --</option>
+  <% watumiaji.forEach(user => { %>
+    <option 
+      value="<%= user.id %>" 
+      data-description="<%= user.maelezo || 'Hakuna maelezo' %>">
+      <%= user.jina %>
+    </option>
+  <% }) %>
+</select>
+
 
     <div id="userDescription"></div>
 
