@@ -81,7 +81,7 @@
     <label for="mtumiajiId">Chagua Mtumiaji:</label>
     <select name="mtumiajiId" id="mtumiajiId" required onchange="onMtumiajiChange()">
       <% watumiaji.forEach(u => { %>
-        <option value="<%= u.id %>" data-description="<%= u.description || '' %>"><%= u.jina %></option>
+        <option value="<%= u.id %>" data-description="<%= u.maelezo || '' %>"><%= u.jina %></option>
       <% }) %>
     </select>
 
