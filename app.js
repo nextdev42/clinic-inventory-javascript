@@ -17,7 +17,7 @@ const excelPath = path.join(dataDir, 'database.xlsx');
 
 const SHEETS = {
   DAWA: { name: 'Dawa', headers: ['id', 'jina', 'aina', 'kiasi'] },
-  WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina'] },
+  WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina' 'maelezo'] },
   MATUMIZI: { name: 'Matumizi', headers: ['id', 'dawaId', 'mtumiajiId', 'kiasi', 'tarehe'] }
 };
 
@@ -172,7 +172,7 @@ async function startApp() {
 
   app.post('/mtumiaji/ongeza', async (req, res, next) => {
     try {
-      const { jina } = req.body;
+      const { jina, description} = req.body;
       if (!jina || jina.trim().length < 2) {
         return res.status(400).render('error', {
           message: 'Jina la mtumiaji linahitajika'
