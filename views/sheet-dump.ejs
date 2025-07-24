@@ -1,29 +1,27 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8">
-  <title>📂 Data Rawmu ya Mfumo</title>
+  <meta charset="UTF-8" />
+  <title>Maelezo ya Watumiaji</title>
   <style>
-    body { font-family: monospace; padding: 20px; background: #fafafa; }
-    h2 { margin-top: 30px; }
-    pre { background: #fff; padding: 15px; border: 1px solid #ccc; overflow-x: auto; }
-    a { display: inline-block; margin-top: 20px; text-decoration: none; color: #007acc; font-weight: bold; }
+    body { font-family: sans-serif; padding: 20px; background: #f3f3f3; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { padding: 10px; border: 1px solid #ccc; }
+    th { background: #eef; }
+    td.maelezo { font-style: italic; color: #444; }
   </style>
 </head>
 <body>
-
-  <h1>📂 Dump ya Sheet Data</h1>
-
-  <h2>💊 Dawa</h2>
-  <pre><%= JSON.stringify(dawa, null, 2) %></pre>
-
-  <h2>📋 Matumizi</h2>
-  <pre><%= JSON.stringify(matumizi, null, 2) %></pre>
-
-  <h2>👤 Watumiaji</h2>
-  <pre><%= JSON.stringify(watumiaji, null, 2) %></pre>
-
-  <a href="/">⬅️ Rudi kwenye Dashibodi</a>
-
+  <h2>📋 Ukaguzi wa Maelezo ya Watumiaji</h2>
+  <table>
+    <tr><th>Jina</th><th>Maelezo</th><th>Urefu</th></tr>
+    <% dump.forEach(u => { %>
+      <tr>
+        <td><%= u.jina %></td>
+        <td class="maelezo"><%= u.maelezo %></td>
+        <td><%= u.length %></td>
+      </tr>
+    <% }) %>
+  </table>
 </body>
 </html>
