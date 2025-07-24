@@ -130,16 +130,14 @@ async function startApp() {
   });
 
   app.get('/matumizi/sajili', async (req, res, next) => {
-    try {
-      const [dawa, watumiaji] = await Promise.all([
-        readSheet('DAWA'),
-        readSheet('WATUMIAJI')
-      ]);
-      res.render('log-usage', { dawa, watumiaji });
-    } catch (error) {
-      next(error);
-    }
-  });
+  try {
+    res.send('🚀 Route inafanya kazi vizuri bila kusoma data.');
+  } catch (err) {
+    console.log("Hitilafu:", err);
+    next(err);
+  }
+});
+
 
   app.post('/dawa/ongeza', async (req, res, next) => {
     try {
