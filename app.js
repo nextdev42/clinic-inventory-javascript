@@ -193,61 +193,39 @@ async function startApp() {
     }
   });
 
-  app.post('/matumizi/sajili', async (req, res, next) => {
-  try {
-    const { mtumiajiId } = req.body;
-    if (!mtumiajiId) {
-      return res.status(400).render('error', { message: 'Mtumiaji anahitajika' });
-    }
+  app.post('/matumizi/sajili', async (req, res) => {
+  const { mtumiajiId, dawaList } = req.body;
 
-    const dawaList = await readSheet('DAWA');
-    const matumizi = await readSheet('MATUMIZI');
-
-    // Collect usage entries from form data:
-    const newUsages = [];
-
-    for (const medicine of dawaList) {
-      const doseStr = req.body[`kiasi_${medicine.id}`];
-      const confirm = req.body[`confirm_${medicine.id}`];
-
-      const dose = Number(doseStr);
-      if (confirm && dose > 0) {
-        // Check stock availability
-        const used = matumizi
-          .filter(m => m.dawaId === medicine.id)
-          .reduce((sum, m) => sum + (Number(m.kiasi) || 0), 0);
-
-        const remaining = (medicine.kiasi || 0) - used;
-
-        if (dose > remaining) {
-          return res.status(400).render('error', {
-            message: `Kiasi cha ${medicine.jina} kilichobaki ni ${remaining}, hauwezi kutoa dose ${dose}`
-          });
-        }
-
-        newUsages.push({
-          id: nanoid(),
-          dawaId: medicine.id,
-          mtumiajiId,
-          kiasi: dose,
-          tarehe: new Date().toISOString()
-        });
-      }
-    }
-
-    if (newUsages.length === 0) {
-      return res.status(400).render('error', {
-        message: 'Hakuna dawa zilizo thibitishwa kutolewa. Tafadhali chagua angalau dawa moja.'
-      });
-    }
-
-    // Append new usages
-    await writeSheet('MATUMIZI', [...matumizi, ...newUsages]);
-    res.redirect('/');
-  } catch (error) {
-    next(error);
+  if (!mtumiajiId || !dawaList) {
+    return res.status(400).send("Ombi halijakamilika.");
   }
+
+  const matumiziYaliothibitishwa = Array.isArray(dawaList)
+    ? dawaList
+    : Object.values(dawaList); // in case it's an object (form encoding quirk)
+
+  const matumizi = matumiziYaliothibitishwa
+    .filter(d => d.confirmed) // Only ones that were checked
+    .map(d => ({
+      mtumiajiId,
+      dawaId: d.id,
+      kiasi: parseInt(d.kiasi || 0),
+      tarehe: d.tarehe || new Date().toISOString()
+    }));
+
+  if (matumizi.length === 0) {
+    return res.status(400).send("Hakuna dawa zilizo thibitishwa.");
+  }
+
+  // Save each usage to your data store (e.g., Excel, database, JSON)
+  for (const rekodi of matumizi) {
+    // saveMatumizi(rekodi); // Your actual saving logic
+    console.log("✅ Hifadhi:", rekodi);
+  }
+
+  return res.redirect('/matumizi/success'); // or render success page
 });
+
 
 
   // app.js snippet - on your Express app, ndani ya startApp()
