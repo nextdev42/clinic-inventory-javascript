@@ -157,7 +157,8 @@
         </fieldset>
       <% }) %>
 
-      const successDiv = document.getElementById('success');
+         
+          <div id="errorMsg" class="error" style="display: none;"></div>
 
 
       <div class="button-group">
@@ -195,7 +196,8 @@
         
         const confirmed = document.querySelectorAll('.confirm-checkbox:checked').length > 0;
         const errorDiv = document.getElementById('errorMsg');
-        const successDiv = document.getElementById('successMsg');
+        const successDiv = document.getElementById('success');
+
         
         if (!confirmed) {
           errorDiv.textContent = 'Tafadhali thibitisha angalau dawa moja iliyotolewa';
