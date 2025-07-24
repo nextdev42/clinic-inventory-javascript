@@ -240,90 +240,102 @@ async function startApp() {
 
 
   app.get('/ripoti/matumizi', async (req, res, next) => {
-    try {
-      const { mode, from, to } = req.query;
-      const [watumiaji, dawa, matumizi] = await Promise.all([
-        readSheet('WATUMIAJI'),
-        readSheet('DAWA'),
-        readSheet('MATUMIZI')
-      ]);
+  app.get('/ripoti/matumizi', async (req, res, next) => {
+  try {
+    const { mode, from, to } = req.query;
+    const [watumiaji, dawa, matumizi] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('DAWA'),
+      readSheet('MATUMIZI')
+    ]);
 
-      const now = new Date();
-      let startDate = null;
-      let endDate = null;
+    const now = new Date();
+    let startDate = null;
+    let endDate = null;
 
-      if (mode === 'week') {
-        const day = now.getDay();
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - day);
-        startDate.setHours(0, 0, 0, 0);
-      } else if (mode === 'month') {
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        startDate.setHours(0, 0, 0, 0);
-      } else if (from && to) {
-        startDate = new Date(from);
-        endDate = new Date(to);
-        endDate.setHours(23, 59, 59, 999);
-      }
+    if (mode === 'week') {
+      const day = now.getDay();
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - day);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (mode === 'month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (from && to) {
+      startDate = new Date(from);
+      endDate = new Date(to);
+      endDate.setHours(23, 59, 59, 999);
+    }
 
-      const filteredMatumizi = startDate
-        ? matumizi.filter(m => {
-            const t = new Date(m.tarehe);
-            return t >= startDate && (!endDate || t <= endDate);
-          })
-        : matumizi;
+    const filteredMatumizi = startDate
+      ? matumizi.filter(m => {
+          const t = new Date(m.tarehe);
+          return t >= startDate && (!endDate || t <= endDate);
+        })
+      : matumizi;
 
-      function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return 'Tarehe haijulikani';
-        return date.toLocaleDateString('sw-TZ', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-          timeZone: 'Africa/Nairobi'
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return 'Tarehe haijulikani';
+      return date.toLocaleDateString('sw-TZ', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'Africa/Nairobi'
+      });
+    }
+
+    function formatTime(dateStr) {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '--:--';
+      return date.toLocaleTimeString('sw-TZ', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Africa/Nairobi'
+      });
+    }
+
+    const report = watumiaji.map(user => {
+      const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
+      const byDate = {};
+
+      userUsages.forEach(usage => {
+        const day = formatDate(usage.tarehe);
+        if (!byDate[day]) byDate[day] = [];
+
+        const medicine = dawa.find(d => d.id === usage.dawaId);
+        const formattedTime = formatTime(usage.tarehe);
+
+        byDate[day].push({
+          dawa: medicine ? medicine.jina : 'Haijulikani',
+          kiasi: usage.kiasi,
+          saa: formattedTime
         });
-      }
-
-      function formatTime(dateStr) {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return '--:--';
-        return date.toLocaleTimeString('sw-TZ', {
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: 'Africa/Nairobi'
-        });
-      }
-
-      const report = watumiaji.map(user => {
-        const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
-        const byDate = {};
-
-        userUsages.forEach(usage => {
-          const day = formatDate(usage.tarehe);
-          if (!byDate[day]) byDate[day] = [];
-
-          const medicine = dawa.find(d => d.id === usage.dawaId);
-          const formattedTime = formatTime(usage.tarehe);
-
-          byDate[day].push({
-            dawa: medicine ? medicine.jina : 'Haijulikani',
-            kiasi: usage.kiasi,
-            saa: formattedTime
-          });
-        });
-
-        return {
-          jina: user.jina,
-          matumiziByDate: byDate
-        };
       });
 
-      res.render('report-usage', { report, mode, from, to });
-    } catch (error) {
-      next(error);
-    }
-  });
+      return {
+        jina: user.jina,
+        matumiziByDate: byDate
+      };
+    });
+
+    res.render('report-usage', {
+      report,
+      mode,
+      from,
+      to,
+      query: {
+        aina: mode,
+        start: from,
+        end: to
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 
   app.use((req, res) => {
     res.status(404).render('error', { message: 'Ukurasa haupatikani' });
