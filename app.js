@@ -215,6 +215,7 @@ async function startApp() {
         dawa,
         watumiaji,
         error: 'Hakuna dawa zilizo thibitishwa kutolewa. Tafadhali chagua angalau dawa moja.'
+        mtumiajiId
       });
     }
 
