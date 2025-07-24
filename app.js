@@ -197,8 +197,20 @@ async function startApp() {
         });
       }
 
-      const dawaArray = Array.isArray(dawaList) ? dawaList : Object.values(dawaList);
-      const confirmedDawa = dawaArray.filter(d => d.confirmed === 'true');
+      let parsed = [];
+      if (Array.isArray(dawaList)) {
+        parsed = dawaList;
+      } else if (typeof dawaList === 'string') {
+        try {
+          parsed = JSON.parse(dawaList);
+        } catch (e) {
+          return res.status(400).render('error', {
+            message: 'DawaList haikusomeka vizuri. Tafadhali jaribu tena.'
+          });
+        }
+      }
+
+      const confirmedDawa = parsed.filter(d => d.confirmed === true || d.confirmed === 'true');
 
       if (confirmedDawa.length === 0) {
         const [dawa, watumiaji] = await Promise.all([
