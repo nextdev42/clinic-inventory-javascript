@@ -63,6 +63,14 @@
       margin-top: 10px;
       text-align: center;
     }
+    #userDescription {
+      margin-top: 10px;
+      padding: 10px;
+      background: #eef;
+      border-left: 5px solid #66a;
+      border-radius: 6px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -71,11 +79,13 @@
 
   <form action="/matumizi/sajili" method="POST" onsubmit="return validateMatumizi()">
     <label for="mtumiajiId">Chagua Mtumiaji:</label>
-    <select name="mtumiajiId" id="mtumiajiId" required>
+    <select name="mtumiajiId" id="mtumiajiId" required onchange="onMtumiajiChange()">
       <% watumiaji.forEach(u => { %>
-        <option value="<%= u.id %>"><%= u.jina %></option>
+        <option value="<%= u.id %>" data-description="<%= u.description || '' %>"><%= u.jina %></option>
       <% }) %>
     </select>
+
+    <div id="userDescription"></div>
 
     <h3>Chagua Dawa na Kiasi:</h3>
     <% dawa.forEach((d, index) => { %>
@@ -134,6 +144,23 @@
       errorDiv.textContent = ''; // clear previous errors
       return true;
     }
+
+    function onMtumiajiChange() {
+      const select = document.getElementById("mtumiajiId");
+      const selectedOption = select.options[select.selectedIndex];
+      const description = selectedOption.getAttribute("data-description");
+      const descDiv = document.getElementById("userDescription");
+
+      if (description && description.trim()) {
+        descDiv.textContent = "📝 Maelezo kutoka kwa daktari: " + description;
+        descDiv.style.display = "block";
+      } else {
+        descDiv.textContent = "";
+        descDiv.style.display = "none";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", onMtumiajiChange);
   </script>
 
 </body>
