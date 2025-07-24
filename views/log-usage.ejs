@@ -11,65 +11,93 @@
     }
     h2 {
       text-align: center;
+      color: #2c3e50;
     }
     form {
       background: white;
-      padding: 20px;
+      padding: 25px;
       max-width: 700px;
       margin: auto;
       border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    label, select, input[type="number"] {
+    label {
       display: block;
-      margin-top: 10px;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #34495e;
+    }
+    select, input[type="number"] {
       width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
     }
     .dawa-row {
       border: 1px solid #ddd;
-      padding: 10px;
+      padding: 15px;
       border-radius: 5px;
-      margin-bottom: 10px;
-      background: #fafafa;
+      margin-bottom: 15px;
+      background: #f8f9fa;
+    }
+    .dawa-row legend {
+      font-weight: bold;
+      color: #2980b9;
+      padding: 0 5px;
     }
     .dawa-row input[type="checkbox"] {
       transform: scale(1.3);
-      margin-top: 10px;
+      margin: 15px 5px 0 0;
     }
     button {
-      margin-top: 20px;
+      margin-top: 25px;
       padding: 12px;
-      background: green;
+      background: #27ae60;
       color: white;
       border: none;
       cursor: pointer;
       font-size: 16px;
       width: 100%;
       border-radius: 6px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #2ecc71;
     }
     .success-message {
       display: none;
       text-align: center;
       padding: 15px;
       margin-top: 20px;
-      background-color: #e0ffe0;
-      color: green;
-      font-weight: bold;
+      background-color: #d4edda;
+      color: #155724;
       border-radius: 6px;
     }
     .error {
-      color: red;
+      color: #dc3545;
       font-size: 14px;
       margin-top: 10px;
       text-align: center;
+      padding: 10px;
+      background: #f8d7da;
+      border-radius: 4px;
     }
     #userDescription {
-      margin-top: 10px;
-      padding: 10px;
-      background: #eef;
-      border-left: 5px solid #66a;
+      margin-top: 15px;
+      padding: 12px;
+      background: #e8f4fc;
+      border-left: 4px solid #3498db;
       border-radius: 6px;
-      display: none;
+    }
+    #descriptionText {
+      font-style: italic;
+      color: #2c3e50;
+    }
+    .user-indicator {
+      margin-left: 5px;
+      color: #3498db;
     }
   </style>
 </head>
@@ -79,15 +107,24 @@
 
   <form action="/matumizi/sajili" method="POST" onsubmit="return validateMatumizi()">
     <label for="mtumiajiId">Chagua Mtumiaji:</label>
-    <select name="mtumiajiId" id="mtumiajiId" required onchange="onMtumiajiChange()">
+    <select name="mtumiajiId" id="mtumiajiId" required>
+      <option value="">Chagua mtumiaji...</option>
       <% watumiaji.forEach(u => { %>
-        <option value="<%= u.id %>" data-description="<%= u.maelezo || 'Hakuna maelezo' %>"><%= u.jina %></option>
+        <option value="<%= u.id %>" 
+                data-description="<%= u.maelezo || '' %>"
+                <%= u.maelezo ? 'data-has-desc="true"' : '' %>>
+          <%= u.jina %>
+          <% if (u.maelezo) { %><span class="user-indicator">(ina maelezo)</span><% } %>
+        </option>
       <% }) %>
     </select>
 
-    <div id="userDescription"></div>
+    <div id="userDescription">
+      <strong>Maelezo ya Mtumiaji:</strong>
+      <div id="descriptionText">Chagua mtumiaji kuona maelezo</div>
+    </div>
 
-    <h3>Chagua Dawa na Kiasi:</h3>
+    <h3 style="margin-top: 25px; color: #2c3e50;">Chagua Dawa na Kiasi:</h3>
     <% dawa.forEach((d, index) => { %>
       <fieldset class="dawa-row">
         <legend><%= d.jina %> - <%= d.aina %></legend>
@@ -95,11 +132,11 @@
         <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>" />
 
         <label>Kiasi:</label>
-        <input type="number" name="dawaList[<%= index %>][kiasi]" min="0" placeholder="e.g. 1" />
+        <input type="number" name="dawaList[<%= index %>][kiasi]" min="0" placeholder="e.g. 1" required />
 
-        <label>
+        <label style="display: flex; align-items: center; margin-top: 15px;">
           <input type="checkbox" class="confirm-checkbox" name="dawaList[<%= index %>][confirmed]" value="true" />
-          ✅ Dawa imetolewa
+          <span style="margin-left: 8px;">✅ Dawa imetolewa</span>
         </label>
 
         <input type="hidden" name="dawaList[<%= index %>][tarehe]" class="auto-tarehe" />
@@ -122,45 +159,60 @@
     }
 
     function validateMatumizi() {
-      const confirmedCheckboxes = document.querySelectorAll('.confirm-checkbox');
+      const confirmedCheckboxes = document.querySelectorAll('.confirm-checkbox:checked');
       const tareheInputs = document.querySelectorAll('.auto-tarehe');
       const errorDiv = document.getElementById('errorMsg');
-      let atLeastOneConfirmed = false;
-
-      confirmedCheckboxes.forEach((checkbox, index) => {
-        if (checkbox.checked) {
-          tareheInputs[index].value = getCurrentDatetimeLocal();
-          atLeastOneConfirmed = true;
-        } else {
-          tareheInputs[index].value = '';
-        }
-      });
-
-      if (!atLeastOneConfirmed) {
+      
+      // Clear all date inputs first
+      tareheInputs.forEach(input => input.value = '');
+      
+      if (confirmedCheckboxes.length === 0) {
         errorDiv.textContent = "⚠️ Tafadhali thibitisha angalau dawa moja iliyotolewa.";
         return false;
       }
 
-      errorDiv.textContent = ''; // clear previous errors
+      // Set dates only for checked medicines
+      confirmedCheckboxes.forEach(checkbox => {
+        const index = checkbox.name.match(/\[(\d+)\]/)[1];
+        document.querySelector(`input[name="dawaList[${index}][tarehe]"]`).value = getCurrentDatetimeLocal();
+      });
+
+      errorDiv.textContent = '';
       return true;
     }
 
-    function onMtumiajiChange() {
+    function setupUserDescription() {
       const select = document.getElementById("mtumiajiId");
-      const selectedOption = select.options[select.selectedIndex];
-      const description = selectedOption.getAttribute("data-description");
-      const descDiv = document.getElementById("userDescription");
-
-      if (description && description.trim()) {
-        descDiv.textContent = "📝 Maelezo kutoka kwa daktari: " + description;
-        descDiv.style.display = "block";
-      } else {
-        descDiv.textContent = "";
-        descDiv.style.display = "none";
-      }
+      const descText = document.getElementById("descriptionText");
+      
+      select.addEventListener("change", function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const description = selectedOption.getAttribute("data-description");
+        
+        if (description && description.trim()) {
+          descText.textContent = description;
+        } else if (this.value) {
+          descText.textContent = "Hakuna maelezo yaliyowekwa kwa mtumiaji huyu";
+        } else {
+          descText.textContent = "Chagua mtumiaji kuona maelezo";
+        }
+      });
+      
+      // Trigger on page load
+      select.dispatchEvent(new Event('change'));
     }
 
-    document.addEventListener("DOMContentLoaded", onMtumiajiChange);
+    document.addEventListener("DOMContentLoaded", function() {
+      setupUserDescription();
+      
+      // Optional: Show success message if redirected from successful submission
+      if (window.location.search.includes('success=true')) {
+        document.getElementById('success').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('success').style.display = 'none';
+        }, 3000);
+      }
+    });
   </script>
 
 </body>
