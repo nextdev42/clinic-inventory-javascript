@@ -194,46 +194,61 @@ async function startApp() {
   });
 
   app.post('/matumizi/sajili', async (req, res, next) => {
-    try {
-      const { dawaId, mtumiajiId, kiasi } = req.body;
-      const tarehe = new Date().toISOString(); // Hifadhi tarehe na saa kamili
-      if (!dawaId || !mtumiajiId || isNaN(kiasi) || Number(kiasi) <= 0) {
-        return res.status(400).render('error', {
-          message: 'Tafadhali jaza taarifa zote kwa usahihi'
-        });
-      }
-
-      const [dawaList, matumizi] = await Promise.all([
-        readSheet('DAWA'),
-        readSheet('MATUMIZI')
-      ]);
-
-      const dawa = dawaList.find(d => d.id === dawaId);
-      const used = matumizi
-        .filter(m => m.dawaId === dawaId)
-        .reduce((sum, m) => sum + (Number(m.kiasi) || 0), 0);
-      const remaining = (dawa.kiasi || 0) - used;
-
-      if (remaining < Number(kiasi)) {
-        return res.status(400).render('error', {
-          message: `Kiasi kilichobaki (${remaining}) hakitoshi`
-        });
-      }
-
-      const newUsage = {
-        id: nanoid(),
-        dawaId,
-        mtumiajiId,
-        kiasi: Number(kiasi),
-        tarehe
-      };
-
-      await writeSheet('MATUMIZI', [...matumizi, newUsage]);
-      res.redirect('/');
-    } catch (error) {
-      next(error);
+  try {
+    const { mtumiajiId } = req.body;
+    if (!mtumiajiId) {
+      return res.status(400).render('error', { message: 'Mtumiaji anahitajika' });
     }
-  });
+
+    const dawaList = await readSheet('DAWA');
+    const matumizi = await readSheet('MATUMIZI');
+
+    // Collect usage entries from form data:
+    const newUsages = [];
+
+    for (const medicine of dawaList) {
+      const doseStr = req.body[`kiasi_${medicine.id}`];
+      const confirm = req.body[`confirm_${medicine.id}`];
+
+      const dose = Number(doseStr);
+      if (confirm && dose > 0) {
+        // Check stock availability
+        const used = matumizi
+          .filter(m => m.dawaId === medicine.id)
+          .reduce((sum, m) => sum + (Number(m.kiasi) || 0), 0);
+
+        const remaining = (medicine.kiasi || 0) - used;
+
+        if (dose > remaining) {
+          return res.status(400).render('error', {
+            message: `Kiasi cha ${medicine.jina} kilichobaki ni ${remaining}, hauwezi kutoa dose ${dose}`
+          });
+        }
+
+        newUsages.push({
+          id: nanoid(),
+          dawaId: medicine.id,
+          mtumiajiId,
+          kiasi: dose,
+          tarehe: new Date().toISOString()
+        });
+      }
+    }
+
+    if (newUsages.length === 0) {
+      return res.status(400).render('error', {
+        message: 'Hakuna dawa zilizo thibitishwa kutolewa. Tafadhali chagua angalau dawa moja.'
+      });
+    }
+
+    // Append new usages
+    await writeSheet('MATUMIZI', [...matumizi, ...newUsages]);
+    res.redirect('/');
+  } catch (error) {
+    next(error);
+  }
+});
+
 
   // app.js snippet - on your Express app, ndani ya startApp()
 
