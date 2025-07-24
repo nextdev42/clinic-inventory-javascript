@@ -201,8 +201,9 @@ async function startApp() {
   }
 
   const matumiziYaliothibitishwa = Array.isArray(dawaList)
-    ? dawaList
-    : Object.values(dawaList); // in case it's an object (form encoding quirk)
+  ? dawaList
+  : Object.entries(dawaList).map(([_, d]) => d);
+ // in case it's an object (form encoding quirk)
 
   const matumizi = matumiziYaliothibitishwa
     .filter(d => d.confirmed) // Only ones that were checked
