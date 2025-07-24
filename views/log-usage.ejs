@@ -5,38 +5,40 @@
   <title>Sajili Matumizi ya Dawa</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f9f9f9;
+      font-family: 'Arial', sans-serif;
+      background: #f5f5f5;
       padding: 20px;
+      line-height: 1.6;
     }
     h2 {
       text-align: center;
       color: #2c3e50;
+      margin-bottom: 25px;
     }
     form {
       background: white;
       padding: 25px;
       max-width: 700px;
-      margin: auto;
+      margin: 0 auto;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     label {
       display: block;
-      margin-top: 15px;
+      margin: 15px 0 5px;
       font-weight: bold;
       color: #34495e;
     }
     select, input[type="number"] {
       width: 100%;
       padding: 10px;
-      margin-top: 5px;
       border: 1px solid #ddd;
       border-radius: 4px;
       font-size: 16px;
+      box-sizing: border-box;
     }
     .dawa-row {
-      border: 1px solid #ddd;
+      border: 1px solid #e0e0e0;
       padding: 15px;
       border-radius: 5px;
       margin-bottom: 15px;
@@ -45,11 +47,13 @@
     .dawa-row legend {
       font-weight: bold;
       color: #2980b9;
-      padding: 0 5px;
+      padding: 0 8px;
+      font-size: 0.95em;
     }
     .dawa-row input[type="checkbox"] {
       transform: scale(1.3);
-      margin: 15px 5px 0 0;
+      margin-right: 8px;
+      vertical-align: middle;
     }
     button {
       margin-top: 25px;
@@ -61,7 +65,7 @@
       font-size: 16px;
       width: 100%;
       border-radius: 6px;
-      transition: background 0.3s;
+      transition: background 0.2s;
     }
     button:hover {
       background: #2ecc71;
@@ -70,7 +74,8 @@
       display: none;
       text-align: center;
       padding: 15px;
-      margin-top: 20px;
+      margin: 20px auto;
+      max-width: 700px;
       background-color: #d4edda;
       color: #155724;
       border-radius: 6px;
@@ -78,26 +83,34 @@
     .error {
       color: #dc3545;
       font-size: 14px;
-      margin-top: 10px;
+      margin: 15px 0;
       text-align: center;
       padding: 10px;
       background: #f8d7da;
       border-radius: 4px;
     }
     #userDescription {
-      margin-top: 15px;
+      margin: 15px 0;
       padding: 12px;
       background: #e8f4fc;
       border-left: 4px solid #3498db;
       border-radius: 6px;
     }
     #descriptionText {
-      font-style: italic;
       color: #2c3e50;
+      margin-top: 8px;
+      padding: 8px;
+      background: white;
+      border-radius: 4px;
+      border: 1px solid #e0e0e0;
     }
-    .user-indicator {
-      margin-left: 5px;
+    .has-description {
       color: #3498db;
+      font-style: italic;
+    }
+    .required-field::after {
+      content: " *";
+      color: #e74c3c;
     }
   </style>
 </head>
@@ -105,115 +118,131 @@
 
   <h2>📝 Sajili Matumizi ya Dawa</h2>
 
-  <form action="/matumizi/sajili" method="POST" onsubmit="return validateMatumizi()">
-    <label for="mtumiajiId">Chagua Mtumiaji:</label>
+  <form action="/matumizi/sajili" method="POST" id="matumiziForm">
+    <label for="mtumiajiId" class="required-field">Chagua Mtumiaji:</label>
     <select name="mtumiajiId" id="mtumiajiId" required>
-      <option value="">Chagua mtumiaji...</option>
+      <option value="">-- Chagua mtumiaji --</option>
       <% watumiaji.forEach(u => { %>
         <option value="<%= u.id %>" 
                 data-description="<%= u.maelezo || '' %>"
-                <%= u.maelezo ? 'data-has-desc="true"' : '' %>>
+                class="<%= u.maelezo ? 'has-description' : '' %>">
           <%= u.jina %>
-          <% if (u.maelezo) { %><span class="user-indicator">(ina maelezo)</span><% } %>
+          <% if (u.maelezo && u.maelezo.trim() !== '') { %>
+            (ina maelezo)
+          <% } %>
         </option>
       <% }) %>
     </select>
 
     <div id="userDescription">
-      <strong>Maelezo ya Mtumiaji:</strong>
-      <div id="descriptionText">Chagua mtumiaji kuona maelezo</div>
+      <strong>Maelezo ya Matumizi:</strong>
+      <div id="descriptionText">Hakuna mtumiaji aliyechaguliwa</div>
     </div>
 
-    <h3 style="margin-top: 25px; color: #2c3e50;">Chagua Dawa na Kiasi:</h3>
-    <% dawa.forEach((d, index) => { %>
-      <fieldset class="dawa-row">
-        <legend><%= d.jina %> - <%= d.aina %></legend>
+    <h3 style="margin: 25px 0 15px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+      Dawa Zilizotolewa
+    </h3>
+    
+    <% if (dawa.length === 0) { %>
+      <div class="error">Hakuna dawa zilizosajiliwa bado</div>
+    <% } else { %>
+      <% dawa.forEach((d, index) => { %>
+        <fieldset class="dawa-row">
+          <legend><%= d.jina %> (<%= d.aina %>)</legend>
 
-        <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>" />
+          <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>" />
 
-        <label>Kiasi:</label>
-        <input type="number" name="dawaList[<%= index %>][kiasi]" min="0" placeholder="e.g. 1" required />
+          <label class="required-field">Kiasi:</label>
+          <input type="number" name="dawaList[<%= index %>][kiasi]" 
+                 min="1" max="100" 
+                 placeholder="e.g. 1" 
+                 required
+                 oninvalid="this.setCustomValidity('Tafadhali weka kiasi cha dawa')"
+                 oninput="this.setCustomValidity('')">
 
-        <label style="display: flex; align-items: center; margin-top: 15px;">
-          <input type="checkbox" class="confirm-checkbox" name="dawaList[<%= index %>][confirmed]" value="true" />
-          <span style="margin-left: 8px;">✅ Dawa imetolewa</span>
-        </label>
+          <label style="display: block; margin: 15px 0 5px;">
+            <input type="checkbox" class="confirm-checkbox" 
+                   name="dawaList[<%= index %>][confirmed]" 
+                   value="true" />
+            <span>Dawa imetolewa</span>
+          </label>
 
-        <input type="hidden" name="dawaList[<%= index %>][tarehe]" class="auto-tarehe" />
-      </fieldset>
-    <% }) %>
+          <input type="hidden" name="dawaList[<%= index %>][tarehe]" class="auto-tarehe" />
+        </fieldset>
+      <% }) %>
+    <% } %>
 
-    <div id="errorMsg" class="error"></div>
+    <div id="errorMsg" class="error" style="display: none;"></div>
 
-    <button type="submit">💾 Hifadhi Matumizi</button>
+    <div style="display: flex; gap: 10px; margin-top: 25px;">
+      <button type="submit" style="flex: 1;">💾 Hifadhi Matumizi</button>
+      <a href="/" style="flex: 1; text-align: center; padding: 12px; background: #e0e0e0; color: #333; text-decoration: none; border-radius: 6px;">
+        🔄 Rudi Nyuma
+      </a>
+    </div>
   </form>
 
-  <div id="success" class="success-message">✅ Matumizi ya dawa yamehifadhiwa vizuri!</div>
+  <div id="success" class="success-message"></div>
 
   <script>
-    function getCurrentDatetimeLocal() {
-      const now = new Date();
-      const offset = now.getTimezoneOffset();
-      const localTime = new Date(now.getTime() - offset * 60000);
-      return localTime.toISOString();
-    }
-
-    function validateMatumizi() {
-      const confirmedCheckboxes = document.querySelectorAll('.confirm-checkbox:checked');
-      const tareheInputs = document.querySelectorAll('.auto-tarehe');
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize user description display
+      const userSelect = document.getElementById('mtumiajiId');
+      const descText = document.getElementById('descriptionText');
+      
+      function updateDescription() {
+        const selectedOption = userSelect.options[userSelect.selectedIndex];
+        const description = selectedOption.getAttribute('data-description');
+        
+        if (userSelect.value === '') {
+          descText.textContent = 'Hakuna mtumiaji aliyechaguliwa';
+        } else if (description && description.trim() !== '') {
+          descText.textContent = description;
+        } else {
+          descText.textContent = 'Hakuna maelezo ya ziada kwa mtumiaji huyu';
+        }
+      }
+      
+      userSelect.addEventListener('change', updateDescription);
+      updateDescription(); // Initialize on load
+      
+      // Form validation
+      const form = document.getElementById('matumiziForm');
       const errorDiv = document.getElementById('errorMsg');
       
-      // Clear all date inputs first
-      tareheInputs.forEach(input => input.value = '');
-      
-      if (confirmedCheckboxes.length === 0) {
-        errorDiv.textContent = "⚠️ Tafadhali thibitisha angalau dawa moja iliyotolewa.";
-        return false;
-      }
-
-      // Set dates only for checked medicines
-      confirmedCheckboxes.forEach(checkbox => {
-        const index = checkbox.name.match(/\[(\d+)\]/)[1];
-        document.querySelector(`input[name="dawaList[${index}][tarehe]"]`).value = getCurrentDatetimeLocal();
-      });
-
-      errorDiv.textContent = '';
-      return true;
-    }
-
-    function setupUserDescription() {
-      const select = document.getElementById("mtumiajiId");
-      const descText = document.getElementById("descriptionText");
-      
-      select.addEventListener("change", function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const description = selectedOption.getAttribute("data-description");
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        errorDiv.style.display = 'none';
         
-        if (description && description.trim()) {
-          descText.textContent = description;
-        } else if (this.value) {
-          descText.textContent = "Hakuna maelezo yaliyowekwa kwa mtumiaji huyu";
-        } else {
-          descText.textContent = "Chagua mtumiaji kuona maelezo";
+        // Validate at least one medicine is confirmed
+        const confirmed = document.querySelectorAll('.confirm-checkbox:checked').length > 0;
+        if (!confirmed) {
+          errorDiv.textContent = 'Tafadhali thibitisha angalau dawa moja iliyotolewa';
+          errorDiv.style.display = 'block';
+          return;
         }
+        
+        // Set current date for confirmed medicines
+        const now = new Date().toISOString();
+        document.querySelectorAll('.confirm-checkbox:checked').forEach(checkbox => {
+          const index = checkbox.name.match(/\[(\d+)\]/)[1];
+          document.querySelector(`input[name="dawaList[${index}][tarehe]"]`).value = now;
+        });
+        
+        // Submit the form
+        form.submit();
       });
       
-      // Trigger on page load
-      select.dispatchEvent(new Event('change'));
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-      setupUserDescription();
-      
-      // Optional: Show success message if redirected from successful submission
-      if (window.location.search.includes('success=true')) {
-        document.getElementById('success').style.display = 'block';
+      // Show success message if redirected with success parameter
+      if (new URLSearchParams(window.location.search).has('success')) {
+        const successDiv = document.getElementById('success');
+        successDiv.textContent = '✅ Matumizi ya dawa yamehifadhiwa kikamilifu!';
+        successDiv.style.display = 'block';
         setTimeout(() => {
-          document.getElementById('success').style.display = 'none';
-        }, 3000);
+          successDiv.style.display = 'none';
+        }, 5000);
       }
     });
   </script>
-
 </body>
 </html>
