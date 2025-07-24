@@ -4,63 +4,162 @@
   <meta charset="UTF-8">
   <title>Sajili Matumizi ya Dawa</title>
   <style>
+    /* Base Styles */
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f9f9f9;
-    }
-
-    form {
-      background-color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
       padding: 20px;
-      border: 1px solid #ddd;
+      background-color: #f5f5f5;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #3498db;
+    }
+
+    /* Form Styles */
+    form {
+      background: white;
+      padding: 25px;
       border-radius: 8px;
-      max-width: 600px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
 
-    label, h3 {
+    label {
       display: block;
-      margin-top: 10px;
+      margin: 15px 0 8px;
       font-weight: bold;
+      color: #2c3e50;
     }
 
-    select, input[type="number"] {
-      padding: 5px;
-      margin-top: 5px;
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
       margin-bottom: 15px;
+    }
+
+    /* Medicine Item Styles */
+    .medicine-item {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      border: 1px solid #eee;
+      transition: all 0.3s ease;
+    }
+
+    .medicine-item:hover {
+      background: #f0f0f0;
+    }
+
+    .medicine-name {
+      font-weight: bold;
+      color: #2980b9;
+      margin-bottom: 8px;
+    }
+
+    .medicine-stock {
+      color: #7f8c8d;
+      font-size: 0.9em;
+      margin-left: 5px;
+    }
+
+    .quantity-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .quantity-group label {
+      margin: 0;
+      font-weight: normal;
+    }
+
+    input[type="number"] {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 70px;
+    }
+
+    /* Checkbox Styles */
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #27ae60;
+    }
+
+    /* Button Styles */
+    button[type="submit"] {
+      background: #27ae60;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 20px;
       width: 100%;
     }
 
-    .dawa-item {
-      margin-bottom: 15px;
+    button[type="submit"]:hover {
+      background: #2ecc71;
+    }
+
+    /* Error Styles */
+    .error {
+      color: #e74c3c;
+      background: #fdecea;
       padding: 10px;
-      background-color: #f1f1f1;
-      border-radius: 5px;
+      border-radius: 4px;
+      margin: 15px 0;
+      display: none;
     }
 
-    button {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #218838;
-    }
-
-    a {
+    /* Home Link */
+    .home-link {
       display: inline-block;
-      margin-top: 20px;
+      color: #3498db;
       text-decoration: none;
-      color: #007bff;
+      font-weight: bold;
+      margin-top: 20px;
+      transition: color 0.3s;
     }
 
-    a:hover {
+    .home-link:hover {
+      color: #2980b9;
       text-decoration: underline;
+    }
+
+    /* Validation Styles */
+    .invalid {
+      border-color: #e74c3c !important;
+    }
+
+    .validation-message {
+      color: #e74c3c;
+      font-size: 0.8em;
+      margin-top: 5px;
+      display: none;
     }
   </style>
 </head>
@@ -68,47 +167,110 @@
   <h1>Sajili Matumizi ya Dawa</h1>
 
   <% if (error) { %>
-    <p style="color: red;"><%= error %></p>
+    <p class="error"><%= error %></p>
   <% } %>
 
-  <form method="POST" action="/matumizi/sajili" onsubmit="return validateForm()">
-    <label>Chagua Mtumiaji:</label>
-    <select name="mtumiajiId" required>
+  <form method="POST" action="/matumizi/sajili" id="usageForm">
+    <label for="mtumiaji">Chagua Mtumiaji:</label>
+    <select name="mtumiajiId" id="mtumiaji" required>
+      <option value="">-- Chagua mtumiaji --</option>
       <% watumiaji.forEach(m => { %>
         <option value="<%= m.id %>"><%= m.jina %> - <%= m.maelezo || '' %></option>
       <% }) %>
     </select>
 
     <h3>Chagua Dawa na Kiasi</h3>
-    <% dawa.forEach((d, index) => { %>
-      <div class="dawa-item">
-        <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox">
-        <%= d.jina %> (<%= d.kiasi %> zipo) <br>
-        <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
-        Kiasi: 
-        <input type="number" name="dawaList[<%= index %>][kiasi]" value="1" min="1" style="width: 60px;">
-        <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
-      </div>
-    <% }) %>
+    <div id="medicineContainer">
+      <% dawa.forEach((d, index) => { %>
+        <div class="medicine-item" data-id="<%= d.id %>">
+          <div class="medicine-name">
+            <%= d.jina %> <span class="medicine-stock">(<%= d.kiasi %> zipo)</span>
+          </div>
+          
+          <div class="quantity-group">
+            <label for="quantity-<%= index %>">Kiasi:</label>
+            <input type="number" id="quantity-<%= index %>" 
+                   name="dawaList[<%= index %>][kiasi]" 
+                   value="1" min="1" max="<%= d.kiasi %>" 
+                   class="quantity-input">
+          </div>
+          
+          <div class="checkbox-container">
+            <input type="checkbox" id="confirm-<%= index %>" 
+                   name="dawaList[<%= index %>][confirmed]" 
+                   value="true" class="medicine-checkbox">
+            <label for="confirm-<%= index %>">Dawa imetolewa</label>
+          </div>
+          
+          <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
+          <input type="hidden" name="dawaList[<%= index %>][tarehe]" class="usage-date">
+          
+          <div class="validation-message" id="validation-<%= index %>">
+            Tafadhali weka kiasi kabla ya kuthibitisha
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+    <div class="error" id="formError" style="display: none;">
+      Tafadhali thibitisha angalau dawa moja iliyotolewa
+    </div>
 
     <button type="submit">Sajili Matumizi</button>
   </form>
 
-  <br>
-  <a href="/">Rudi Nyumbani</a>
+  <a href="/" class="home-link">← Rudi Nyumbani</a>
 
   <script>
-    function validateForm() {
-      const checkboxes = document.querySelectorAll('.checkbox');
-      const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-
-      if (!anyChecked) {
-        alert("Tafadhali chagua angalau dawa moja.");
-        return false;
-      }
-
-      return true;
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('usageForm');
+      const checkboxes = document.querySelectorAll('.medicine-checkbox');
+      const quantityInputs = document.querySelectorAll('.quantity-input');
+      const formError = document.getElementById('formError');
+      
+      // Enable/disable checkboxes based on quantity input
+      quantityInputs.forEach(input => {
+        input.addEventListener('input', function() {
+          const checkbox = this.closest('.medicine-item').querySelector('.medicine-checkbox');
+          const validationMsg = this.closest('.medicine-item').querySelector('.validation-message');
+          
+          if (this.value && parseInt(this.value) > 0) {
+            checkbox.disabled = false;
+            this.classList.remove('invalid');
+            validationMsg.style.display = 'none';
+          } else {
+            checkbox.checked = false;
+            checkbox.disabled = true;
+            this.classList.add('invalid');
+            validationMsg.style.display = 'block';
+          }
+        });
+        
+        // Trigger initial validation
+        input.dispatchEvent(new Event('input'));
+      });
+      
+      // Form validation
+      form.addEventListener('submit', function(e) {
+        const checkedBoxes = document.querySelectorAll('.medicine-checkbox:checked');
+        
+        if (checkedBoxes.length === 0) {
+          e.preventDefault();
+          formError.style.display = 'block';
+          
+          // Scroll to error message
+          formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          formError.style.display = 'none';
+          
+          // Set current date for confirmed medicines
+          const now = new Date().toISOString();
+          checkedBoxes.forEach(checkbox => {
+            checkbox.closest('.medicine-item').querySelector('.usage-date').value = now;
+          });
+        }
+      });
+    });
   </script>
 </body>
 </html>
