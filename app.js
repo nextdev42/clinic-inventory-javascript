@@ -243,37 +243,65 @@ async function startApp() {
 
 app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
+    const { mode, from, to } = req.query;
+
     const [watumiaji, dawa, matumizi] = await Promise.all([
       readSheet('WATUMIAJI'),
       readSheet('DAWA'),
       readSheet('MATUMIZI')
     ]);
 
-  function formatDate(dateStr) {
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return 'Tarehe haijulikani';
-  return date.toLocaleDateString('sw-TZ', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'Africa/Nairobi'
-  });
-}
+    // Helper: filter by date
+    const now = new Date();
+    let startDate = null;
+    let endDate = null;
 
-function formatTime(dateStr) {
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return '--:--';
-  return date.toLocaleTimeString('sw-TZ', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Africa/Nairobi'
-  });
-}
+    if (mode === 'week') {
+      const day = now.getDay(); // 0 (Sun) - 6 (Sat)
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - day); // Start of week
+      startDate.setHours(0, 0, 0, 0);
+    } else if (mode === 'month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (from && to) {
+      startDate = new Date(from);
+      endDate = new Date(to);
+      endDate.setHours(23, 59, 59, 999); // Include full day
+    }
 
+    const filteredMatumizi = startDate
+      ? matumizi.filter(m => {
+          const t = new Date(m.tarehe);
+          return t >= startDate && (!endDate || t <= endDate);
+        })
+      : matumizi;
+
+    // Format helpers
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return 'Tarehe haijulikani';
+      return date.toLocaleDateString('sw-TZ', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'Africa/Nairobi'
+      });
+    }
+
+    function formatTime(dateStr) {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '--:--';
+      return date.toLocaleTimeString('sw-TZ', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Africa/Nairobi'
+      });
+    }
 
     const report = watumiaji.map(user => {
-      const userUsages = matumizi.filter(m => m.mtumiajiId === user.id);
+      const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
       const byDate = {};
 
       userUsages.forEach(usage => {
@@ -296,7 +324,7 @@ function formatTime(dateStr) {
       };
     });
 
-    res.render('report-usage', { report });
+    res.render('report-usage', { report, mode, from, to });
   } catch (error) {
     next(error);
   }
