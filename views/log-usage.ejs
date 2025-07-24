@@ -13,7 +13,7 @@
     h2 {
       text-align: center;
       color: #2c3e50;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
     }
     form {
       background: white;
@@ -22,6 +22,11 @@
       margin: 0 auto;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-section {
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
     }
     label {
       display: block;
@@ -37,80 +42,87 @@
       font-size: 16px;
       box-sizing: border-box;
     }
-    .dawa-row {
+    .dawa-item {
       border: 1px solid #e0e0e0;
       padding: 15px;
       border-radius: 5px;
       margin-bottom: 15px;
-      background: #f8f9fa;
+      background: #f9f9f9;
     }
-    .dawa-row legend {
-      font-weight: bold;
+    .dawa-item h4 {
+      margin: 0 0 10px 0;
       color: #2980b9;
-      padding: 0 8px;
-      font-size: 0.95em;
     }
-    .dawa-row input[type="checkbox"] {
-      transform: scale(1.3);
-      margin-right: 8px;
-      vertical-align: middle;
+    .dawa-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-top: 10px;
+    }
+    .dawa-controls input[type="number"] {
+      flex: 1;
+      max-width: 100px;
+    }
+    .dawa-controls label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      font-weight: normal;
+    }
+    .dawa-controls input[type="checkbox"] {
+      transform: scale(1.2);
     }
     button {
-      margin-top: 25px;
-      padding: 12px;
+      padding: 12px 20px;
       background: #27ae60;
       color: white;
       border: none;
       cursor: pointer;
       font-size: 16px;
-      width: 100%;
       border-radius: 6px;
-      transition: background 0.2s;
+      transition: background 0.3s;
+      margin-right: 10px;
     }
     button:hover {
       background: #2ecc71;
     }
-    .success-message {
-      display: none;
-      text-align: center;
-      padding: 15px;
-      margin: 20px auto;
-      max-width: 700px;
-      background-color: #d4edda;
-      color: #155724;
-      border-radius: 6px;
+    .button-group {
+      margin-top: 25px;
+      display: flex;
+      justify-content: space-between;
     }
-    .error {
-      color: #dc3545;
-      font-size: 14px;
-      margin: 15px 0;
-      text-align: center;
-      padding: 10px;
-      background: #f8d7da;
-      border-radius: 4px;
-    }
-    #userDescription {
+    .user-description {
       margin: 15px 0;
       padding: 12px;
       background: #e8f4fc;
       border-left: 4px solid #3498db;
       border-radius: 6px;
     }
-    #descriptionText {
-      color: #2c3e50;
-      margin-top: 8px;
-      padding: 8px;
-      background: white;
+    .user-description strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .error-message {
+      color: #e74c3c;
+      padding: 10px;
+      background: #fdecea;
       border-radius: 4px;
-      border: 1px solid #e0e0e0;
+      margin: 15px 0;
+      text-align: center;
+      display: none;
+    }
+    .success-message {
+      color: #27ae60;
+      padding: 10px;
+      background: #e8f8f0;
+      border-radius: 4px;
+      margin: 15px 0;
+      text-align: center;
+      display: none;
     }
     .has-description {
-      color: #3498db;
-      font-style: italic;
-    }
-    .required-field::after {
-      content: " *";
-      color: #e74c3c;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -119,70 +131,64 @@
   <h2>📝 Sajili Matumizi ya Dawa</h2>
 
   <form action="/matumizi/sajili" method="POST" id="matumiziForm">
-    <label for="mtumiajiId" class="required-field">Chagua Mtumiaji:</label>
-    <select name="mtumiajiId" id="mtumiajiId" required>
-      <option value="">-- Chagua mtumiaji --</option>
-      <% watumiaji.forEach(u => { %>
-        <option value="<%= u.id %>" 
-                data-description="<%= u.maelezo || '' %>"
-                class="<%= u.maelezo ? 'has-description' : '' %>">
-          <%= u.jina %>
-          <% if (u.maelezo && u.maelezo.trim() !== '') { %>
-            (ina maelezo)
-          <% } %>
-        </option>
-      <% }) %>
-    </select>
+    <div class="form-section">
+      <label for="mtumiajiId">Chagua Mtumiaji:</label>
+      <select name="mtumiajiId" id="mtumiajiId" required>
+        <option value="">-- Chagua mtumiaji --</option>
+        <% watumiaji.forEach(u => { %>
+          <option value="<%= u.id %>" 
+                  data-description="<%= u.maelezo || '' %>"
+                  <%= u.maelezo ? 'class="has-description"' : '' %>>
+            <%= u.jina %>
+            <% if (u.maelezo && u.maelezo.trim() !== '') { %>
+              (ina maelezo)
+            <% } %>
+          </option>
+        <% }) %>
+      </select>
 
-    <div id="userDescription">
-      <strong>Maelezo ya Matumizi:</strong>
-      <div id="descriptionText">Hakuna mtumiaji aliyechaguliwa</div>
+      <div class="user-description" id="userDescription">
+        <strong>Maelezo ya Matumizi:</strong>
+        <div id="descriptionText">Hakuna mtumiaji aliyechaguliwa</div>
+      </div>
     </div>
 
-    <h3 style="margin: 25px 0 15px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-      Dawa Zilizotolewa
-    </h3>
-    
-    <% if (dawa.length === 0) { %>
-      <div class="error">Hakuna dawa zilizosajiliwa bado</div>
-    <% } else { %>
+    <div class="form-section">
+      <h3>Dawa Zilizotolewa</h3>
+      
       <% dawa.forEach((d, index) => { %>
-        <fieldset class="dawa-row">
-          <legend><%= d.jina %> (<%= d.aina %>)</legend>
-
+        <div class="dawa-item">
+          <h4><%= d.jina %> (<%= d.aina %>)</h4>
+          
           <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>" />
-
-          <label class="required-field">Kiasi:</label>
-          <input type="number" name="dawaList[<%= index %>][kiasi]" 
-                 min="1" max="100" 
-                 placeholder="e.g. 1" 
-                 required
-                 oninvalid="this.setCustomValidity('Tafadhali weka kiasi cha dawa')"
-                 oninput="this.setCustomValidity('')">
-
-          <label style="display: block; margin: 15px 0 5px;">
-            <input type="checkbox" class="confirm-checkbox" 
-                   name="dawaList[<%= index %>][confirmed]" 
-                   value="true" />
-            <span>Dawa imetolewa</span>
-          </label>
-
-          <input type="hidden" name="dawaList[<%= index %>][tarehe]" class="auto-tarehe" />
-        </fieldset>
+          
+          <div class="dawa-controls">
+            <div>
+              <label>Kiasi:</label>
+              <input type="number" name="dawaList[<%= index %>][kiasi]" min="1" 
+                     placeholder="1" required style="width: 80px;">
+            </div>
+            
+            <label>
+              <input type="checkbox" class="confirm-checkbox" 
+                     name="dawaList[<%= index %>][confirmed]" value="true">
+              Dawa imetolewa
+            </label>
+          </div>
+          
+          <input type="hidden" name="dawaList[<%= index %>][tarehe]" class="auto-tarehe">
+        </div>
       <% }) %>
-    <% } %>
+    </div>
 
-    <div id="errorMsg" class="error" style="display: none;"></div>
+    <div class="error-message" id="errorMsg"></div>
+    <div class="success-message" id="successMsg"></div>
 
-    <div style="display: flex; gap: 10px; margin-top: 25px;">
-      <button type="submit" style="flex: 1;">💾 Hifadhi Matumizi</button>
-      <a href="/" style="flex: 1; text-align: center; padding: 12px; background: #e0e0e0; color: #333; text-decoration: none; border-radius: 6px;">
-        🔄 Rudi Nyuma
-      </a>
+    <div class="button-group">
+      <button type="submit">💾 Hifadhi Matumizi</button>
+      <button type="button" onclick="window.location.href='/'">↩ Rudi Nyuma</button>
     </div>
   </form>
-
-  <div id="success" class="success-message"></div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -190,36 +196,33 @@
       const userSelect = document.getElementById('mtumiajiId');
       const descText = document.getElementById('descriptionText');
       
-      function updateDescription() {
-        const selectedOption = userSelect.options[userSelect.selectedIndex];
+      userSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
         const description = selectedOption.getAttribute('data-description');
         
-        if (userSelect.value === '') {
-          descText.textContent = 'Hakuna mtumiaji aliyechaguliwa';
-        } else if (description && description.trim() !== '') {
+        if (this.value && description && description.trim() !== '') {
           descText.textContent = description;
+        } else if (this.value) {
+          descText.textContent = 'Hakuna maelezo ya matumizi kwa mtumiaji huyu';
         } else {
-          descText.textContent = 'Hakuna maelezo ya ziada kwa mtumiaji huyu';
+          descText.textContent = 'Hakuna mtumiaji aliyechaguliwa';
         }
-      }
+      });
       
-      userSelect.addEventListener('change', updateDescription);
-      updateDescription(); // Initialize on load
-      
-      // Form validation
+      // Initialize form validation
       const form = document.getElementById('matumiziForm');
-      const errorDiv = document.getElementById('errorMsg');
-      
       form.addEventListener('submit', function(e) {
         e.preventDefault();
-        errorDiv.style.display = 'none';
         
-        // Validate at least one medicine is confirmed
         const confirmed = document.querySelectorAll('.confirm-checkbox:checked').length > 0;
+        const errorDiv = document.getElementById('errorMsg');
+        const successDiv = document.getElementById('successMsg');
+        
         if (!confirmed) {
           errorDiv.textContent = 'Tafadhali thibitisha angalau dawa moja iliyotolewa';
           errorDiv.style.display = 'block';
-          return;
+          successDiv.style.display = 'none';
+          return false;
         }
         
         // Set current date for confirmed medicines
@@ -230,18 +233,20 @@
         });
         
         // Submit the form
-        form.submit();
+        this.submit();
       });
       
       // Show success message if redirected with success parameter
       if (new URLSearchParams(window.location.search).has('success')) {
-        const successDiv = document.getElementById('success');
-        successDiv.textContent = '✅ Matumizi ya dawa yamehifadhiwa kikamilifu!';
-        successDiv.style.display = 'block';
+        document.getElementById('successMsg').textContent = '✅ Matumizi ya dawa yamehifadhiwa kikamilifu!';
+        document.getElementById('successMsg').style.display = 'block';
         setTimeout(() => {
-          successDiv.style.display = 'none';
-        }, 5000);
+          document.getElementById('successMsg').style.display = 'none';
+        }, 3000);
       }
+      
+      // Trigger initial description update
+      userSelect.dispatchEvent(new Event('change'));
     });
   </script>
 </body>
