@@ -68,38 +68,36 @@
 
   <h2>📝 Sajili Matumizi ya Dawa</h2>
 
-  <form id="matumiziForm" action="/matumizi/sajili" method="POST" onsubmit="return validateMatumizi()">
-    <label for="mtumiajiId">Chagua Mtumiaji:</label>
-    <select id="mtumiajiId" name="mtumiajiId" required>
-      <% watumiaji.forEach(u => { %>
-        <option value="<%= u.id %>"><%= u.jina %></option>
-      <% }) %>
-    </select>
-
-    <h3 style="margin-top:20px;">Chagua Dawa na Kiasi</h3>
-
-    <% dawa.forEach((d, i) => { %>
-      <div class="dawa-row">
-        <strong><%= d.jina %> - <%= d.aina %></strong>
-
-        <input type="hidden" name="dawaList[<%= i %>][id]" value="<%= d.id %>">
-
-        <label>Kiasi:</label>
-        <input type="number" name="dawaList[<%= i %>][kiasi]" min="0" value="0">
-
-        <label>
-          <input type="checkbox" name="dawaList[<%= i %>][confirmed]" class="confirm-checkbox">
-          ✅ Imethibitishwa: Dawa hii imetolewa
-        </label>
-
-        <input type="hidden" name="dawaList[<%= i %>][tarehe]" class="auto-tarehe">
-      </div>
+  <form action="/matumizi/sajili" method="POST">
+  <label for="mtumiajiId">Chagua Mtumiaji:</label>
+  <select name="mtumiajiId" id="mtumiajiId" required>
+    <% watumiaji.forEach(u => { %>
+      <option value="<%= u.id %>"><%= u.jina %></option>
     <% }) %>
+  </select>
 
-    <div id="errorMsg" class="error"></div>
+  <h3>Chagua Dawa na Kiasi:</h3>
+  <% dawa.forEach((d, index) => { %>
+    <fieldset style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc;">
+      <legend><%= d.jina %> - <%= d.aina %></legend>
 
-    <button type="submit">💾 Hifadhi Matumizi</button>
-  </form>
+      <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>" />
+
+      <label>Kiasi:</label>
+      <input type="number" name="dawaList[<%= index %>][kiasi]" min="0" placeholder="e.g. 1" />
+
+      <label>
+        <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" />
+        ✅ Dawa imetolewa
+      </label>
+
+      <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>" />
+    </fieldset>
+  <% }) %>
+
+  <button type="submit">💾 Hifadhi Matumizi</button>
+</form>
+
 
   <div id="success" class="success-message">✅ Matumizi ya dawa yamehifadhiwa vizuri!</div>
 
