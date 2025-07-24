@@ -98,6 +98,7 @@
       background: #e8f4fc;
       border-left: 4px solid #3498db;
       border-radius: 6px;
+      display: none;
     }
     .user-description strong {
       display: block;
@@ -121,9 +122,6 @@
       text-align: center;
       display: none;
     }
-    .has-description {
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
@@ -137,18 +135,17 @@
         <option value="">-- Chagua mtumiaji --</option>
         <% watumiaji.forEach(u => { %>
           <option value="<%= u.id %>" 
-                  data-description="<%= u.maelezo || '' %>"
-                  <%= u.maelezo ? 'class="has-description"' : '' %>>
+                  data-description="<%= u.maelezo || '' %>">
             <%= u.jina %>
-            <% if (u.maelezo && u.maelezo.trim() !== '') { %>
-              (ina maelezo)
+            <% if (u.maelezo && u.maelezo.trim()) { %>
+              (maelezo yapo)
             <% } %>
           </option>
         <% }) %>
       </select>
 
       <div class="user-description" id="userDescription">
-        <strong>Maelezo ya Matumizi:</strong>
+        <strong>📝 Maelezo ya Mtumiaji:</strong>
         <div id="descriptionText">Hakuna mtumiaji aliyechaguliwa</div>
       </div>
     </div>
@@ -166,7 +163,7 @@
             <div>
               <label>Kiasi:</label>
               <input type="number" name="dawaList[<%= index %>][kiasi]" min="1" 
-                     placeholder="1" required style="width: 80px;">
+                     placeholder="1" required>
             </div>
             
             <label>
@@ -192,60 +189,60 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize user description display
       const userSelect = document.getElementById('mtumiajiId');
       const descText = document.getElementById('descriptionText');
-      
-      userSelect.addEventListener('change', function() {
+      const userDescDiv = document.getElementById('userDescription');
+
+      userSelect.addEventListener('change', function () {
         const selectedOption = this.options[this.selectedIndex];
         const description = selectedOption.getAttribute('data-description');
-        
+
         if (this.value && description && description.trim() !== '') {
           descText.textContent = description;
+          userDescDiv.style.display = 'block';
         } else if (this.value) {
-          descText.textContent = 'Hakuna maelezo ya matumizi kwa mtumiaji huyu';
+          descText.textContent = 'Hakuna maelezo ya matumizi kwa mtumiaji huyu.';
+          userDescDiv.style.display = 'block';
         } else {
           descText.textContent = 'Hakuna mtumiaji aliyechaguliwa';
+          userDescDiv.style.display = 'none';
         }
       });
-      
-      // Initialize form validation
+
       const form = document.getElementById('matumiziForm');
       form.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         const confirmed = document.querySelectorAll('.confirm-checkbox:checked').length > 0;
         const errorDiv = document.getElementById('errorMsg');
         const successDiv = document.getElementById('successMsg');
-        
+
         if (!confirmed) {
-          errorDiv.textContent = 'Tafadhali thibitisha angalau dawa moja iliyotolewa';
+          errorDiv.textContent = '⚠️ Tafadhali thibitisha angalau dawa moja iliyotolewa';
           errorDiv.style.display = 'block';
           successDiv.style.display = 'none';
           return false;
         }
-        
-        // Set current date for confirmed medicines
+
         const now = new Date().toISOString();
         document.querySelectorAll('.confirm-checkbox:checked').forEach(checkbox => {
           const index = checkbox.name.match(/\[(\d+)\]/)[1];
           document.querySelector(`input[name="dawaList[${index}][tarehe]"]`).value = now;
         });
-        
-        // Submit the form
+
         this.submit();
       });
-      
-      // Show success message if redirected with success parameter
+
       if (new URLSearchParams(window.location.search).has('success')) {
-        document.getElementById('successMsg').textContent = '✅ Matumizi ya dawa yamehifadhiwa kikamilifu!';
-        document.getElementById('successMsg').style.display = 'block';
+        const successDiv = document.getElementById('successMsg');
+        successDiv.textContent = '✅ Matumizi ya dawa yamehifadhiwa kikamilifu!';
+        successDiv.style.display = 'block';
         setTimeout(() => {
-          document.getElementById('successMsg').style.display = 'none';
+          successDiv.style.display = 'none';
         }, 3000);
       }
-      
-      // Trigger initial description update
+
+      // Trigger change event on page load to show initial description if any
       userSelect.dispatchEvent(new Event('change'));
     });
   </script>
