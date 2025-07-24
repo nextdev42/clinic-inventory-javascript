@@ -13,7 +13,33 @@
     }
     h1 {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 10px;
+    }
+    form {
+      background: white;
+      padding: 15px;
+      margin-bottom: 25px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    label {
+      display: inline-block;
+      margin: 8px 10px 4px 0;
+    }
+    select, input[type="date"] {
+      padding: 6px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 6px 12px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005c99;
     }
     .user-block {
       background: white;
@@ -54,61 +80,77 @@
     }
     .no-data {
       text-align: center;
-      font-style: italic;
-      color: #666;
-      margin-top: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
   <h1>📋 Ripoti ya Matumizi ya Dawa kwa Watumiaji</h1>
 
-  <% const noData = report.every(r => Object.keys(r.matumiziByDate).length === 0); %>
+  <!-- 🔍 Filter Form -->
+  <form method="GET" action="/report-usage">
+    <label for="aina">Aina ya ripoti:</label>
+    <select name="aina" id="aina">
+      <option value="">-- Chagua --</option>
+      <option value="wiki" <%= query.aina === 'wiki' ? 'selected' : '' %>>Wiki hii</option>
+      <option value="mwezi" <%= query.aina === 'mwezi' ? 'selected' : '' %>>Mwezi huu</option>
+      <option value="range" <%= query.aina === 'range' ? 'selected' : '' %>>Tarehe Maalum</option>
+    </select>
 
-  <% if (noData) { %>
-    <p class="no-data">Hakuna matumizi yaliyo patikana kwa kipindi ulichotaja.</p>
-  <% } %>
+    <label for="start">Tarehe ya mwanzo:</label>
+    <input type="date" name="start" id="start" value="<%= query.start || '' %>">
 
-  <% report.forEach(user => { %>
-    <% const dates = Object.keys(user.matumiziByDate).sort((a, b) => new Date(a) - new Date(b)); %>
-    <% if (dates.length === 0) return; %>
+    <label for="end">Mpaka:</label>
+    <input type="date" name="end" id="end" value="<%= query.end || '' %>">
 
-    <div class="user-block">
-      <h2>👤 <%= user.jina %></h2>
+    <button type="submit">📅 Tazama Ripoti</button>
+  </form>
 
-      <% dates.forEach(date => { 
-        const validDate = new Date(date);
-        if (isNaN(validDate)) return;
-      %>
-        <div class="date-group">
-          <h3><%= validDate.toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
-          <ul>
-            <% user.matumiziByDate[date].forEach(item => { %>
-              <li>
-                - <strong><%= item.dawa %></strong>: <%= item.kiasi %> &nbsp;
-                <small>
-                  <% 
-                    let time;
-                    if (item.saa?.includes(':')) {
-                      time = new Date("1970-01-01T" + item.saa);
-                    } else {
-                      time = new Date(item.saa);
-                    }
-
-                    if (!isNaN(time)) {
-                  %>
-                    <%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %>
-                  <% } else { %>
-                    hakujulikana
-                  <% } %>
-                </small>
-              </li>
-            <% }) %>
-          </ul>
-        </div>
-      <% }) %>
+  <% if(report.length === 0 || report.every(u => Object.keys(u.matumiziByDate).length === 0)) { %>
+    <div class="no-data">
+      <p><strong>⚠️ Hakuna taarifa za matumizi kwa kipindi ulichotaja.</strong></p>
     </div>
-  <% }) %>
+  <% } else { %>
+
+    <% report.forEach(user => { %>
+      <div class="user-block">
+        <h2>👤 <%= user.jina %></h2>
+
+        <% Object.keys(user.matumiziByDate).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { %>
+          <div class="date-group">
+            <h3><%= new Date(date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
+            <ul>
+              <% user.matumiziByDate[date].forEach(item => { %>
+                <li>
+                  - <strong><%= item.dawa %></strong>: <%= item.kiasi %>
+                  <small>
+                    <% 
+                      let time;
+                      if (item.saa?.includes(':')) {
+                        time = new Date("1970-01-01T" + item.saa);
+                      } else {
+                        time = new Date(item.saa);
+                      }
+
+                      if (!isNaN(time)) {
+                    %>
+                      <%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %>
+                    <% } else { %>
+                      hakujulikana
+                    <% } %>
+                  </small>
+                </li>
+              <% }) %>
+            </ul>
+          </div>
+        <% }) %>
+      </div>
+    <% }) %>
+  <% } %>
 
   <a href="/" class="back-link">⬅️ Rudi kwenye Dashibodi</a>
 </body>
