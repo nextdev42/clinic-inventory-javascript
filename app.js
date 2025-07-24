@@ -189,57 +189,55 @@ async function startApp() {
   });
 
   app.post('/matumizi/sajili', async (req, res, next) => {
-    try {
-      const { mtumiajiId, dawaList } = req.body;
-      if (!mtumiajiId || !dawaList) {
-        return res.status(400).render('error', {
-          message: 'Tafadhali chagua mtumiaji na angalau dawa moja.'
-        });
-      }
+  try {
+    const { mtumiajiId, dawaList } = req.body;
 
-      let parsed = [];
-      if (Array.isArray(dawaList)) {
-        parsed = dawaList;
-      } else if (typeof dawaList === 'string') {
-        try {
-          parsed = JSON.parse(dawaList);
-        } catch (e) {
-          return res.status(400).render('error', {
-            message: 'DawaList haikusomeka vizuri. Tafadhali jaribu tena.'
-          });
-        }
-      }
-
-      const confirmedDawa = parsed.filter(d => d.confirmed === true || d.confirmed === 'true');
-
-      if (confirmedDawa.length === 0) {
-        const [dawa, watumiaji] = await Promise.all([
-          readSheet('DAWA'),
-          readSheet('WATUMIAJI')
-        ]);
-        return res.render('log-usage', {
-          dawa,
-          watumiaji,
-          error: 'Hakuna dawa zilizo thibitishwa kutolewa. Tafadhali chagua angalau dawa moja.'
-        });
-      }
-
-      const matumizi = confirmedDawa.map(d => ({
-        id: nanoid(),
-        mtumiajiId,
-        dawaId: d.id,
-        kiasi: parseInt(d.kiasi) || 0,
-        tarehe: d.tarehe || new Date().toISOString()
-      }));
-
-      const existingMatumizi = await readSheet('MATUMIZI');
-      await writeSheet('MATUMIZI', [...existingMatumizi, ...matumizi]);
-
-      return res.redirect('/ripoti/matumizi');
-    } catch (error) {
-      next(error);
+    if (!mtumiajiId || !dawaList) {
+      return res.status(400).render('error', {
+        message: 'Tafadhali chagua mtumiaji na angalau dawa moja.'
+      });
     }
-  });
+
+    // dawaList ni object yenye indices kama "0", "1"... tungependa kupata array
+    // Tuma dawaList kuwa array
+    const dawaArray = Array.isArray(dawaList)
+      ? dawaList
+      : Object.values(dawaList);
+
+    // Chuja dawa zilizo confirmed
+    const confirmedDawa = dawaArray.filter(d => d.confirmed === 'true');
+
+    if (confirmedDawa.length === 0) {
+      const [dawa, watumiaji] = await Promise.all([
+        readSheet('DAWA'),
+        readSheet('WATUMIAJI')
+      ]);
+      return res.render('log-usage', {
+        dawa,
+        watumiaji,
+        error: 'Hakuna dawa zilizo thibitishwa kutolewa. Tafadhali chagua angalau dawa moja.'
+      });
+    }
+
+    // Andaa data ya kuandika, hakikisha kiasi ni namba na tarehe ipo sahihi
+    const matumizi = confirmedDawa.map(d => ({
+      id: nanoid(),
+      mtumiajiId,
+      dawaId: d.id,
+      kiasi: parseInt(d.kiasi, 10) || 0,
+      tarehe: d.tarehe || new Date().toISOString()
+    }));
+
+    // Soma matumizi yaliyopo, ongeza yaliyopo na andika tena
+    const existingMatumizi = await readSheet('MATUMIZI');
+    await writeSheet('MATUMIZI', [...existingMatumizi, ...matumizi]);
+
+    return res.redirect('/ripoti/matumizi');
+  } catch (error) {
+    next(error);
+  }
+});
+
 
   app.get('/ripoti/matumizi', async (req, res, next) => {
     try {
