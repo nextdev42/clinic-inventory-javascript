@@ -4,66 +4,13 @@
   <meta charset="UTF-8">
   <title>Sajili Matumizi ya Dawa</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      line-height: 1.6;
-    }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    form {
-      background: #f9f9f9;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    label {
-      display: block;
-      margin: 15px 0 5px;
+    #maelezo-mtumiaji {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f0f0f0;
       font-weight: bold;
-    }
-    select, input[type="number"] {
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    .medicine-item {
-      margin-bottom: 15px;
-      padding: 10px;
-      background: white;
-      border-radius: 5px;
-      border: 1px solid #eee;
-    }
-    .error {
-      color: red;
-      padding: 10px;
-      background: #fee;
-      border-radius: 4px;
-    }
-    button {
-      background: #27ae60;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-      margin-top: 15px;
-    }
-    button:hover {
-      background: #2ecc71;
-    }
-    .user-description {
-      margin: 10px 0;
-      padding: 10px;
-      background: #e8f4fc;
-      border-left: 4px solid #3498db;
-      border-radius: 4px;
-      font-style: italic;
+      border: 1px solid #ccc;
+      display: none;
     }
   </style>
 </head>
@@ -71,99 +18,52 @@
   <h1>Sajili Matumizi ya Dawa</h1>
 
   <% if (error) { %>
-    <div class="error"><%= error %></div>
+    <p style="color: red;"><%= error %></p>
   <% } %>
 
-  <form method="POST" action="/matumizi/sajili" id="usageForm">
-    <div>
-      <label>Chagua Mtumiaji:</label>
-      <select name="mtumiajiId" id="userSelect" required>
-        <option value="">-- Chagua mtumiaji --</option>
-        <% watumiaji.forEach(m => { %>
-          <option value="<%= m.id %>" data-description="<%= m.maelezo || '' %>">
-            <%= m.jina %>
-          </option>
-        <% }) %>
-      </select>
-      
-      <div id="userDescription" class="user-description">
-        <div id="descriptionText">Chagua mtumiaji kuona maelezo</div>
-      </div>
-    </div>
+  <form method="POST" action="/matumizi/sajili">
+    <label>Chagua Mtumiaji:</label>
+    <select name="mtumiajiId" id="mtumiajiSelect" required>
+      <option value="">--Chagua--</option>
+      <% watumiaji.forEach(m => { %>
+        <option value="<%= m.id %>" data-maelezo="<%= m.maelezo || '' %>"><%= m.jina %></option>
+      <% }) %>
+    </select>
+
+    <div id="maelezo-mtumiaji"></div>
 
     <h3>Chagua Dawa na Kiasi</h3>
     <% dawa.forEach((d, index) => { %>
-      <div class="medicine-item">
-        <label>
-          <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="medicine-checkbox">
-          <%= d.jina %> (<%= d.kiasi %> zipo)
-        </label>
-        <div style="margin-top: 5px;">
-          <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
-          Kiasi: 
-          <input type="number" name="dawaList[<%= index %>][kiasi]" value="1" min="1" max="<%= d.kiasi %>" 
-                 class="quantity-input" style="width: 60px;" disabled>
-          <input type="hidden" name="dawaList[<%= index %>][tarehe]" class="usage-date">
-        </div>
+      <div style="margin-bottom: 10px;">
+        <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true">
+        <%= d.jina %> (<%= d.kiasi %> zipo) <br>
+        <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
+        Kiasi: 
+        <input type="number" name="dawaList[<%= index %>][kiasi]" value="1" min="1" style="width: 60px;">
+        <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
       </div>
     <% }) %>
 
     <button type="submit">Sajili Matumizi</button>
   </form>
 
-  <div style="margin-top: 20px;">
-    <a href="/">← Rudi Nyumbani</a>
-  </div>
+  <br>
+  <a href="/">Rudi Nyumbani</a>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // User description display
-      const userSelect = document.getElementById('userSelect');
-      const descText = document.getElementById('descriptionText');
-      
-      userSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const description = selectedOption.getAttribute('data-description');
-        
-        if (this.value && description && description.trim()) {
-          descText.textContent = description;
-        } else if (this.value) {
-          descText.textContent = "Hakuna maelezo kwa mtumiaji huyu";
-        } else {
-          descText.textContent = "Chagua mtumiaji kuona maelezo";
-        }
-      });
+    const mtumiajiSelect = document.getElementById('mtumiajiSelect');
+    const maelezoDiv = document.getElementById('maelezo-mtumiaji');
 
-      // Enable/disable quantity inputs based on checkbox
-      document.querySelectorAll('.medicine-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-          const quantityInput = this.closest('.medicine-item').querySelector('.quantity-input');
-          quantityInput.disabled = !this.checked;
-          if (!this.checked) {
-            quantityInput.value = '';
-          }
-        });
-      });
-
-      // Form validation
-      const form = document.getElementById('usageForm');
-      form.addEventListener('submit', function(e) {
-        const confirmed = document.querySelectorAll('.medicine-checkbox:checked').length > 0;
-        
-        if (!confirmed) {
-          e.preventDefault();
-          alert('Tafadhali chagua angalau dawa moja iliyotolewa');
-          return false;
-        }
-        
-        // Set current date for confirmed medicines
-        const now = new Date().toISOString();
-        document.querySelectorAll('.medicine-checkbox:checked').forEach(checkbox => {
-          checkbox.closest('.medicine-item').querySelector('.usage-date').value = now;
-        });
-        
-        return true;
-      });
+    mtumiajiSelect.addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+      const maelezo = selectedOption.getAttribute('data-maelezo');
+      if (maelezo && maelezo.trim() !== "") {
+        maelezoDiv.innerText = maelezo;
+        maelezoDiv.style.display = "block";
+      } else {
+        maelezoDiv.innerText = "";
+        maelezoDiv.style.display = "none";
+      }
     });
   </script>
 </body>
