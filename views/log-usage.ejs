@@ -3,18 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Sajili Matumizi ya Dawa</title>
-  <style>
-    #user-info {
-      font-weight: bold;
-      margin: 15px 0;
-    }
-
-    #user-info .desc {
-      font-weight: normal;
-      font-size: 0.9em;
-      color: gray;
-    }
-  </style>
 </head>
 <body>
   <h1>Sajili Matumizi ya Dawa</h1>
@@ -24,19 +12,12 @@
   <% } %>
 
   <form method="POST" action="/matumizi/sajili">
-
     <label>Chagua Mtumiaji:</label>
-    <select id="mtumiaji-select" name="mtumiajiId" required>
-      <option value="">-- Chagua Mtumiaji --</option>
+    <select name="mtumiajiId" required>
       <% watumiaji.forEach(m => { %>
-        <option value="<%= m.id %>" data-jina="<%= m.jina %>" data-maelezo="<%= m.maelezo || '' %>">
-          <%= m.jina %>
-        </option>
+        <option value="<%= m.id %>"><%= m.jina %> - <%= m.maelezo || '' %></option>
       <% }) %>
     </select>
-
-    <!-- Hii div inaonyesha jina na description -->
-    <div id="user-info"></div>
 
     <h3>Chagua Dawa na Kiasi</h3>
     <% dawa.forEach((d, index) => { %>
@@ -44,7 +25,7 @@
         <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true">
         <%= d.jina %> (<%= d.kiasi %> zipo) <br>
         <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
-        Kiasi:
+        Kiasi: 
         <input type="number" name="dawaList[<%= index %>][kiasi]" value="1" min="1" style="width: 60px;">
         <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
       </div>
@@ -55,25 +36,5 @@
 
   <br>
   <a href="/">Rudi Nyumbani</a>
-
-  <script>
-    const mtumiajiSelect = document.getElementById('mtumiaji-select');
-    const userInfoDiv = document.getElementById('user-info');
-
-    mtumiajiSelect.addEventListener('change', () => {
-      const selected = mtumiajiSelect.options[mtumiajiSelect.selectedIndex];
-      const jina = selected.dataset.jina || '';
-      const maelezo = selected.dataset.maelezo || '';
-
-      if (jina) {
-        userInfoDiv.innerHTML = `
-          ${jina}<br>
-          <span class="desc">${maelezo}</span>
-        `;
-      } else {
-        userInfoDiv.innerHTML = '';
-      }
-    });
-  </script>
 </body>
 </html>
