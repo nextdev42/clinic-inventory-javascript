@@ -135,7 +135,8 @@ async function startApp() {
         readSheet('DAWA'),
         readSheet('WATUMIAJI')
       ]);
-      res.render('log-usage', { dawa, watumiaji });
+      res.render('log-usage', { dawa, watumiaji, error: null });
+
     } catch (error) {
       next(error);
     }
