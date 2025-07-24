@@ -18,7 +18,8 @@ const excelPath = path.join(dataDir, 'database.xlsx');
 const SHEETS = {
   DAWA: { name: 'Dawa', headers: ['id', 'jina', 'aina', 'kiasi'] },
   WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina',  'maelezo'] },
-  MATUMIZI: { name: 'Matumizi', headers: ['id', 'dawaId', 'mtumiajiId', 'kiasi', 'tarehe'] }
+  MATUMIZI: { name: 'Matumizi', headers: ['id', 'dawaId', 'mtumiajiId', 'mtumiajiJina', 'maelezo', 'kiasi', 'tarehe'] }
+
 };
 
 async function initializeDatabase() {
@@ -198,13 +199,10 @@ async function startApp() {
       });
     }
 
-    // dawaList ni object yenye indices kama "0", "1"... tungependa kupata array
-    // Tuma dawaList kuwa array
     const dawaArray = Array.isArray(dawaList)
       ? dawaList
       : Object.values(dawaList);
 
-    // Chuja dawa zilizo confirmed
     const confirmedDawa = dawaArray.filter(d => d.confirmed === 'true');
 
     if (confirmedDawa.length === 0) {
@@ -219,16 +217,19 @@ async function startApp() {
       });
     }
 
-    // Andaa data ya kuandika, hakikisha kiasi ni namba na tarehe ipo sahihi
+    const watumiaji = await readSheet('WATUMIAJI');
+    const mtumiaji = watumiaji.find(w => w.id === mtumiajiId);
+
     const matumizi = confirmedDawa.map(d => ({
       id: nanoid(),
       mtumiajiId,
+      mtumiajiJina: mtumiaji?.jina || '',
+      maelezo: mtumiaji?.maelezo || '',
       dawaId: d.id,
       kiasi: parseInt(d.kiasi, 10) || 0,
       tarehe: d.tarehe || new Date().toISOString()
     }));
 
-    // Soma matumizi yaliyopo, ongeza yaliyopo na andika tena
     const existingMatumizi = await readSheet('MATUMIZI');
     await writeSheet('MATUMIZI', [...existingMatumizi, ...matumizi]);
 
@@ -237,6 +238,7 @@ async function startApp() {
     next(error);
   }
 });
+
 
 
   app.get('/ripoti/matumizi', async (req, res, next) => {
