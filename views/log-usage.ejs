@@ -125,14 +125,12 @@
       <select id="userSelect" name="mtumiajiId" required>
         <option value="">-- Chagua mtumiaji --</option>
         <% watumiaji.forEach(user => { %>
-          <option value="<%= user.id %>" 
-                  data-description="<%= user.maelezo || '' %>">
-            <%= user.jina %>
-            <% if (user.maelezo && user.maelezo.trim() !== '') { %>
-              (ina maelezo)
-            <% } %>
-          </option>
-        <% }) %>
+  <option value="<%= user.id %>" 
+          data-description="<%= user.maelezo || '' %>">
+    <%= user.jina %><%= user.maelezo && user.maelezo.trim() !== '' ? ' (ina maelezo)' : '' %>
+  </option>
+<% }) %>
+
       </select>
 
       <div id="userDescription">
