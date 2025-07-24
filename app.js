@@ -214,7 +214,7 @@ async function startApp() {
       return res.render('log-usage', {
         dawa,
         watumiaji,
-        error: 'Hakuna dawa zilizo thibitishwa kutolewa. Tafadhali chagua angalau dawa moja.'
+        error: 'Hakuna dawa zilizo thibitishwa kutolewa. Tafadhali chagua angalau dawa moja.',
         mtumiajiId
       });
     }
