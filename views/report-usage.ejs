@@ -52,42 +52,56 @@
       color: #007acc;
       font-weight: bold;
     }
+    .no-data {
+      text-align: center;
+      font-style: italic;
+      color: #666;
+      margin-top: 30px;
+    }
   </style>
 </head>
 <body>
   <h1>📋 Ripoti ya Matumizi ya Dawa kwa Watumiaji</h1>
 
-  <% if(report.length === 0) { %>
-    <p>Hakuna taarifa za matumizi.</p>
+  <% const noData = report.every(r => Object.keys(r.matumiziByDate).length === 0); %>
+
+  <% if (noData) { %>
+    <p class="no-data">Hakuna matumizi yaliyo patikana kwa kipindi ulichotaja.</p>
   <% } %>
 
   <% report.forEach(user => { %>
+    <% const dates = Object.keys(user.matumiziByDate).sort((a, b) => new Date(a) - new Date(b)); %>
+    <% if (dates.length === 0) return; %>
+
     <div class="user-block">
       <h2>👤 <%= user.jina %></h2>
 
-      <% Object.keys(user.matumiziByDate).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { %>
+      <% dates.forEach(date => { 
+        const validDate = new Date(date);
+        if (isNaN(validDate)) return;
+      %>
         <div class="date-group">
-          <h3><%= new Date(date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
+          <h3><%= validDate.toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
           <ul>
             <% user.matumiziByDate[date].forEach(item => { %>
               <li>
                 - <strong><%= item.dawa %></strong>: <%= item.kiasi %> &nbsp;
-                <small> <% 
-  let time;
-  if (item.saa?.includes(':')) {
-    time = new Date("1970-01-01T" + item.saa);
-  } else {
-    time = new Date(item.saa);
-  }
+                <small>
+                  <% 
+                    let time;
+                    if (item.saa?.includes(':')) {
+                      time = new Date("1970-01-01T" + item.saa);
+                    } else {
+                      time = new Date(item.saa);
+                    }
 
-  if (!isNaN(time)) {
-    %><%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %><%
-  } else {
-    %>hakujulikana<%
-  }
-%>
- </small>
-
+                    if (!isNaN(time)) {
+                  %>
+                    <%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %>
+                  <% } else { %>
+                    hakujulikana
+                  <% } %>
+                </small>
               </li>
             <% }) %>
           </ul>
