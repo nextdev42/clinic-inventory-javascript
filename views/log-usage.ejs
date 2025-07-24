@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <title>Sajili Matumizi ya Dawa</title>
+</head>
+<body>
+  <h1>Sajili Matumizi ya Dawa</h1>
+
+  <% if (error) { %>
+    <p style="color: red;"><%= error %></p>
+  <% } %>
+
+  <form method="POST" action="/matumizi/sajili">
+    <label>Chagua Mtumiaji:</label>
+    <select name="mtumiajiId" required>
+      <% watumiaji.forEach(m => { %>
+        <option value="<%= m.id %>"><%= m.jina %> - <%= m.maelezo || '' %></option>
+      <% }) %>
+    </select>
+
+    <h3>Chagua Dawa na Kiasi</h3>
+    <% dawa.forEach((d, index) => { %>
+      <div style="margin-bottom: 10px;">
+        <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true">
+        <%= d.jina %> (<%= d.kiasi %> zipo) <br>
+        <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
+        Kiasi: 
+        <input type="number" name="dawaList[<%= index %>][kiasi]" value="1" min="1" style="width: 60px;">
+        <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
+      </div>
+    <% }) %>
+
+    <button type="submit">Sajili Matumizi</button>
+  </form>
+
+  <br>
+  <a href="/">Rudi Nyumbani</a>
+</body>
+</html>
