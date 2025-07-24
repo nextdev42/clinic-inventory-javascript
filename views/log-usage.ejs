@@ -186,7 +186,13 @@
       <button type="button" onclick="window.location.href='/'">↩ Rudi Nyuma</button>
     </div>
   </form>
-
+  <!-- TEMPORARY DEBUG SECTION -->
+<div style="background: #f8f9fa; padding: 10px; margin: 10px 0; border: 1px dashed #ccc;">
+  <h4>Debug Info:</h4>
+  <p>Total Watumiaji: <%= watumiaji.length %></p>
+  <p>Watumiaji with descriptions: <%= watumiaji.filter(u => u.maelezo && u.maelezo.trim()).length %></p>
+  <p>Current Date: <%= currentDate %></p>
+</div>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const userSelect = document.getElementById('mtumiajiId');
