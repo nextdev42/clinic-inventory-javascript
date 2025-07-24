@@ -6,10 +6,12 @@
   <style>
     #user-info {
       font-weight: bold;
-      margin-top: 10px;
-      margin-bottom: 20px;
+      margin: 15px 0;
     }
-    #user-info small {
+
+    #user-info .desc {
+      font-weight: normal;
+      font-size: 0.9em;
       color: gray;
     }
   </style>
@@ -22,20 +24,18 @@
   <% } %>
 
   <form method="POST" action="/matumizi/sajili">
+
     <label>Chagua Mtumiaji:</label>
-    <select name="mtumiajiId" id="mtumiaji-select" required>
+    <select id="mtumiaji-select" name="mtumiajiId" required>
       <option value="">-- Chagua Mtumiaji --</option>
       <% watumiaji.forEach(m => { %>
-        <option 
-          value="<%= m.id %>" 
-          data-jina="<%= m.jina %>" 
-          data-maelezo="<%= m.maelezo || '' %>">
+        <option value="<%= m.id %>" data-jina="<%= m.jina %>" data-maelezo="<%= m.maelezo || '' %>">
           <%= m.jina %>
         </option>
       <% }) %>
     </select>
 
-    <!-- Maelezo ya mtumiaji yaliyochaguliwa -->
+    <!-- Hii div inaonyesha jina na description -->
     <div id="user-info"></div>
 
     <h3>Chagua Dawa na Kiasi</h3>
@@ -44,7 +44,7 @@
         <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true">
         <%= d.jina %> (<%= d.kiasi %> zipo) <br>
         <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
-        Kiasi: 
+        Kiasi:
         <input type="number" name="dawaList[<%= index %>][kiasi]" value="1" min="1" style="width: 60px;">
         <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
       </div>
@@ -57,18 +57,21 @@
   <a href="/">Rudi Nyumbani</a>
 
   <script>
-    const select = document.getElementById('mtumiaji-select');
-    const infoDiv = document.getElementById('user-info');
+    const mtumiajiSelect = document.getElementById('mtumiaji-select');
+    const userInfoDiv = document.getElementById('user-info');
 
-    select.addEventListener('change', function () {
-      const selected = select.options[select.selectedIndex];
-      const jina = selected.dataset.jina;
-      const maelezo = selected.dataset.maelezo;
+    mtumiajiSelect.addEventListener('change', () => {
+      const selected = mtumiajiSelect.options[mtumiajiSelect.selectedIndex];
+      const jina = selected.dataset.jina || '';
+      const maelezo = selected.dataset.maelezo || '';
 
-      if (jina && maelezo !== undefined) {
-        infoDiv.innerHTML = `${jina}<br><small>${maelezo}</small>`;
+      if (jina) {
+        userInfoDiv.innerHTML = `
+          ${jina}<br>
+          <span class="desc">${maelezo}</span>
+        `;
       } else {
-        infoDiv.innerHTML = '';
+        userInfoDiv.innerHTML = '';
       }
     });
   </script>
