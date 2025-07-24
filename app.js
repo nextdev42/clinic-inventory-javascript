@@ -131,10 +131,23 @@ async function startApp() {
 
   app.get('/matumizi/sajili', async (req, res, next) => {
   try {
-    res.send('🚀 Route inafanya kazi vizuri bila kusoma data.');
-  } catch (err) {
-    console.log("Hitilafu:", err);
-    next(err);
+    const [dawa, watumiaji] = await Promise.all([
+      readSheet('DAWA'),
+      readSheet('WATUMIAJI')
+    ]);
+    
+    // Enhance watumiaji data with description for the view
+    const enhancedWatumiaji = watumiaji.map(user => ({
+      ...user,
+      displayText: user.maelezo ? `${user.jina} (${user.maelezo})` : user.jina
+    }));
+    
+    res.render('log-usage', { 
+      dawa, 
+      watumiaji: enhancedWatumiaji 
+    });
+  } catch (error) {
+    next(error);
   }
 });
 
