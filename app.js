@@ -320,9 +320,10 @@ async function startApp() {
 });
 
 
-  app.get('/ripoti/matumizi', async (req, res, next) => {
+app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
     const { mode, from, to } = req.query;
+
     const [watumiaji, dawa, matumizi] = await Promise.all([
       readSheet('WATUMIAJI'),
       readSheet('DAWA'),
@@ -376,29 +377,33 @@ async function startApp() {
       });
     }
 
-    const report = watumiaji.map(user => {
-      const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
-      const byDate = {};
+    // Group usage by user (including deleted users)
+    const usageByUser = {};
 
-      userUsages.forEach(usage => {
-        const day = formatDate(usage.tarehe);
-        if (!byDate[day]) byDate[day] = [];
+    filteredMatumizi.forEach(usage => {
+      const user = watumiaji.find(u => u.id === usage.mtumiajiId);
+      const jina = user ? user.jina : '(Mtumiaji amefutwa)';
 
-        const medicine = dawa.find(d => d.id === usage.dawaId);
-        const formattedTime = formatTime(usage.tarehe);
+      if (!usageByUser[jina]) usageByUser[jina] = {};
 
-        byDate[day].push({
-          dawa: medicine ? medicine.jina : 'Haijulikani',
-          kiasi: usage.kiasi,
-          saa: formattedTime
-        });
+      const day = formatDate(usage.tarehe);
+      const saa = formatTime(usage.tarehe);
+      const dawaInfo = dawa.find(d => d.id === usage.dawaId);
+
+      if (!usageByUser[jina][day]) usageByUser[jina][day] = [];
+
+      usageByUser[jina][day].push({
+        dawa: dawaInfo ? dawaInfo.jina : 'Haijulikani',
+        kiasi: usage.kiasi,
+        saa
       });
-
-      return {
-        jina: user.jina,
-        matumiziByDate: byDate
-      };
     });
+
+    // Convert usageByUser object to array for template
+    const report = Object.entries(usageByUser).map(([jina, matumiziByDate]) => ({
+      jina,
+      matumiziByDate
+    }));
 
     res.render('report-usage', {
       report,
@@ -411,10 +416,12 @@ async function startApp() {
         end: to
       }
     });
+
   } catch (error) {
     next(error);
   }
 });
+
 
 app.get('/mtumiaji/futa/:id', async (req, res, next) => {
   try {
