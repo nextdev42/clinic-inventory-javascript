@@ -6,205 +6,195 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0; /* Remove default body margin */
-      background-color: #e8e8e8; /* Lighter background matching the image */
-      display: flex; /* Use flexbox to center content */
+      margin: 0;
+      background-color: #e8e8e8;
+      display: flex;
       flex-direction: column;
-      align-items: center; /* Center horizontally */
-      min-height: 100vh; /* Ensure body takes full viewport height */
+      align-items: center;
+      min-height: 100vh;
     }
 
-    /* Top navigation bar */
     .top-nav {
       width: 100%;
-      background-color: #fff; /* White background */
+      background-color: #fff;
       border-bottom: 1px solid #ddd;
       display: flex;
       align-items: center;
       padding: 10px 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow */
-      box-sizing: border-box; /* Include padding in width */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-sizing: border-box;
     }
 
     .top-nav a {
       text-decoration: none;
-      color: #333; /* Darker text */
+      color: #333;
       font-size: 16px;
       padding: 5px 10px;
-      border: 1px solid #ccc; /* Border around "Rudi Nyumbani" */
+      border: 1px solid #ccc;
       border-radius: 5px;
-      background-color: #f0f0f0; /* Light gray background */
-      margin-right: auto; /* Pushes other items to the right */
+      background-color: #f0f0f0;
+      margin-right: auto;
     }
 
     .top-nav .header-text {
-        font-weight: bold;
-        font-size: 18px;
-        color: #333;
-        margin-left: 20px; /* Space between "Rudi Nyumbani" and header */
-        flex-grow: 1; /* Allows header to take available space */
-        text-align: center; /* Center the header text */
+      font-weight: bold;
+      font-size: 18px;
+      color: #333;
+      margin-left: 20px;
+      flex-grow: 1;
+      text-align: center;
     }
-
 
     h1 {
-      /* This H1 seems to be replaced by the header-text in the image,
-         so we'll hide it or integrate it into the top nav if needed.
-         For now, hide it to match the image's structure. */
       display: none;
     }
-
 
     form {
       background-color: #fff;
       padding: 20px;
       border: 1px solid #ddd;
       border-radius: 8px;
-      max-width: 90%; /* Adjust max-width to be more responsive */
-      width: 500px; /* Fixed width for larger screens, similar to image */
-      margin-top: 20px; /* Space below top nav */
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* More pronounced shadow */
+      max-width: 90%;
+      width: 500px;
+      margin-top: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
     label, h3 {
       display: block;
-      margin-top: 15px; /* Increased margin-top */
-      margin-bottom: 5px; /* Added margin-bottom */
-      font-weight: normal; /* Font weight as in image */
-      color: #555; /* Slightly lighter text for labels */
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: normal;
+      color: #555;
     }
-    
+
     h3 {
-        font-weight: bold; /* Keep h3 bold */
-        color: #333;
-        font-size: 18px; /* Adjust font size */
-        margin-top: 25px; /* More space above H3 */
+      font-weight: bold;
+      color: #333;
+      font-size: 18px;
+      margin-top: 25px;
     }
 
     select, input[type="number"] {
-      padding: 8px 10px; /* More padding */
+      padding: 8px 10px;
       margin-top: 5px;
       margin-bottom: 15px;
-      width: calc(100% - 20px); /* Account for padding */
-      border: 1px solid #ccc; /* Lighter border */
-      border-radius: 4px; /* Slightly more rounded corners */
-      box-sizing: border-box; /* Include padding and border in width */
-      font-size: 16px; /* Larger font size */
+      width: calc(100% - 20px);
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
     }
 
     select {
-        /* Add an arrow for select, common in modern UIs */
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5z%22%20fill%3D%22%23666%22%2F%3E%3C%2Fsvg%3E');
-        background-repeat: no-repeat;
-        background-position: right 10px center;
-        background-size: 12px;
-        padding-right: 30px; /* Make space for the arrow */
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5z%22%20fill%3D%22%23666%22%2F%3E%3C%2Fsvg%3E');
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 12px;
+      padding-right: 30px;
     }
 
     .dawa-item {
       margin-bottom: 15px;
       padding: 10px;
-      /* Background matches the image, very subtle */
       background-color: #f9f9f9;
       border-radius: 5px;
-      border: 1px solid #eee; /* Lighter border */
-      display: flex; /* Use flexbox for better alignment of checkbox and text */
+      border: 1px solid #eee;
+      display: flex;
       align-items: center;
-      flex-wrap: wrap; /* Allow wrapping on small screens */
-      position: relative; /* For absolute positioning of quantity input */
+      flex-wrap: wrap;
+      position: relative;
     }
 
     .dawa-item input[type="checkbox"] {
       margin-right: 10px;
-      width: auto; /* Reset width for checkbox */
+      width: auto;
       vertical-align: middle;
-      transform: scale(1.3); /* Slightly larger checkbox */
+      transform: scale(1.3);
     }
 
-    .dawa-item span { /* Targeting the text next to checkbox */
-        font-size: 15px;
-        color: #333;
-        flex-grow: 1; /* Allow text to take space */
+    .dawa-item span {
+      font-size: 15px;
+      color: #333;
+      flex-grow: 1;
     }
 
     .dawa-item input[type="number"] {
-        width: 100px; /* Fixed width for quantity input */
-        margin-left: auto; /* Push to the right */
-        margin-top: 0; /* Align with checkbox text */
-        margin-bottom: 0; /* Remove bottom margin */
-        text-align: right; /* Align text right inside input */
-        font-size: 15px; /* Smaller font for quantity */
-    }
-    /* Style for the "Kiasi:" text next to the quantity input */
-    .dawa-item .quantity-label {
-        font-weight: normal;
-        margin-left: 10px;
-        color: #555;
-        font-size: 15px;
-    }
-    
-    /* Align checkbox and text more closely as in image */
-    .dawa-item > input[type="checkbox"] + span {
-        margin-left: 0; /* Remove default margin from span after checkbox */
-    }
-    .dawa-item > br {
-        display: none; /* Hide the <br> for better flex layout */
-    }
-    .dawa-item input[type="hidden"] {
-        display: none; /* Hide hidden inputs */
+      width: 100px;
+      margin-left: auto;
+      margin-top: 0;
+      margin-bottom: 0;
+      text-align: right;
+      font-size: 15px;
     }
 
+    .dawa-item .quantity-label {
+      font-weight: normal;
+      margin-left: 10px;
+      color: #555;
+      font-size: 15px;
+    }
+
+    .dawa-item > input[type="checkbox"] + span {
+      margin-left: 0;
+    }
+
+    .dawa-item > br {
+      display: none;
+    }
+
+    .dawa-item input[type="hidden"] {
+      display: none;
+    }
 
     button {
-      background-color: #28a745; /* Green button */
+      background-color: #28a745;
       color: white;
       border: none;
-      padding: 12px 25px; /* More padding */
-      font-size: 17px; /* Larger font */
+      padding: 12px 25px;
+      font-size: 17px;
       border-radius: 5px;
       cursor: pointer;
-      margin-right: 10px; /* Space between buttons */
-      transition: background-color 0.3s ease; /* Smooth transition */
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Button shadow */
+      margin-right: 10px;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
     button:hover {
       background-color: #218838;
     }
-    
-    /* Style for the "Rudi Nyumbani" button inside the form */
+
     .form-buttons button:nth-child(2) {
-        background-color: #6c757d; /* Gray for "Rudi Nyumbani" button */
-        margin-left: 10px; /* Space between buttons */
+      background-color: #6c757d;
+      margin-left: 10px;
     }
+
     .form-buttons button:nth-child(2):hover {
-        background-color: #5a6268;
+      background-color: #5a6268;
     }
 
-    /* Container for the two buttons to align them */
     .form-buttons {
-        display: flex;
-        justify-content: center; /* Center buttons horizontally */
-        margin-top: 30px; /* Space above buttons */
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
     }
-
 
     a {
-      display: none; /* Hide the standalone "Rudi Nyumbani" link as it's in the top bar and a button now */
+      display: none;
     }
 
     .error {
-      border: 1px solid red !important; /* Important to override other styles */
+      border: 1px solid red !important;
     }
 
     .error-message {
       color: red;
       font-size: 14px;
       margin-bottom: 10px;
-      text-align: center; /* Center error message */
+      text-align: center;
     }
   </style>
 </head>
@@ -212,7 +202,7 @@
   <div class="top-nav">
     <a href="/">Rudi Nyumbani</a>
     <span class="header-text">Sajili Matumizi ya Dawa</span>
-    </div>
+  </div>
 
   <% if (error) { %>
     <p style="color: red;"><%= error %></p>
@@ -258,17 +248,17 @@
   <script>
     function validateForm() {
       const checkboxes = document.querySelectorAll('.checkbox');
-      let isValid = true; // Start with true and set to false if errors
+      let isValid = true;
       let errorMessage = "";
       let errorField = document.getElementById('error-msg');
-      errorField.innerHTML = ""; // Clear previous error messages
+      errorField.innerHTML = "";
 
       let atLeastOneChecked = false;
 
       checkboxes.forEach(cb => {
         const index = cb.dataset.index;
         const quantityInput = document.getElementById(`kiasi-${index}`);
-        quantityInput.classList.remove('error'); // Clear error class from previous runs
+        quantityInput.classList.remove('error');
 
         if (cb.checked) {
           atLeastOneChecked = true;
@@ -279,17 +269,17 @@
           if (!value || isNaN(num) || num < 1 || num > max) {
             errorMessage = "Tafadhali hakikisha kiasi cha dawa kilichochaguliwa ni sahihi (≥1 na ≤ max).";
             quantityInput.classList.add('error');
-            isValid = false; // Set isValid to false
+            isValid = false;
           }
         }
       });
 
       if (!atLeastOneChecked) {
         errorMessage = "Tafadhali chagua angalau dawa moja.";
-        isValid = false; // Set isValid to false
+        isValid = false;
       }
 
-      if (!isValid) { // Only display error if isValid is false
+      if (!isValid) {
         errorField.innerText = errorMessage;
       }
 
