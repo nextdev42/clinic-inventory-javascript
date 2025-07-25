@@ -196,55 +196,66 @@ async function startApp() {
   });
 
   app.post('/matumizi/sajili', async (req, res, next) => {
-    try {
-      const { mtumiajiId, dawaList } = req.body;
+  try {
+    const { mtumiaji, dawa: dawaArray = [], kiasi: kiasiArray = [] } = req.body;
 
-      if (!mtumiajiId || !dawaList) {
-        return res.status(400).render('error', {
-          message: 'Tafadhali chagua mtumiaji na angalau dawa moja.'
-        });
-      }
+    if (!mtumiaji) {
+      const [dawa, watumiaji] = await Promise.all([
+        readSheet('DAWA'),
+        readSheet('WATUMIAJI')
+      ]);
 
-      const dawaArray = Array.isArray(dawaList)
-        ? dawaList
-        : Object.values(dawaList);
-
-      const confirmedDawa = dawaArray.filter(d => d.confirmed === 'true');
-
-      if (confirmedDawa.length === 0) {
-        const [dawa, watumiaji] = await Promise.all([
-          readSheet('DAWA'),
-          readSheet('WATUMIAJI')
-        ]);
-        return res.render('log-usage', {
-          dawa,
-          watumiaji,
-          error: 'Hakuna dawa zilizo thibitishwa kutolewa. Tafadhali chagua angalau dawa moja.',
-          mtumiajiId
-        });
-      }
-
-      const watumiaji = await readSheet('WATUMIAJI');
-      const mtumiaji = watumiaji.find(w => w.id === mtumiajiId);
-
-      const matumizi = confirmedDawa.map(d => ({
-        id: nanoid(),
-        mtumiajiId,
-        mtumiajiJina: mtumiaji?.jina || '',
-        maelezo: mtumiaji?.maelezo || '',
-        dawaId: d.id,
-        kiasi: parseInt(d.kiasi, 10) || 0,
-        tarehe: d.tarehe || new Date().toISOString()
-      }));
-
-      const existingMatumizi = await readSheet('MATUMIZI');
-      await writeSheet('MATUMIZI', [...existingMatumizi, ...matumizi]);
-
-      return res.redirect('/ripoti/matumizi');
-    } catch (error) {
-      next(error);
+      return res.render('log-usage', {
+        dawa,
+        watumiaji,
+        error: "Tafadhali chagua mtumiaji.",
+        selectedUser: '',
+        selectedUserDesc: ''
+      });
     }
-  });
+
+    const matumizi = dawaArray
+      .map((jina, i) => ({
+        jina,
+        kiasi: parseInt(kiasiArray[i])
+      }))
+      .filter(d => d.kiasi && d.kiasi > 0);
+
+    if (matumizi.length === 0) {
+      const [dawa, watumiaji] = await Promise.all([
+        readSheet('DAWA'),
+        readSheet('WATUMIAJI')
+      ]);
+
+      const mtumiajiInfo = watumiaji.find(w => w.jina === mtumiaji);
+      return res.render('log-usage', {
+        dawa,
+        watumiaji,
+        error: "Tafadhali chagua angalau dawa moja na uweke kiasi sahihi.",
+        selectedUser: mtumiaji,
+        selectedUserDesc: mtumiajiInfo?.maelezo || ''
+      });
+    }
+
+    const now = new Date();
+    const wakati = now.toLocaleString('sw-TZ', { timeZone: 'Africa/Dar_es_Salaam' });
+
+    const logData = matumizi.map(m => ({
+      mtumiaji,
+      dawa: m.jina,
+      kiasi: m.kiasi,
+      wakati
+    }));
+
+    await appendSheet('MATUMIZI', logData);
+
+    res.redirect('/ripoti/matumizi');
+
+  } catch (err) {
+    next(err);
+  }
+});
+
 
   app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
