@@ -245,46 +245,46 @@
     </div>
   </form>
 
-  <script>
-    function validateForm() {
-      const checkboxes = document.querySelectorAll('.checkbox');
-      let isValid = true;
-      let errorMessage = "";
-      let errorField = document.getElementById('error-msg');
-      errorField.innerHTML = "";
+<script>
+  function validateForm() {
+    const items = document.querySelectorAll('.dawa-item');
+    let isValid = false;
+    let hasError = false;
 
-      let atLeastOneChecked = false;
+    items.forEach(item => {
+      const checkbox = item.querySelector('.checkbox');
+      const input = item.querySelector('.quantity-input');
 
-      checkboxes.forEach(cb => {
-        const index = cb.dataset.index;
-        const quantityInput = document.getElementById(`kiasi-${index}`);
-        quantityInput.classList.remove('error');
+      if (checkbox.checked) {
+        isValid = true;
 
-        if (cb.checked) {
-          atLeastOneChecked = true;
-          const value = quantityInput.value.trim();
-          const max = parseInt(quantityInput.max);
-          const num = parseInt(value);
-
-          if (!value || isNaN(num) || num < 1 || num > max) {
-            errorMessage = "Tafadhali hakikisha kiasi cha dawa kilichochaguliwa ni sahihi (≥1 na ≤ max).";
-            quantityInput.classList.add('error');
-            isValid = false;
-          }
+        if (!input.value || parseInt(input.value) <= 0) {
+          input.style.border = '2px solid red';
+          hasError = true;
+        } else {
+          input.style.border = '';
         }
-      });
 
-      if (!atLeastOneChecked) {
-        errorMessage = "Tafadhali chagua angalau dawa moja.";
-        isValid = false;
+      } else {
+        // Clear red border if checkbox not checked
+        input.style.border = '';
+        input.value = ''; // Optional: clear unselected inputs
       }
+    });
 
-      if (!isValid) {
-        errorField.innerText = errorMessage;
-      }
-
-      return isValid;
+    if (!isValid) {
+      alert("Tafadhali chagua angalau dawa moja.");
+      return false;
     }
-  </script>
+
+    if (hasError) {
+      alert("Tafadhali ingiza kiasi sahihi kwa dawa ulizochagua.");
+      return false;
+    }
+
+    return true;
+  }
+</script>
+
 </body>
 </html>
