@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orodha ya Watumiaji</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #3498db;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #3498db;
+      color: white;
+      font-weight: bold;
+    }
+    tr:hover {
+      background-color: #f1f9ff;
+    }
+    a {
+      color: #2980b9;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    a:hover {
+      color: #1a5276;
+      text-decoration: underline;
+    }
+    .action-link {
+      display: inline-block;
+      padding: 5px 10px;
+      background-color: #e74c3c;
+      color: white !important;
+      border-radius: 4px;
+      margin-right: 5px;
+    }
+    .action-link:hover {
+      background-color: #c0392b;
+      text-decoration: none;
+    }
+    .return-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 8px 15px;
+      background-color: #2c3e50;
+      color: white;
+      border-radius: 4px;
+    }
+    .return-link:hover {
+      background-color: #1a252f;
+    }
+  </style>
+</head>
+<body>
+  <h1>Orodha ya Watumiaji</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Jina</th>
+        <th>Maelezo</th>
+        <th>Kliniki</th>
+        <th>Vitendo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% watumiaji.forEach(user => { %>
+        <tr>
+          <td><%= user.jina %></td>
+          <td><%= user.maelezo || '-' %></td>
+          <td><%= user.kliniki || '-' %></td>
+          <td>
+            <a href="/mtumiaji/futa/<%= user.id %>" 
+               class="action-link" 
+               onclick="return confirm('Una uhakika unataka kufuta mtumiaji huyu?')">
+              🗑️ Futa
+            </a>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <a href="/" class="return-link">⬅️ Rudi kwenye dashibodi</a>
+</body>
+</html>
