@@ -32,8 +32,8 @@
     <select name="mtumiaji" id="mtumiaji" onchange="onUserChange()" required>
       <option value="">-- Chagua --</option>
       <% watumiaji.forEach(w => { %>
-        <option value="<%= w.jina %>" data-desc="<%= w.maelezo %>" 
-          <%= w.jina === selectedUser ? 'selected' : '' %>>
+        <option value="<%= w.jina %>" data-desc="<%= w.maelezo %>"
+          <%= selectedUser === w.jina ? 'selected' : '' %>>
           <%= w.jina %>
         </option>
       <% }); %>
@@ -58,7 +58,7 @@
           type="number" 
           name="kiasi[]" 
           class="quantity-input" 
-          placeholder="Kiasi (kwa mfano: 1, 2)" 
+          placeholder="Weka kiasi" 
           min="1"
         >
       </div>
@@ -93,6 +93,8 @@
             input.style.border = '';
           }
         } else {
+          // Clear quantity if unchecked
+          input.value = '';
           input.style.border = '';
         }
       });
