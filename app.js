@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import adminRoutes from './routes/admin.js';
 import session from 'express-session';
+import authRoutes from './routes/auth.js';
 
 
 const app = express();
@@ -118,6 +119,7 @@ async function startApp() {
   app.use(express.json());
   app.use(express.static(path.join(__dirname, 'public')));
   app.use('/admin', adminRoutes);
+  app.use('/', authRoutes);
 
 
 
