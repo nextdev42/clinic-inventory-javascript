@@ -46,7 +46,9 @@
         text-align: center; /* Center the header text */
     }
 
-
+    .error {
+         border: 2px solid red;
+       }
     h1 {
       /* This H1 seems to be replaced by the header-text in the image,
          so we'll hide it or integrate it into the top nav if needed.
@@ -256,14 +258,33 @@
   </form>
 
   <script>
-  function validateForm() {
-    const checkboxes = document.querySelectorAll('.checkbox');
-    let isValid = true;
-    let errorMessage = "";
-    let errorField = document.getElementById('error-msg');
-    errorField.innerHTML = "";
+document.addEventListener("DOMContentLoaded", function () {
+  const checkboxes = document.querySelectorAll('.checkbox');
+  const errorField = document.getElementById('error-msg');
 
+  // Initialize quantity inputs based on checkbox state
+  checkboxes.forEach(cb => {
+    const index = cb.dataset.index;
+    const quantityInput = document.getElementById(`kiasi-${index}`);
+    quantityInput.disabled = !cb.checked;
+
+    cb.addEventListener('change', () => {
+      if (cb.checked) {
+        quantityInput.disabled = false;
+        quantityInput.focus();
+      } else {
+        quantityInput.disabled = true;
+        quantityInput.value = "";
+        quantityInput.classList.remove('error');
+      }
+    });
+  });
+
+  // Attach validation to the form submit
+  document.querySelector('form').addEventListener('submit', function (e) {
+    let isValid = true;
     let atLeastOneValid = false;
+    errorField.innerText = "";
 
     checkboxes.forEach(cb => {
       const index = cb.dataset.index;
@@ -281,45 +302,20 @@
         } else {
           atLeastOneValid = true;
         }
-      } else {
-        // Uncheck: clear its value to avoid accidental submission
-        quantityInput.value = "";
       }
     });
 
     if (!atLeastOneValid) {
-      errorMessage = "Tafadhali chagua angalau dawa moja na ujaze kiasi sahihi (kuanzia 1 hadi kiwango kilichopo).";
-      isValid = false;
+      errorField.innerText = "Tafadhali chagua angalau dawa moja na ujaze kiasi sahihi.";
+      e.preventDefault();
+    } else if (!isValid) {
+      errorField.innerText = "Angalau dawa moja imechaguliwa lakini kiasi ni batili (ni lazima kiwe kati ya 1 na kiwango kilichopo).";
+      e.preventDefault();
     }
-
-    if (!isValid) {
-      errorField.innerText = errorMessage;
-    }
-
-    return isValid;
-  }
-</script>
-<script>
-  document.querySelectorAll('.checkbox').forEach(cb => {
-    cb.addEventListener('change', () => {
-      const index = cb.dataset.index;
-      const quantityInput = document.getElementById(`kiasi-${index}`);
-      if (cb.checked) {
-        quantityInput.disabled = false;
-        quantityInput.focus();
-      } else {
-        quantityInput.disabled = true;
-        quantityInput.value = ""; // clear invalid values
-        quantityInput.classList.remove('error');
-      }
-    });
-
-    // Initialize on page load
-    const index = cb.dataset.index;
-    const quantityInput = document.getElementById(`kiasi-${index}`);
-    quantityInput.disabled = !cb.checked;
   });
+});
 </script>
+
 
 </body>
 </html>
