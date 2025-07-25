@@ -112,10 +112,7 @@ async function startApp() {
   app.use(express.static(path.join(__dirname, 'public')));
   app.use('/admin', adminRoutes);
 
-  req.session.admin = {
-  role: 'admin' | 'superadmin',
-  clinic: 'kisiwani' | 'mikwambe' | 'kibada' | 'jirambe'
-};
+
 
   // --- DASHBOARD ---
   app.get('/', async (req, res, next) => {
