@@ -27,20 +27,29 @@ async function initializeDatabase() {
     try {
       await fs.access(excelPath);
       const workbook = xlsx.readFile(excelPath);
+      let workbookModified = false;
       for (const config of Object.values(SHEETS)) {
         if (!workbook.Sheets[config.name]) {
           const worksheet = xlsx.utils.aoa_to_sheet([config.headers]);
           xlsx.utils.book_append_sheet(workbook, worksheet, config.name);
+          workbookModified = true;
         }
       }
-      await xlsx.writeFile(workbook, excelPath);
-    } catch {
-      const workbook = xlsx.utils.book_new();
-      for (const config of Object.values(SHEETS)) {
-        const worksheet = xlsx.utils.aoa_to_sheet([config.headers]);
-        xlsx.utils.book_append_sheet(workbook, worksheet, config.name);
+      if (workbookModified) {
+        await xlsx.writeFile(workbook, excelPath);
       }
-      await xlsx.writeFile(workbook, excelPath);
+    } catch (e) {
+      // If file doesn't exist, create it
+      if (e.code === 'ENOENT') {
+        const workbook = xlsx.utils.book_new();
+        for (const config of Object.values(SHEETS)) {
+          const worksheet = xlsx.utils.aoa_to_sheet([config.headers]);
+          xlsx.utils.book_append_sheet(workbook, worksheet, config.name);
+        }
+        await xlsx.writeFile(workbook, excelPath);
+      } else {
+        throw e; // Re-throw other errors
+      }
     }
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
@@ -53,9 +62,21 @@ async function readSheet(sheetKey) {
     const config = SHEETS[sheetKey];
     const workbook = xlsx.readFile(excelPath);
     const sheet = workbook.Sheets[config.name];
-    const sheetHeaders = xlsx.utils.sheet_to_json(sheet, { header: 1 })[0] || [];
-    const headers = sheetHeaders.length > 0 ? sheetHeaders : config.headers;
-    return xlsx.utils.sheet_to_json(sheet, { header: headers }).slice(1);
+    if (!sheet) {
+        console.warn(`Sheet '${config.name}' not found in workbook. Returning empty array.`);
+        return [];
+    }
+    // Read all rows, then check if the first row is actually headers
+    const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+    if (!rawData || rawData.length === 0) {
+        return []; // Empty sheet
+    }
+    
+    const sheetHeaders = rawData[0];
+    // If the sheet headers don't match the expected headers, assume first row is data
+    // This part is tricky; simpler to just use fixed headers for safety or validate strictly.
+    // For simplicity, let's use the defined headers for parsing after the first row.
+    return xlsx.utils.sheet_to_json(sheet, { header: config.headers, range: 1 }); // Skip header row
   } catch (error) {
     console.error(`❌ Error reading ${sheetKey}:`, error);
     return [];
@@ -66,13 +87,21 @@ async function writeSheet(sheetKey, data) {
   try {
     const config = SHEETS[sheetKey];
     const workbook = xlsx.readFile(excelPath);
-    const worksheet = xlsx.utils.json_to_sheet(
-      data.map(item => ({
-        ...item,
-        tarehe: item.tarehe ? new Date(item.tarehe).toISOString() : ''
-      })),
-      { header: config.headers }
-    );
+
+    // Convert data to match headers explicitly, ensuring 'tarehe' is ISO string
+    const dataToWrite = data.map(item => {
+        const newItem = {};
+        config.headers.forEach(header => {
+            if (header === 'tarehe' && item.tarehe) {
+                newItem[header] = new Date(item.tarehe).toISOString();
+            } else {
+                newItem[header] = item[header] !== undefined ? item[header] : null;
+            }
+        });
+        return newItem;
+    });
+
+    const worksheet = xlsx.utils.json_to_sheet(dataToWrite, { header: config.headers });
     workbook.Sheets[config.name] = worksheet;
     await xlsx.writeFile(workbook, excelPath);
     return true;
@@ -81,24 +110,37 @@ async function writeSheet(sheetKey, data) {
     return false;
   }
 }
+
 async function appendSheet(sheetKey, newData) {
   try {
     const config = SHEETS[sheetKey];
     const workbook = xlsx.readFile(excelPath);
     const sheet = workbook.Sheets[config.name];
 
-    // Soma data iliyopo tayari
-    const existingData = xlsx.utils.sheet_to_json(sheet);
+    // Read existing data skipping the header row
+    const existingData = xlsx.utils.sheet_to_json(sheet, { header: config.headers, range: 1 });
 
-    // Unganisha data mpya na za zamani
-    const combined = [...existingData, ...newData];
+    // Ensure newData items have correct 'tarehe' format and match headers
+    const formattedNewData = newData.map(item => {
+        const newItem = {};
+        config.headers.forEach(header => {
+            if (header === 'tarehe' && item.tarehe) {
+                newItem[header] = new Date(item.tarehe).toISOString();
+            } else {
+                newItem[header] = item[header] !== undefined ? item[header] : null;
+            }
+        });
+        return newItem;
+    });
 
-    // Unda worksheet mpya
+    // Combine existing data with new data
+    const combined = [...existingData, ...formattedNewData];
+
+    // Create a new worksheet with headers
     const newSheet = xlsx.utils.json_to_sheet(combined, { header: config.headers });
 
     workbook.Sheets[config.name] = newSheet;
 
-    // Andika workbook
     await xlsx.writeFile(workbook, excelPath);
 
     return true;
@@ -207,7 +249,7 @@ async function startApp() {
       }
 
       const watumiaji = await readSheet('WATUMIAJI');
-      if (watumiaji.some(w => w.jina.toLowerCase() === jina.trim().toLowerCase())) {
+      if (watumiaji.some(w => w.jina?.toLowerCase() === jina.trim().toLowerCase())) {
         return res.status(400).render('error', {
           message: 'Tayari kuna mtumiaji mwenye jina hili.'
         });
@@ -222,77 +264,124 @@ async function startApp() {
   });
 
   app.post('/matumizi/sajili', async (req, res, next) => {
-  // ... sehemu nyingine hazijabadilika ...
+    try {
+      // The `mtumiajiId` is sent directly from the select element's name
+      const { mtumiajiId, dawaList = [] } = req.body;
 
-// Ongeza function hii appendSheet
+      if (!mtumiajiId) {
+        const [dawa, watumiaji] = await Promise.all([
+          readSheet('DAWA'),
+          readSheet('WATUMIAJI')
+        ]);
+        return res.render('log-usage', {
+          dawa,
+          watumiaji,
+          error: "Tafadhali chagua mtumiaji.",
+          mtumiajiId: null // Keep null as no user was truly selected
+        });
+      }
 
-
-// Badilisha POST /matumizi/sajili kama ifuatavyo
-app.post('/matumizi/sajili', async (req, res, next) => {
-  try {
-    const { mtumiaji, dawa: dawaArray = [], kiasi: kiasiArray = [] } = req.body;
-
-    if (!mtumiaji) {
-      const [dawa, watumiaji] = await Promise.all([
-        readSheet('DAWA'),
-        readSheet('WATUMIAJI')
+      const [watumiaji, allDawa] = await Promise.all([
+        readSheet('WATUMIAJI'),
+        readSheet('DAWA')
       ]);
-      return res.render('log-usage', {
-        dawa,
-        watumiaji,
-        error: "Tafadhali chagua mtumiaji.",
-        selectedUser: '',
-        selectedUserDesc: ''
+
+      // Find the selected user object
+      const mtumiajiObj = watumiaji.find(w => w.id === mtumiajiId);
+      if (!mtumiajiObj) {
+        const [dawa, users] = await Promise.all([
+            readSheet('DAWA'),
+            readSheet('WATUMIAJI')
+        ]);
+        return res.status(400).render('log-usage', {
+            dawa, users,
+            error: "Mtumiaji aliyechaguliwa hajapatikana.",
+            mtumiajiId: mtumiajiId // Pass back the ID to keep selection if possible
+        });
+      }
+
+      const newUsages = [];
+      const updatedDawaQuantities = {}; // To track updated quantities for dawa
+
+      // Process selected medicines
+      for (const item of dawaList) {
+        // Only process if the checkbox was checked
+        if (item.confirmed === 'true') {
+          const dawaId = item.id;
+          const kiasi = parseInt(item.kiasi);
+
+          const dawaFound = allDawa.find(d => d.id === dawaId);
+
+          if (!dawaFound || isNaN(kiasi) || kiasi <= 0 || kiasi > dawaFound.kiasi) {
+            // If any selected medicine has invalid quantity or doesn't exist,
+            // return an error. You might want to be more specific here.
+            const [dawa, users] = await Promise.all([
+              readSheet('DAWA'),
+              readSheet('WATUMIAJI')
+            ]);
+            return res.status(400).render('log-usage', {
+              dawa, users,
+              error: "Kiasi cha dawa kilichochaguliwa si sahihi au hakitoshi.",
+              mtumiajiId: mtumiajiId // Keep selected user in form
+            });
+          }
+
+          newUsages.push({
+            id: nanoid(),
+            dawaId: dawaFound.id,
+            mtumiajiId: mtumiajiObj.id,
+            mtumiajiJina: mtumiajiObj.jina,
+            maelezo: mtumiajiObj.maelezo || '',
+            kiasi: kiasi,
+            tarehe: new Date().toISOString()
+          });
+
+          // Update the quantity for the medicine
+          updatedDawaQuantities[dawaFound.id] = (updatedDawaQuantities[dawaFound.id] || dawaFound.kiasi) - kiasi;
+        }
+      }
+
+      if (newUsages.length === 0) {
+        const [dawa, users] = await Promise.all([
+          readSheet('DAWA'),
+          readSheet('WATUMIAJI')
+        ]);
+        return res.status(400).render('log-usage', {
+          dawa, users,
+          error: "Tafadhali chagua angalau dawa moja na uweke kiasi sahihi.",
+          mtumiajiId: mtumiajiId // Keep selected user in form
+        });
+      }
+
+      // 1. Append new usages to MATUMIZI sheet
+      const usageSuccess = await appendSheet('MATUMIZI', newUsages);
+      if (!usageSuccess) {
+        return res.status(500).render('error', { message: 'Tatizo limejitokeza kuandika matumizi.' });
+      }
+
+      // 2. Update DAWA quantities
+      const updatedAllDawa = allDawa.map(dawaItem => {
+          if (updatedDawaQuantities.hasOwnProperty(dawaItem.id)) {
+              return { ...dawaItem, kiasi: updatedDawaQuantities[dawaItem.id] };
+          }
+          return dawaItem;
       });
+
+      const dawaUpdateSuccess = await writeSheet('DAWA', updatedAllDawa);
+      if (!dawaUpdateSuccess) {
+          // This is a critical error as usage was logged but stock not updated.
+          // In a real system, you'd want a transaction or rollback.
+          console.error('CRITICAL ERROR: Matumizi logged but Dawa stock not updated!');
+          return res.status(500).render('error', { message: 'Matumizi yamehifadhiwa, lakini kulikuwa na tatizo la kusasisha stoo ya dawa. Tafadhali wasiliana na msimamizi.' });
+      }
+
+      res.redirect('/ripoti/matumizi');
+
+    } catch (err) {
+      console.error('❌ Error in /matumizi/sajili POST:', err);
+      next(err);
     }
-
-    const watumiaji = await readSheet('WATUMIAJI');
-    const dawaList = await readSheet('DAWA');
-
-    // Pata mtumiaji halisi
-    const mtumiajiObj = watumiaji.find(w => w.jina === mtumiaji);
-    if (!mtumiajiObj) throw new Error("Mtumiaji hajapatikana");
-
-    // Tengeneza data mpya za matumizi
-    const matumizi = dawaArray.map((jina, i) => {
-      const kiasi = parseInt(kiasiArray[i]);
-      const dawaObj = dawaList.find(d => d.jina === jina);
-      return {
-        id: nanoid(),
-        dawaId: dawaObj?.id || '',
-        mtumiajiId: mtumiajiObj.id,
-        mtumiajiJina: mtumiajiObj.jina,
-        maelezo: mtumiajiObj.maelezo || '',
-        kiasi,
-        tarehe: new Date().toISOString()
-      };
-    }).filter(m => m.dawaId && m.kiasi > 0);
-
-    if (matumizi.length === 0) {
-      const dawa = await readSheet('DAWA');
-      return res.render('log-usage', {
-        dawa,
-        watumiaji,
-        error: "Tafadhali chagua angalau dawa moja na uweke kiasi sahihi.",
-        selectedUser: mtumiaji,
-        selectedUserDesc: mtumiajiObj?.maelezo || ''
-      });
-    }
-
-    // Ongeza matumizi mapya (append) badala ya kuandika zote
-    const success = await appendSheet('MATUMIZI', matumizi);
-
-    if (!success) {
-      return res.status(500).render('error', { message: 'Tatizo limejitokeza kuandika matumizi.' });
-    }
-
-    res.redirect('/ripoti/matumizi');
-
-  } catch (err) {
-    console.error('❌ Error in /matumizi/sajili POST:', err);
-    next(err);
-  }
-});
+  });
 
 
   app.get('/ripoti/matumizi', async (req, res, next) => {
@@ -324,6 +413,11 @@ app.post('/matumizi/sajili', async (req, res, next) => {
 
       const filteredMatumizi = startDate
         ? matumizi.filter(m => {
+            // Ensure tarehe is a valid date string
+            if (!m.tarehe || isNaN(new Date(m.tarehe).getTime())) {
+                console.warn(`Invalid date format for usage ID ${m.id}: ${m.tarehe}`);
+                return false; // Exclude invalid dates
+            }
             const t = new Date(m.tarehe);
             return t >= startDate && (!endDate || t <= endDate);
           })
@@ -337,7 +431,7 @@ app.post('/matumizi/sajili', async (req, res, next) => {
           day: 'numeric',
           month: 'long',
           year: 'numeric',
-          timeZone: 'Africa/Nairobi'
+          timeZone: 'Africa/Nairobi' // Keep timezone consistent
         });
       }
 
@@ -347,7 +441,7 @@ app.post('/matumizi/sajili', async (req, res, next) => {
         return date.toLocaleTimeString('sw-TZ', {
           hour: '2-digit',
           minute: '2-digit',
-          timeZone: 'Africa/Nairobi'
+          timeZone: 'Africa/Nairobi' // Keep timezone consistent
         });
       }
 
@@ -363,7 +457,7 @@ app.post('/matumizi/sajili', async (req, res, next) => {
           const formattedTime = formatTime(usage.tarehe);
 
           byDate[day].push({
-            dawa: medicine ? medicine.jina : 'Haijulikani',
+            dawa: medicine ? medicine.jina : 'Dawa haijulikani', // More descriptive
             kiasi: usage.kiasi,
             saa: formattedTime
           });
