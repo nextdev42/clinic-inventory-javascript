@@ -15,7 +15,8 @@
       padding: 20px;
       border: 1px solid #ddd;
       border-radius: 8px;
-      max-width: 600px;
+      max-width: 700px;
+      margin: auto;
     }
 
     label, h3 {
@@ -25,10 +26,13 @@
     }
 
     select, input[type="number"] {
-      padding: 5px;
+      padding: 8px;
       margin-top: 5px;
       margin-bottom: 15px;
       width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
     }
 
     .dawa-item {
@@ -36,6 +40,19 @@
       padding: 10px;
       background-color: #f1f1f1;
       border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .checkbox {
+      margin-right: 10px;
+      transform: scale(1.2);
+    }
+
+    .error-msg {
+      color: red;
+      font-size: 14px;
+      margin-top: -10px;
+      margin-bottom: 10px;
     }
 
     button {
@@ -68,11 +85,11 @@
   <h1>Sajili Matumizi ya Dawa</h1>
 
   <% if (error) { %>
-    <p style="color: red;"><%= error %></p>
+    <p class="error-msg"><%= error %></p>
   <% } %>
 
   <form method="POST" action="/matumizi/sajili" onsubmit="return validateForm()">
-    <label>Chagua Mtumiaji:</label>
+    <label for="mtumiaji">Chagua Mtumiaji:</label>
     <select name="mtumiajiId" id="mtumiaji" required>
       <option value="">-- Chagua mtumiaji --</option>
       <% watumiaji.forEach(m => { %>
@@ -85,15 +102,20 @@
     <h3>Chagua Dawa na Kiasi</h3>
     <% dawa.forEach((d, index) => { %>
       <div class="dawa-item">
-        <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox">
-        <%= d.jina %> (<%= d.kiasi %> zipo) <br>
+        <label>
+          <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox" onchange="toggleInput(<%= index %>)">
+          <%= d.jina %> (<%= d.kiasi %> zipo)
+        </label>
         <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
-        Kiasi:
-        <input type="number" name="dawaList[<%= index %>][kiasi]"
+        <input type="number"
+               name="dawaList[<%= index %>][kiasi]"
                placeholder="Ingiza kiasi"
                min="1" max="<%= d.kiasi %>"
-               class="quantity-input">
+               class="quantity-input"
+               id="kiasi-<%= index %>"
+               disabled>
         <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
+        <div class="error-msg" id="error-<%= index %>" style="display: none;"></div>
       </div>
     <% }) %>
 
@@ -104,16 +126,45 @@
   <a href="/">Rudi Nyumbani</a>
 
   <script>
+    function toggleInput(index) {
+      const checkbox = document.querySelector(`input[name="dawaList[${index}][confirmed]"]`);
+      const input = document.getElementById(`kiasi-${index}`);
+      const error = document.getElementById(`error-${index}`);
+      if (checkbox.checked) {
+        input.disabled = false;
+      } else {
+        input.disabled = true;
+        input.value = "";
+        error.style.display = "none";
+      }
+    }
+
     function validateForm() {
       const checkboxes = document.querySelectorAll('.checkbox');
-      const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+      let anyChecked = false;
+      let valid = true;
+
+      checkboxes.forEach((cb, index) => {
+        const input = document.getElementById(`kiasi-${index}`);
+        const error = document.getElementById(`error-${index}`);
+        if (cb.checked) {
+          anyChecked = true;
+          if (!input.value || parseInt(input.value) < 1) {
+            error.textContent = "Tafadhali ingiza kiasi sahihi.";
+            error.style.display = "block";
+            valid = false;
+          } else {
+            error.style.display = "none";
+          }
+        }
+      });
 
       if (!anyChecked) {
         alert("Tafadhali chagua angalau dawa moja.");
-        return false;
+        valid = false;
       }
 
-      return true;
+      return valid;
     }
   </script>
 </body>
