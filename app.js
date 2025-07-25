@@ -196,177 +196,175 @@ async function startApp() {
   });
 
   app.post('/matumizi/sajili', async (req, res, next) => {
-  try {
-    const { mtumiaji, dawa: dawaArray = [], kiasi: kiasiArray = [] } = req.body;
+    try {
+      const { mtumiaji, dawa: dawaArray = [], kiasi: kiasiArray = [] } = req.body;
 
-    if (!mtumiaji) {
-      const [dawa, watumiaji] = await Promise.all([
-        readSheet('DAWA'),
-        readSheet('WATUMIAJI')
-      ]);
+      if (!mtumiaji) {
+        const [dawa, watumiaji] = await Promise.all([
+          readSheet('DAWA'),
+          readSheet('WATUMIAJI')
+        ]);
 
-      return res.render('log-usage', {
-        dawa,
-        watumiaji,
-        error: "Tafadhali chagua mtumiaji.",
-        selectedUser: '',
-        selectedUserDesc: ''
-      });
+        return res.render('log-usage', {
+          dawa,
+          watumiaji,
+          error: "Tafadhali chagua mtumiaji.",
+          selectedUser: '',
+          selectedUserDesc: ''
+        });
+      }
+
+      const watumiaji = await readSheet('WATUMIAJI');
+      const dawaList = await readSheet('DAWA');
+      const matumiziOld = await readSheet('MATUMIZI');
+
+      const mtumiajiObj = watumiaji.find(w => w.jina === mtumiaji);
+      if (!mtumiajiObj) throw new Error("Mtumiaji hajapatikana");
+
+      const matumizi = dawaArray.map((jina, i) => {
+        const kiasi = parseInt(kiasiArray[i]);
+        const dawaObj = dawaList.find(d => d.jina === jina);
+        return {
+          id: nanoid(),
+          dawaId: dawaObj?.id || '',
+          mtumiajiId: mtumiajiObj.id,
+          mtumiajiJina: mtumiajiObj.jina,
+          maelezo: mtumiajiObj.maelezo || '',
+          kiasi,
+          tarehe: new Date().toISOString()
+        };
+      }).filter(m => m.dawaId && m.kiasi > 0);
+
+      if (matumizi.length === 0) {
+        const dawa = await readSheet('DAWA');
+        return res.render('log-usage', {
+          dawa,
+          watumiaji,
+          error: "Tafadhali chagua angalau dawa moja na uweke kiasi sahihi.",
+          selectedUser: mtumiaji,
+          selectedUserDesc: mtumiajiObj?.maelezo || ''
+        });
+      }
+
+      await writeSheet('MATUMIZI', [...matumiziOld, ...matumizi]);
+      res.redirect('/ripoti/matumizi');
+
+    } catch (err) {
+      next(err);
     }
-
-    const matumizi = dawaArray
-      .map((jina, i) => ({
-        jina,
-        kiasi: parseInt(kiasiArray[i])
-      }))
-      .filter(d => d.kiasi && d.kiasi > 0);
-
-    if (matumizi.length === 0) {
-      const [dawa, watumiaji] = await Promise.all([
-        readSheet('DAWA'),
-        readSheet('WATUMIAJI')
-      ]);
-
-      const mtumiajiInfo = watumiaji.find(w => w.jina === mtumiaji);
-      return res.render('log-usage', {
-        dawa,
-        watumiaji,
-        error: "Tafadhali chagua angalau dawa moja na uweke kiasi sahihi.",
-        selectedUser: mtumiaji,
-        selectedUserDesc: mtumiajiInfo?.maelezo || ''
-      });
-    }
-
-    const now = new Date();
-    const wakati = now.toLocaleString('sw-TZ', { timeZone: 'Africa/Dar_es_Salaam' });
-
-    const logData = matumizi.map(m => ({
-      mtumiaji,
-      dawa: m.jina,
-      kiasi: m.kiasi,
-      wakati
-    }));
-
-    await appendSheet('MATUMIZI', logData);
-
-    res.redirect('/ripoti/matumizi');
-
-  } catch (err) {
-    next(err);
-  }
-});
-
+  });
 
   app.get('/ripoti/matumizi', async (req, res, next) => {
-  try {
-    const { mode, from, to } = req.query;
-    const [watumiaji, dawa, matumizi] = await Promise.all([
-      readSheet('WATUMIAJI'),
-      readSheet('DAWA'),
-      readSheet('MATUMIZI')
-    ]);
+    try {
+      const { mode, from, to } = req.query;
+      const [watumiaji, dawa, matumizi] = await Promise.all([
+        readSheet('WATUMIAJI'),
+        readSheet('DAWA'),
+        readSheet('MATUMIZI')
+      ]);
 
-    const now = new Date();
-    let startDate = null;
-    let endDate = null;
+      const now = new Date();
+      let startDate = null;
+      let endDate = null;
 
-    if (mode === 'week') {
-      const day = now.getDay();
-      startDate = new Date(now);
-      startDate.setDate(now.getDate() - day);
-      startDate.setHours(0, 0, 0, 0);
-    } else if (mode === 'month') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      startDate.setHours(0, 0, 0, 0);
-    } else if (from && to) {
-      startDate = new Date(from);
-      endDate = new Date(to);
-      endDate.setHours(23, 59, 59, 999);
-    }
-
-    const filteredMatumizi = startDate
-      ? matumizi.filter(m => {
-          const t = new Date(m.tarehe);
-          return t >= startDate && (!endDate || t <= endDate);
-        })
-      : matumizi;
-
-    function formatDate(dateStr) {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return 'Tarehe haijulikani';
-      return date.toLocaleDateString('sw-TZ', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'Africa/Nairobi'
-      });
-    }
-
-    function formatTime(dateStr) {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return '--:--';
-      return date.toLocaleTimeString('sw-TZ', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Africa/Nairobi'
-      });
-    }
-
-    const report = watumiaji.map(user => {
-      const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
-      const byDate = {};
-
-      userUsages.forEach(usage => {
-        const day = formatDate(usage.tarehe);
-        if (!byDate[day]) byDate[day] = [];
-
-        const medicine = dawa.find(d => d.id === usage.dawaId);
-        const formattedTime = formatTime(usage.tarehe);
-
-        byDate[day].push({
-          dawa: medicine ? medicine.jina : 'Haijulikani',
-          kiasi: usage.kiasi,
-          saa: formattedTime
-        });
-      });
-
-      return {
-        jina: user.jina,
-        matumiziByDate: byDate
-      };
-    });
-
-    res.render('report-usage', {
-      report,
-      mode,
-      from,
-      to,
-      query: {
-        aina: mode,
-        start: from,
-        end: to
+      if (mode === 'week') {
+        const day = now.getDay();
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - day);
+        startDate.setHours(0, 0, 0, 0);
+      } else if (mode === 'month') {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        startDate.setHours(0, 0, 0, 0);
+      } else if (from && to) {
+        startDate = new Date(from);
+        endDate = new Date(to);
+        endDate.setHours(23, 59, 59, 999);
       }
-    });
-  } catch (error) {
-    next(error);
-  }
-});
 
-app.get('/admin/maelezo-dump', async (req, res, next) => {
-  try {
-    const watumiaji = await readSheet('WATUMIAJI');
-    const dump = watumiaji.map(u => ({
-      jina: u.jina,
-      maelezo: u.maelezo || '[hakuna]',
-      length: (u.maelezo || '').length
-    }));
+      const filteredMatumizi = startDate
+        ? matumizi.filter(m => {
+            const t = new Date(m.tarehe);
+            return t >= startDate && (!endDate || t <= endDate);
+          })
+        : matumizi;
 
-    res.render('maelezo-dump', { dump });
-  } catch (error) {
-    next(error);
-  }
-});
+      function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return 'Tarehe haijulikani';
+        return date.toLocaleDateString('sw-TZ', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          timeZone: 'Africa/Nairobi'
+        });
+      }
+
+      function formatTime(dateStr) {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return '--:--';
+        return date.toLocaleTimeString('sw-TZ', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Africa/Nairobi'
+        });
+      }
+
+      const report = watumiaji.map(user => {
+        const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
+        const byDate = {};
+
+        userUsages.forEach(usage => {
+          const day = formatDate(usage.tarehe);
+          if (!byDate[day]) byDate[day] = [];
+
+          const medicine = dawa.find(d => d.id === usage.dawaId);
+          const formattedTime = formatTime(usage.tarehe);
+
+          byDate[day].push({
+            dawa: medicine ? medicine.jina : 'Haijulikani',
+            kiasi: usage.kiasi,
+            saa: formattedTime
+          });
+        });
+
+        return {
+          jina: user.jina,
+          matumiziByDate: byDate
+        };
+      });
+
+      res.render('report-usage', {
+        report,
+        mode,
+        from,
+        to,
+        query: {
+          aina: mode,
+          start: from,
+          end: to
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get('/admin/maelezo-dump', async (req, res, next) => {
+    try {
+      const watumiaji = await readSheet('WATUMIAJI');
+      const dump = watumiaji.map(u => ({
+        jina: u.jina,
+        maelezo: u.maelezo || '[hakuna]',
+        length: (u.maelezo || '').length
+      }));
+
+      res.render('maelezo-dump', { dump });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.use((req, res) => {
     res.status(404).render('error', { message: 'Ukurasa haupatikani' });
   });
