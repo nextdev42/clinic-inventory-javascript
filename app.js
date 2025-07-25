@@ -81,6 +81,32 @@ async function writeSheet(sheetKey, data) {
     return false;
   }
 }
+async function appendSheet(sheetKey, newData) {
+  try {
+    const config = SHEETS[sheetKey];
+    const workbook = xlsx.readFile(excelPath);
+    const sheet = workbook.Sheets[config.name];
+
+    // Soma data iliyopo tayari
+    const existingData = xlsx.utils.sheet_to_json(sheet);
+
+    // Unganisha data mpya na za zamani
+    const combined = [...existingData, ...newData];
+
+    // Unda worksheet mpya
+    const newSheet = xlsx.utils.json_to_sheet(combined, { header: config.headers });
+
+    workbook.Sheets[config.name] = newSheet;
+
+    // Andika workbook
+    await xlsx.writeFile(workbook, excelPath);
+
+    return true;
+  } catch (error) {
+    console.error(`❌ Error appending to sheet ${sheetKey}:`, error);
+    return false;
+  }
+}
 
 async function startApp() {
   await initializeDatabase();
@@ -196,63 +222,78 @@ async function startApp() {
   });
 
   app.post('/matumizi/sajili', async (req, res, next) => {
-    try {
-      const { mtumiaji, dawa: dawaArray = [], kiasi: kiasiArray = [] } = req.body;
+  // ... sehemu nyingine hazijabadilika ...
 
-      if (!mtumiaji) {
-        const [dawa, watumiaji] = await Promise.all([
-          readSheet('DAWA'),
-          readSheet('WATUMIAJI')
-        ]);
+// Ongeza function hii appendSheet
 
-        return res.render('log-usage', {
-          dawa,
-          watumiaji,
-          error: "Tafadhali chagua mtumiaji.",
-          selectedUser: '',
-          selectedUserDesc: ''
-        });
-      }
 
-      const watumiaji = await readSheet('WATUMIAJI');
-      const dawaList = await readSheet('DAWA');
-      const matumiziOld = await readSheet('MATUMIZI');
+// Badilisha POST /matumizi/sajili kama ifuatavyo
+app.post('/matumizi/sajili', async (req, res, next) => {
+  try {
+    const { mtumiaji, dawa: dawaArray = [], kiasi: kiasiArray = [] } = req.body;
 
-      const mtumiajiObj = watumiaji.find(w => w.jina === mtumiaji);
-      if (!mtumiajiObj) throw new Error("Mtumiaji hajapatikana");
-
-      const matumizi = dawaArray.map((jina, i) => {
-        const kiasi = parseInt(kiasiArray[i]);
-        const dawaObj = dawaList.find(d => d.jina === jina);
-        return {
-          id: nanoid(),
-          dawaId: dawaObj?.id || '',
-          mtumiajiId: mtumiajiObj.id,
-          mtumiajiJina: mtumiajiObj.jina,
-          maelezo: mtumiajiObj.maelezo || '',
-          kiasi,
-          tarehe: new Date().toISOString()
-        };
-      }).filter(m => m.dawaId && m.kiasi > 0);
-
-      if (matumizi.length === 0) {
-        const dawa = await readSheet('DAWA');
-        return res.render('log-usage', {
-          dawa,
-          watumiaji,
-          error: "Tafadhali chagua angalau dawa moja na uweke kiasi sahihi.",
-          selectedUser: mtumiaji,
-          selectedUserDesc: mtumiajiObj?.maelezo || ''
-        });
-      }
-
-      await writeSheet('MATUMIZI', [...matumiziOld, ...matumizi]);
-      res.redirect('/ripoti/matumizi');
-
-    } catch (err) {
-      next(err);
+    if (!mtumiaji) {
+      const [dawa, watumiaji] = await Promise.all([
+        readSheet('DAWA'),
+        readSheet('WATUMIAJI')
+      ]);
+      return res.render('log-usage', {
+        dawa,
+        watumiaji,
+        error: "Tafadhali chagua mtumiaji.",
+        selectedUser: '',
+        selectedUserDesc: ''
+      });
     }
-  });
+
+    const watumiaji = await readSheet('WATUMIAJI');
+    const dawaList = await readSheet('DAWA');
+
+    // Pata mtumiaji halisi
+    const mtumiajiObj = watumiaji.find(w => w.jina === mtumiaji);
+    if (!mtumiajiObj) throw new Error("Mtumiaji hajapatikana");
+
+    // Tengeneza data mpya za matumizi
+    const matumizi = dawaArray.map((jina, i) => {
+      const kiasi = parseInt(kiasiArray[i]);
+      const dawaObj = dawaList.find(d => d.jina === jina);
+      return {
+        id: nanoid(),
+        dawaId: dawaObj?.id || '',
+        mtumiajiId: mtumiajiObj.id,
+        mtumiajiJina: mtumiajiObj.jina,
+        maelezo: mtumiajiObj.maelezo || '',
+        kiasi,
+        tarehe: new Date().toISOString()
+      };
+    }).filter(m => m.dawaId && m.kiasi > 0);
+
+    if (matumizi.length === 0) {
+      const dawa = await readSheet('DAWA');
+      return res.render('log-usage', {
+        dawa,
+        watumiaji,
+        error: "Tafadhali chagua angalau dawa moja na uweke kiasi sahihi.",
+        selectedUser: mtumiaji,
+        selectedUserDesc: mtumiajiObj?.maelezo || ''
+      });
+    }
+
+    // Ongeza matumizi mapya (append) badala ya kuandika zote
+    const success = await appendSheet('MATUMIZI', matumizi);
+
+    if (!success) {
+      return res.status(500).render('error', { message: 'Tatizo limejitokeza kuandika matumizi.' });
+    }
+
+    res.redirect('/ripoti/matumizi');
+
+  } catch (err) {
+    console.error('❌ Error in /matumizi/sajili POST:', err);
+    next(err);
+  }
+});
+
 
   app.get('/ripoti/matumizi', async (req, res, next) => {
     try {
