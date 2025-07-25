@@ -1,5 +1,5 @@
 # clinic-inventory-javascript
-
+working validation 
 ```bash
 /views
   ├── dashboard.ejs
