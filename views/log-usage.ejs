@@ -258,6 +258,7 @@
   </form>
 
   <script>
+do<script>
 document.addEventListener("DOMContentLoaded", function () {
   const checkboxes = document.querySelectorAll('.checkbox');
   const errorField = document.getElementById('error-msg');
@@ -283,6 +284,15 @@ document.addEventListener("DOMContentLoaded", function () {
         quantityInput.classList.remove('error'); // Remove error class when unchecked
       }
     });
+
+    // Add validation when quantity input loses focus
+    quantityInput.addEventListener('blur', () => {
+      if (cb.checked && !quantityInput.value.trim()) {
+        quantityInput.classList.add('error');
+      } else {
+        quantityInput.classList.remove('error');
+      }
+    });
   });
 
   // Attach validation to the form submit
@@ -294,9 +304,13 @@ document.addEventListener("DOMContentLoaded", function () {
     // Validate Mtumiaji selection
     if (mtumiajiSelect.value === "") {
       errorField.innerText = "Tafadhali chagua mtumiaji.";
+      mtumiajiSelect.classList.add('error');
       isValid = false;
+    } else {
+      mtumiajiSelect.classList.remove('error');
     }
 
+    // Validate each checked drug
     checkboxes.forEach(cb => {
       const index = cb.dataset.index;
       const quantityInput = document.getElementById(`kiasi-${index}`);
@@ -307,24 +321,28 @@ document.addEventListener("DOMContentLoaded", function () {
         const max = parseInt(quantityInput.max);
         const num = parseInt(value);
 
-        if (!value || isNaN(num) || num < 1 || num > max) {
+        if (!value) {
+          // Case 1: Checkbox is checked but no value entered
           quantityInput.classList.add('error');
-          isValid = false; // A checked item has an invalid quantity
+          isValid = false;
+          errorField.innerText = "Tafadhali jaza kiasi kwa dawa zilizochaguliwa.";
+        } else if (isNaN(num) || num < 1 || num > max) {
+          // Case 2: Value is invalid (not a number or out of range)
+          quantityInput.classList.add('error');
+          isValid = false;
+          errorField.innerText = `Kiasi cha ${quantityInput.previousElementSibling.previousElementSibling.textContent.trim()} kinapaswa kuwa kati ya 1 na ${max}.`;
         } else {
           atLeastOneValidDawa = true; // At least one drug is valid
         }
       }
     });
 
-    // If there's already an error from mtumiaji selection, don't override it unless specific drug errors occur
+    // Final validation
     if (!isValid) {
-        if (errorField.innerText === "") { // Only set drug-specific error if no mtumiaji error
-            errorField.innerText = "Angalau dawa moja imechaguliwa lakini kiasi ni batili (ni lazima kiwe kati ya 1 na kiwango kilichopo).";
-        }
-        e.preventDefault(); // Prevent form submission
+      e.preventDefault(); // Prevent form submission
     } else if (!atLeastOneValidDawa) {
-        errorField.innerText = "Tafadhali chagua angalau dawa moja na ujaze kiasi sahihi.";
-        e.preventDefault(); // Prevent form submission
+      errorField.innerText = "Tafadhali chagua angalau dawa moja na ujaze kiasi sahihi.";
+      e.preventDefault(); // Prevent form submission
     }
   });
 });
