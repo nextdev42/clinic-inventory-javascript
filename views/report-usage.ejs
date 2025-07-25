@@ -86,6 +86,11 @@
       margin: 20px 0;
       box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
+    .clinic-label {
+      font-style: italic;
+      color: #666;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body>
@@ -130,20 +135,8 @@
                 <li>
                   - <strong><%= item.dawa %></strong>: <%= item.kiasi %>
                   <small>
-                    <% 
-                      let time;
-                      if (item.saa?.includes(':')) {
-                        time = new Date("1970-01-01T" + item.saa);
-                      } else {
-                        time = new Date(item.saa);
-                      }
-
-                      if (!isNaN(time)) {
-                    %>
-                      <%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %>
-                    <% } else { %>
-                      hakujulikana
-                    <% } %>
+                    saa <%= item.saa || 'hakujulikana' %>
+                    <span class="clinic-label">(Kliniki: <%= item.kliniki %>)</span>
                   </small>
                 </li>
               <% }) %>
