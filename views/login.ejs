@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>Ingia</title></head>
+<body>
+  <h2>Ingia Kama Admin</h2>
+  <% if (error) { %><p style="color:red"><%= error %></p><% } %>
+  <form method="POST" action="/login">
+    <input name="username" placeholder="Jina la mtumiaji" required /><br />
+    <input type="password" name="password" placeholder="Neno siri" required /><br />
+    <button type="submit">Ingia</button>
+  </form>
+</body>
+</html>
