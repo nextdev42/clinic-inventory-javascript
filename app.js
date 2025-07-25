@@ -6,6 +6,8 @@ import { promises as fs } from 'fs';
 import xlsx from 'xlsx';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import adminRoutes from './routes/admin.js';
+
 
 const app = express();
 
@@ -108,6 +110,12 @@ async function startApp() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   app.use(express.static(path.join(__dirname, 'public')));
+  app.use('/admin', adminRoutes);
+
+  req.session.admin = {
+  role: 'admin' | 'superadmin',
+  clinic: 'kisiwani' | 'mikwambe' | 'kibada' | 'jirambe'
+};
 
   // --- DASHBOARD ---
   app.get('/', async (req, res, next) => {
