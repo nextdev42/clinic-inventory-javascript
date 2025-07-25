@@ -4,287 +4,114 @@
   <meta charset="UTF-8">
   <title>Sajili Matumizi ya Dawa</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #e8e8e8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
+    .description {
+      margin: 10px 0;
+      font-style: italic;
+      color: #444;
     }
-
-    .top-nav {
-      width: 100%;
-      background-color: #fff;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      align-items: center;
-      padding: 10px 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      box-sizing: border-box;
-    }
-
-    .top-nav a {
-      text-decoration: none;
-      color: #333;
-      font-size: 16px;
-      padding: 5px 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background-color: #f0f0f0;
-      margin-right: auto;
-    }
-
-    .top-nav .header-text {
-      font-weight: bold;
-      font-size: 18px;
-      color: #333;
-      margin-left: 20px;
-      flex-grow: 1;
-      text-align: center;
-    }
-
-    h1 {
-      display: none;
-    }
-
-    form {
-      background-color: #fff;
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      max-width: 90%;
-      width: 500px;
-      margin-top: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    label, h3 {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 5px;
-      font-weight: normal;
-      color: #555;
-    }
-
-    h3 {
-      font-weight: bold;
-      color: #333;
-      font-size: 18px;
-      margin-top: 25px;
-    }
-
-    select, input[type="number"] {
-      padding: 8px 10px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-      width: calc(100% - 20px);
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-      font-size: 16px;
-    }
-
-    select {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5z%22%20fill%3D%22%23666%22%2F%3E%3C%2Fsvg%3E');
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 12px;
-      padding-right: 30px;
-    }
-
-    .dawa-item {
-      margin-bottom: 15px;
-      padding: 10px;
-      background-color: #f9f9f9;
-      border-radius: 5px;
-      border: 1px solid #eee;
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      position: relative;
-    }
-
-    .dawa-item input[type="checkbox"] {
-      margin-right: 10px;
-      width: auto;
-      vertical-align: middle;
-      transform: scale(1.3);
-    }
-
-    .dawa-item span {
-      font-size: 15px;
-      color: #333;
-      flex-grow: 1;
-    }
-
-    .dawa-item input[type="number"] {
-      width: 100px;
-      margin-left: auto;
-      margin-top: 0;
-      margin-bottom: 0;
-      text-align: right;
-      font-size: 15px;
-    }
-
-    .dawa-item .quantity-label {
-      font-weight: normal;
-      margin-left: 10px;
-      color: #555;
-      font-size: 15px;
-    }
-
-    .dawa-item > input[type="checkbox"] + span {
-      margin-left: 0;
-    }
-
-    .dawa-item > br {
-      display: none;
-    }
-
-    .dawa-item input[type="hidden"] {
-      display: none;
-    }
-
-    button {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      font-size: 17px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-right: 10px;
-      transition: background-color 0.3s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    button:hover {
-      background-color: #218838;
-    }
-
-    .form-buttons button:nth-child(2) {
-      background-color: #6c757d;
-      margin-left: 10px;
-    }
-
-    .form-buttons button:nth-child(2):hover {
-      background-color: #5a6268;
-    }
-
-    .form-buttons {
-      display: flex;
-      justify-content: center;
-      margin-top: 30px;
-    }
-
-    a {
-      display: none;
-    }
-
     .error {
-      border: 1px solid red !important;
-    }
-
-    .error-message {
       color: red;
-      font-size: 14px;
+    }
+    .dawa-item {
       margin-bottom: 10px;
-      text-align: center;
+    }
+    input.quantity-input:invalid {
+      border: 2px solid red;
     }
   </style>
 </head>
 <body>
-  <div class="top-nav">
-    <a href="/">Rudi Nyumbani</a>
-    <span class="header-text">Sajili Matumizi ya Dawa</span>
-  </div>
+  <h1>Sajili Matumizi ya Dawa</h1>
 
   <% if (error) { %>
-    <p style="color: red;"><%= error %></p>
+    <p class="error"><%= error %></p>
   <% } %>
 
-  <form method="POST" action="/matumizi/sajili" onsubmit="return validateForm()">
-    <label>Chagua Mtumiaji:</label>
-    <select name="mtumiajiId" id="mtumiaji" required>
-      <option value="">-- Chagua mtumiaji --</option>
-      <% watumiaji.forEach(m => { %>
-        <option value="<%= m.id %>" <%= m.id == mtumiajiId ? 'selected' : '' %>>
-          <%= m.jina %> - <%= m.maelezo || '' %>
+  <form action="/matumizi/sajili" method="POST" onsubmit="return validateForm()">
+    <label for="mtumiaji">Chagua Mtumiaji:</label>
+    <select name="mtumiaji" id="mtumiaji" onchange="onUserChange()" required>
+      <option value="">-- Chagua --</option>
+      <% watumiaji.forEach(w => { %>
+        <option value="<%= w.jina %>" data-desc="<%= w.maelezo %>" 
+          <%= w.jina === selectedUser ? 'selected' : '' %>>
+          <%= w.jina %>
         </option>
-      <% }) %>
+      <% }); %>
     </select>
 
-    <h3>Chagua Dawa na Kiasi</h3>
-    <div id="error-msg" class="error-message"></div>
+    <div id="desc" class="description">
+      <% if (selectedUserDesc) { %>
+        <%= selectedUserDesc %>
+      <% } %>
+    </div>
 
-    <% dawa.forEach((d, index) => { %>
+    <hr>
+
+    <h3>Dawa</h3>
+    <% dawa.forEach((d, i) => { %>
       <div class="dawa-item">
-        <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox" data-index="<%= index %>">
-        <span><%= d.jina %> - <%= d.kiasi %></span>
-        <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
-        <span class="quantity-label">Kiasi:</span>
-        <input type="number"
-               name="dawaList[<%= index %>][kiasi]"
-               placeholder="Ingiza kiasi"
-               min="1"
-               max="<%= d.kiasi %>"
-               class="quantity-input"
-               id="kiasi-<%= index %>">
-        <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
+        <label>
+          <input type="checkbox" name="dawa[]" value="<%= d.jina %>" class="checkbox">
+          <%= d.jina %>
+        </label>
+        <input 
+          type="number" 
+          name="kiasi[]" 
+          class="quantity-input" 
+          placeholder="Kiasi (kwa mfano: 1, 2)" 
+          min="1"
+        >
       </div>
     <% }) %>
 
-    <div class="form-buttons">
-      <button type="submit">Hifadhi Matumizi</button>
-      <button type="button" onclick="window.location.href='/'">Rudi Nyumbani</button>
-    </div>
+    <button type="submit">Sajili</button>
   </form>
 
-<script>
-  function validateForm() {
-    const items = document.querySelectorAll('.dawa-item');
-    let isValid = false;
-    let hasError = false;
+  <script>
+    function onUserChange() {
+      const selected = document.getElementById('mtumiaji').selectedOptions[0];
+      const desc = selected.getAttribute('data-desc') || '';
+      document.getElementById('desc').innerText = desc;
+    }
 
-    items.forEach(item => {
-      const checkbox = item.querySelector('.checkbox');
-      const input = item.querySelector('.quantity-input');
+    function validateForm() {
+      const items = document.querySelectorAll('.dawa-item');
+      let atLeastOneChecked = false;
+      let valid = true;
 
-      if (checkbox.checked) {
-        isValid = true;
+      items.forEach(item => {
+        const checkbox = item.querySelector('.checkbox');
+        const input = item.querySelector('.quantity-input');
 
-        if (!input.value || parseInt(input.value) <= 0) {
-          input.style.border = '2px solid red';
-          hasError = true;
+        if (checkbox.checked) {
+          atLeastOneChecked = true;
+          const quantity = parseInt(input.value, 10);
+          if (isNaN(quantity) || quantity < 1) {
+            input.style.border = '2px solid red';
+            valid = false;
+          } else {
+            input.style.border = '';
+          }
         } else {
           input.style.border = '';
         }
+      });
 
-      } else {
-        // Clear red border if checkbox not checked
-        input.style.border = '';
-        input.value = ''; // Optional: clear unselected inputs
+      if (!atLeastOneChecked) {
+        alert("Tafadhali chagua angalau dawa moja.");
+        return false;
       }
-    });
 
-    if (!isValid) {
-      alert("Tafadhali chagua angalau dawa moja.");
-      return false;
+      if (!valid) {
+        alert("Weka kiasi halali cha dawa kwa dawa zilizochaguliwa.");
+        return false;
+      }
+
+      return true;
     }
 
-    if (hasError) {
-      alert("Tafadhali ingiza kiasi sahihi kwa dawa ulizochagua.");
-      return false;
-    }
-
-    return true;
-  }
-</script>
-
+    // Run on page load
+    window.onload = onUserChange;
+  </script>
 </body>
 </html>
