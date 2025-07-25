@@ -79,17 +79,23 @@
 
   <h2>👤 Ongeza Mtumiaji wa Dawa</h2>
 
-  <form id="form" action="/mtumiaji/ongeza" method="POST" onsubmit="return validateForm()">
-    <label for="jina">Jina la Mtumiaji:</label>
-    <input type="text" id="jina" name="jina" required>
-    <div id="jinaError" class="error"></div>
+<form action="/mtumiaji/ongeza" method="POST">
+  <label for="jina">Jina la Mtumiaji:</label>
+  <input type="text" id="jina" name="jina" required minlength="2" />
 
-    <label for="description">Maelezo ya Dawa (Description):</label>
-    <textarea id="description" name="description" placeholder="Mfano: Paracetamol 2x3, Amoxicillin 1x2 kwa siku" rows="4"></textarea>
-    <div id="descError" class="error"></div>
+  <label for="description">Maelezo (hiari):</label>
+  <textarea id="description" name="description"></textarea>
 
-    <button type="submit">💾 Hifadhi</button>
-  </form>
+  <label for="clinicId">Chagua Kliniki:</label>
+  <select id="clinicId" name="clinicId" required>
+    <% clinics.forEach(clinic => { %>
+      <option value="<%= clinic.id %>"><%= clinic.jina %></option>
+    <% }) %>
+  </select>
+
+  <button type="submit">Ongeza Mtumiaji</button>
+</form>
+
 
   <div id="success" class="success-message">✅ Taarifa imehifadhiwa vizuri!</div>
 
