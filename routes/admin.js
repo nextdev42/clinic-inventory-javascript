@@ -3,6 +3,29 @@ import { readSheet, writeSheet } from '../lib/xlsxService.js'; // assumed utilit
 
 const router = express.Router();
 
+function requireLogin(req, res, next) {
+  if (!req.session || !req.session.admin) {
+    return res.redirect('/login');
+  }
+  next();
+}
+
+// GET /admin/dashboard - show dashboard
+router.get('/dashboard', requireLogin, async (req, res, next) => {
+  try {
+    const clinic = req.session.admin.clinicId || 'Unknown';
+    const role = req.session.admin.role;
+
+    res.render('admin/dashboard', {
+      username: req.session.admin.username,
+      clinic,
+      role
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Middleware to check if user is superadmin
 function isSuperAdmin(req) {
   return req.session && req.session.admin && req.session.admin.role === 'superadmin';
