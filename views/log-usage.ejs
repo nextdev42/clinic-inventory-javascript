@@ -256,45 +256,70 @@
   </form>
 
   <script>
-    function validateForm() {
-      const checkboxes = document.querySelectorAll('.checkbox');
-      let isValid = true; // Start with true and set to false if errors
-      let errorMessage = "";
-      let errorField = document.getElementById('error-msg');
-      errorField.innerHTML = ""; // Clear previous error messages
+  function validateForm() {
+    const checkboxes = document.querySelectorAll('.checkbox');
+    let isValid = true;
+    let errorMessage = "";
+    let errorField = document.getElementById('error-msg');
+    errorField.innerHTML = "";
 
-      let atLeastOneChecked = false;
+    let atLeastOneValid = false;
 
-      checkboxes.forEach(cb => {
-        const index = cb.dataset.index;
-        const quantityInput = document.getElementById(`kiasi-${index}`);
-        quantityInput.classList.remove('error'); // Clear error class from previous runs
+    checkboxes.forEach(cb => {
+      const index = cb.dataset.index;
+      const quantityInput = document.getElementById(`kiasi-${index}`);
+      quantityInput.classList.remove('error');
 
-        if (cb.checked) {
-          atLeastOneChecked = true;
-          const value = quantityInput.value.trim();
-          const max = parseInt(quantityInput.max);
-          const num = parseInt(value);
+      if (cb.checked) {
+        const value = quantityInput.value.trim();
+        const max = parseInt(quantityInput.max);
+        const num = parseInt(value);
 
-          if (!value || isNaN(num) || num < 1 || num > max) {
-            errorMessage = "Tafadhali hakikisha kiasi cha dawa kilichochaguliwa ni sahihi (≥1 na ≤ max).";
-            quantityInput.classList.add('error');
-            isValid = false; // Set isValid to false
-          }
+        if (!value || isNaN(num) || num < 1 || num > max) {
+          quantityInput.classList.add('error');
+          isValid = false;
+        } else {
+          atLeastOneValid = true;
         }
-      });
-
-      if (!atLeastOneChecked) {
-        errorMessage = "Tafadhali chagua angalau dawa moja.";
-        isValid = false; // Set isValid to false
+      } else {
+        // Uncheck: clear its value to avoid accidental submission
+        quantityInput.value = "";
       }
+    });
 
-      if (!isValid) { // Only display error if isValid is false
-        errorField.innerText = errorMessage;
-      }
-
-      return isValid;
+    if (!atLeastOneValid) {
+      errorMessage = "Tafadhali chagua angalau dawa moja na ujaze kiasi sahihi (kuanzia 1 hadi kiwango kilichopo).";
+      isValid = false;
     }
-  </script>
+
+    if (!isValid) {
+      errorField.innerText = errorMessage;
+    }
+
+    return isValid;
+  }
+</script>
+<script>
+  document.querySelectorAll('.checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const index = cb.dataset.index;
+      const quantityInput = document.getElementById(`kiasi-${index}`);
+      if (cb.checked) {
+        quantityInput.disabled = false;
+        quantityInput.focus();
+      } else {
+        quantityInput.disabled = true;
+        quantityInput.value = ""; // clear invalid values
+        quantityInput.classList.remove('error');
+      }
+    });
+
+    // Initialize on page load
+    const index = cb.dataset.index;
+    const quantityInput = document.getElementById(`kiasi-${index}`);
+    quantityInput.disabled = !cb.checked;
+  });
+</script>
+
 </body>
 </html>
