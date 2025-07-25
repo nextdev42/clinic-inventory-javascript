@@ -62,6 +62,17 @@
     a:hover {
       text-decoration: underline;
     }
+
+    .error {
+      border: 1px solid red;
+      background-color: #ffe6e6;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -83,16 +94,21 @@
     </select>
 
     <h3>Chagua Dawa na Kiasi</h3>
+    <div id="error-msg" class="error-message"></div>
+
     <% dawa.forEach((d, index) => { %>
       <div class="dawa-item">
-        <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox">
+        <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox" data-index="<%= index %>">
         <%= d.jina %> (<%= d.kiasi %> zipo) <br>
         <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
         Kiasi:
-        <input type="number" name="dawaList[<%= index %>][kiasi]"
+        <input type="number" 
+               name="dawaList[<%= index %>][kiasi]" 
                placeholder="Ingiza kiasi"
-               min="1" max="<%= d.kiasi %>"
-               class="quantity-input">
+               min="1" 
+               max="<%= d.kiasi %>" 
+               class="quantity-input" 
+               id="kiasi-<%= index %>">
         <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
       </div>
     <% }) %>
@@ -106,14 +122,41 @@
   <script>
     function validateForm() {
       const checkboxes = document.querySelectorAll('.checkbox');
-      const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+      let isValid = false;
+      let errorMessage = "";
+      let errorField = document.getElementById('error-msg');
+      errorField.innerHTML = "";
 
-      if (!anyChecked) {
-        alert("Tafadhali chagua angalau dawa moja.");
-        return false;
+      checkboxes.forEach(cb => {
+        const index = cb.dataset.index;
+        const quantityInput = document.getElementById(`kiasi-${index}`);
+        quantityInput.classList.remove('error');
+
+        if (cb.checked) {
+          const value = quantityInput.value.trim();
+          const max = parseInt(quantityInput.max);
+          const num = parseInt(value);
+
+          if (!value || isNaN(num) || num < 1 || num > max) {
+            errorMessage = "Tafadhali hakikisha kiasi cha dawa kilichochaguliwa ni sahihi (≥1 na ≤ max).";
+            quantityInput.classList.add('error');
+            isValid = false;
+          } else {
+            isValid = true;
+          }
+        }
+      });
+
+      if (!Array.from(checkboxes).some(cb => cb.checked)) {
+        errorMessage = "Tafadhali chagua angalau dawa moja.";
+        isValid = false;
       }
 
-      return true;
+      if (!isValid) {
+        errorField.innerText = errorMessage;
+      }
+
+      return isValid;
     }
   </script>
 </body>
