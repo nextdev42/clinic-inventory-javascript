@@ -266,7 +266,7 @@ async function startApp() {
       };
     });
 
-    res.render('matumizi-report', { ripoti });
+    res.render('report-usage', { ripoti });
   } catch (error) {
     next(error);
   }
