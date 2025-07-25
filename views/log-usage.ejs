@@ -220,7 +220,7 @@
     <p style="color: red;"><%= error %></p>
   <% } %>
 
-  <form method="POST" action="/matumizi/sajili" onsubmit="return validateForm()">
+  <form method="POST" action="/matumizi/sajili">
     <label>Chagua Mtumiaji:</label>
     <select name="mtumiajiId" id="mtumiaji" required>
       <option value="">-- Chagua mtumiaji --</option>
@@ -261,12 +261,17 @@
 document.addEventListener("DOMContentLoaded", function () {
   const checkboxes = document.querySelectorAll('.checkbox');
   const errorField = document.getElementById('error-msg');
+  const form = document.querySelector('form');
+  const mtumiajiSelect = document.getElementById('mtumiaji');
 
   // Initialize quantity inputs based on checkbox state
   checkboxes.forEach(cb => {
     const index = cb.dataset.index;
     const quantityInput = document.getElementById(`kiasi-${index}`);
-    quantityInput.disabled = !cb.checked;
+    quantityInput.disabled = !cb.checked; // Disable if not checked initially
+    if (!cb.checked) {
+      quantityInput.value = ""; // Clear value if initially unchecked
+    }
 
     cb.addEventListener('change', () => {
       if (cb.checked) {
@@ -274,22 +279,28 @@ document.addEventListener("DOMContentLoaded", function () {
         quantityInput.focus();
       } else {
         quantityInput.disabled = true;
-        quantityInput.value = "";
-        quantityInput.classList.remove('error');
+        quantityInput.value = ""; // Clear value when unchecked
+        quantityInput.classList.remove('error'); // Remove error class when unchecked
       }
     });
   });
 
   // Attach validation to the form submit
-  document.querySelector('form').addEventListener('submit', function (e) {
+  form.addEventListener('submit', function (e) {
     let isValid = true;
-    let atLeastOneValid = false;
-    errorField.innerText = "";
+    let atLeastOneValidDawa = false;
+    errorField.innerText = ""; // Clear previous error messages
+
+    // Validate Mtumiaji selection
+    if (mtumiajiSelect.value === "") {
+      errorField.innerText = "Tafadhali chagua mtumiaji.";
+      isValid = false;
+    }
 
     checkboxes.forEach(cb => {
       const index = cb.dataset.index;
       const quantityInput = document.getElementById(`kiasi-${index}`);
-      quantityInput.classList.remove('error');
+      quantityInput.classList.remove('error'); // Remove error class before re-validation
 
       if (cb.checked) {
         const value = quantityInput.value.trim();
@@ -298,19 +309,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!value || isNaN(num) || num < 1 || num > max) {
           quantityInput.classList.add('error');
-          isValid = false;
+          isValid = false; // A checked item has an invalid quantity
         } else {
-          atLeastOneValid = true;
+          atLeastOneValidDawa = true; // At least one drug is valid
         }
       }
     });
 
-    if (!atLeastOneValid) {
-      errorField.innerText = "Tafadhali chagua angalau dawa moja na ujaze kiasi sahihi.";
-      e.preventDefault();
-    } else if (!isValid) {
-      errorField.innerText = "Angalau dawa moja imechaguliwa lakini kiasi ni batili (ni lazima kiwe kati ya 1 na kiwango kilichopo).";
-      e.preventDefault();
+    // If there's already an error from mtumiaji selection, don't override it unless specific drug errors occur
+    if (!isValid) {
+        if (errorField.innerText === "") { // Only set drug-specific error if no mtumiaji error
+            errorField.innerText = "Angalau dawa moja imechaguliwa lakini kiasi ni batili (ni lazima kiwe kati ya 1 na kiwango kilichopo).";
+        }
+        e.preventDefault(); // Prevent form submission
+    } else if (!atLeastOneValidDawa) {
+        errorField.innerText = "Tafadhali chagua angalau dawa moja na ujaze kiasi sahihi.";
+        e.preventDefault(); // Prevent form submission
     }
   });
 });
