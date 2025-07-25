@@ -437,6 +437,14 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
   }
 });
 
+app.get('/admin/watumiaji', async (req, res, next) => {
+  try {
+    const watumiaji = await readSheet('WATUMIAJI');
+    res.render('wote-watumiaji', { watumiaji });
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.get('/admin/maelezo-dump', async (req, res, next) => {
   try {
