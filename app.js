@@ -248,32 +248,124 @@ async function startApp() {
 
   app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
-    const matumizi = await readSheet('MATUMIZI');
-    const dawa = await readSheet('DAWA');
-    const watumiaji = await readSheet('WATUMIAJI');
+    const { mode, from, to } = req.query;
+    const [watumiaji, dawa, matumizi] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('DAWA'),
+      readSheet('MATUMIZI')
+    ]);
 
-    // Unganisha taarifa kwa majina na maelezo
-    const ripoti = matumizi.map(m => {
-      const mtumiaji = watumiaji.find(w => w.id === m.mtumiajiId) || {};
-      const dawaInfo = dawa.find(d => d.id === m.dawaId) || {};
+    const now = new Date();
+    let startDate = null;
+    let endDate = null;
+
+    if (mode === 'week') {
+      const day = now.getDay();
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - day);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (mode === 'month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (from && to) {
+      startDate = new Date(from);
+      endDate = new Date(to);
+      endDate.setHours(23, 59, 59, 999);
+    }
+
+    const filteredMatumizi = startDate
+      ? matumizi.filter(m => {
+          const t = new Date(m.tarehe);
+          return t >= startDate && (!endDate || t <= endDate);
+        })
+      : matumizi;
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return 'Tarehe haijulikani';
+      return date.toLocaleDateString('sw-TZ', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'Africa/Nairobi'
+      });
+    }
+
+    function formatTime(dateStr) {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '--:--';
+      return date.toLocaleTimeString('sw-TZ', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Africa/Nairobi'
+      });
+    }
+
+    const report = watumiaji.map(user => {
+      const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
+      const byDate = {};
+
+      userUsages.forEach(usage => {
+        const day = formatDate(usage.tarehe);
+        if (!byDate[day]) byDate[day] = [];
+
+        const medicine = dawa.find(d => d.id === usage.dawaId);
+        const formattedTime = formatTime(usage.tarehe);
+
+        byDate[day].push({
+          dawa: medicine ? medicine.jina : 'Haijulikani',
+          kiasi: usage.kiasi,
+          saa: formattedTime
+        });
+      });
 
       return {
-        jina: mtumiaji.jina,
-        maelezo: mtumiaji.maelezo,
-        dawa: dawaInfo.jina,
-        kiasi: m.kiasi,
-        tarehe: m.tarehe
+        jina: user.jina,
+        matumiziByDate: byDate
       };
     });
 
-    res.render('report-usage', { ripoti });
+    res.render('report-usage', {
+      report,
+      mode,
+      from,
+      to,
+      query: {
+        aina: mode,
+        start: from,
+        end: to
+      }
+    });
   } catch (error) {
     next(error);
   }
 });
 
+app.get('/admin/maelezo-dump', async (req, res, next) => {
+  try {
+    const watumiaji = await readSheet('WATUMIAJI');
+    const dump = watumiaji.map(u => ({
+      jina: u.jina,
+      maelezo: u.maelezo || '[hakuna]',
+      length: (u.maelezo || '').length
+    }));
 
-  // ... other routes remain unchanged ...
+    res.render('maelezo-dump', { dump });
+  } catch (error) {
+    next(error);
+  }
+});
+  app.use((req, res) => {
+    res.status(404).render('error', { message: 'Ukurasa haupatikani' });
+  });
+
+  app.use((err, req, res, next) => {
+    console.error('🔥 Server Error:', err);
+    res.status(500).render('error', {
+      message: 'Kuna tatizo la seva. Tafadhali jaribu tena baadaye.'
+    });
+  });
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, '0.0.0.0', () => {
