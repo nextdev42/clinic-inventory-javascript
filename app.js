@@ -416,6 +416,28 @@ async function startApp() {
   }
 });
 
+app.get('/mtumiaji/futa/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const watumiaji = await readSheet('WATUMIAJI');
+    const mtumiaji = watumiaji.find(w => w.id === id);
+
+    if (!mtumiaji) {
+      return res.status(404).render('error', { message: 'Mtumiaji hajapatikana.' });
+    }
+
+    const updated = watumiaji.filter(w => w.id !== id);
+    await writeSheet('WATUMIAJI', updated);
+
+    // No need to remove anything from MATUMIZI
+    res.redirect('/');
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 app.get('/admin/maelezo-dump', async (req, res, next) => {
   try {
     const watumiaji = await readSheet('WATUMIAJI');
