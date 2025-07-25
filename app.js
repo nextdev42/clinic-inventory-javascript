@@ -7,9 +7,16 @@ import xlsx from 'xlsx';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import adminRoutes from './routes/admin.js';
+import session from 'express-session';
 
 
 const app = express();
+
+app.use(session({
+  secret: 'clinic-secret-xyz', // use env in production
+  resave: false,
+  saveUninitialized: false
+}));
 
 app.set('trust proxy', 1);
 const __filename = fileURLToPath(import.meta.url);
