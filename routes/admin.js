@@ -40,8 +40,9 @@ router.get('/users', async (req, res, next) => {
     if (isSuperAdmin(req)) {
       users = allUsers;
     } else {
-      const clinic = req.session.admin.clinic;
+      const clinic = req.session.admin.clinicId;
       users = allUsers.filter(user => user.clinic === clinic);
+      
     }
 
     res.render('admin/users', { users });
