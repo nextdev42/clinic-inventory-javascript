@@ -2,16 +2,18 @@
 <html lang="sw">
 <head>
   <meta charset="UTF-8" />
-  <title>Ripoti ya Matumizi ya Dawa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Ripoti ya Matumizi ya Dawa</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
+    /* Root variables from the main dashboard for consistency */
     :root {
-      --primary: #007acc;
-      --primary-hover: #0061a7;
-      --secondary: #e6f2ff;
-      --danger: #e74c3c;
-      --success: #2ecc71;
-      --warning: #f39c12;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #dbeafe;
+      --secondary: #f0f9ff;
+      --success: #16a34a;
+      --warning: #ea580c;
+      --danger: #dc2626;
       --gray-50: #f9fafb;
       --gray-100: #f3f4f6;
       --gray-200: #e5e7eb;
@@ -23,314 +25,356 @@
       --gray-800: #1f2937;
       --gray-900: #111827;
       --white: #ffffff;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-      --radius-sm: 0.25rem;
-      --radius: 0.375rem;
-      --radius-md: 0.5rem;
-      --radius-lg: 0.75rem;
     }
 
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 1.5rem;
-      background-color: var(--gray-50);
-      color: var(--gray-800);
-      line-height: 1.5;
+      background-color: var(--gray-50); /* Consistent background */
+      color: var(--gray-800); /* Consistent text color */
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.5;
+      min-height: 100vh; /* Ensure full height for consistent look */
     }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 0.75rem;
-      color: var(--gray-800);
-      font-size: 1.75rem;
+    /* Re-using the container class for consistent width and padding */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* Header Styles (matching dashboard header) */
+    header {
+      background-color: var(--primary);
+      color: var(--white);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      padding: 1rem 0;
+      margin-bottom: 2rem; /* Added margin for spacing below header */
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: center; /* Center the title, as there's no date here */
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 1.5rem;
+      font-weight: 700;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
     }
 
-    h2 {
-      color: var(--primary);
-      font-size: 1.25rem;
-      margin-bottom: 1rem;
-      text-align: center;
+    .header-title i {
+      margin-right: 0.75rem;
     }
 
-    hr {
-      border: 0;
-      height: 1px;
-      background-color: var(--gray-200);
-      margin: 1rem 0;
+    /* Main content padding (consistent with dashboard) */
+    main {
+        padding: 1.5rem 0;
     }
 
-    /* Form Styles */
-    form {
+    /* Filter Form (adjusted to card style) */
+    .filter-form { /* Renamed from 'form' to be more specific and avoid conflicts */
       background: var(--white);
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 1rem;
+      padding: 1.5rem; /* Increased padding */
+      margin-bottom: 2rem; /* More space below form */
+      border-radius: 0.5rem; /* Consistent border-radius */
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Consistent shadow */
+      display: flex; /* Use flex for alignment */
+      flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+      align-items: flex-end; /* Align items to the bottom */
+      gap: 1rem; /* Gap between form elements */
     }
 
-    select, input[type="date"] {
-      padding: 0.625rem 0.75rem;
+    .form-group { /* Group label and input */
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0; /* Reset margin from original */
+    }
+
+    .form-label { /* Consistent with previous forms */
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--gray-700);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-select,
+    .form-input-date { /* Consolidated input styles */
+      padding: 0.75rem; /* Consistent padding */
       border: 1px solid var(--gray-300);
-      border-radius: var(--radius);
-      font-size: 0.9375rem;
-      transition: all 0.15s;
-      min-width: 180px;
-    }
-
-    select {
+      border-radius: 0.375rem; /* Consistent border-radius */
+      font-size: 0.875rem;
+      background-color: var(--white);
+      appearance: none; /* For select dropdown arrow */
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 0.75rem center;
       background-size: 16px 12px;
+      min-width: 150px; /* Ensure sufficient width for date inputs */
     }
 
-    select:focus, input[type="date"]:focus {
+    .form-input-date {
+        background-image: none; /* No custom arrow for date input */
+    }
+
+    .form-select:focus,
+    .form-input-date:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.1);
+      box-shadow: 0 0 0 2px var(--primary-light);
     }
 
-    button {
-      padding: 0.625rem 1.25rem;
+    /* Button styles (matching dashboard buttons) */
+    .btn {
+      padding: 0.75rem 1.5rem; /* Consistent padding */
       background-color: var(--primary);
       color: var(--white);
       border: none;
-      border-radius: var(--radius);
-      font-size: 0.9375rem;
-      font-weight: 500;
+      border-radius: 0.375rem; /* Consistent border-radius */
+      font-weight: 500; /* Consistent font-weight */
       cursor: pointer;
       transition: all 0.2s;
-      display: inline-flex;
+      display: flex; /* For icon alignment */
       align-items: center;
-      gap: 0.5rem;
+      justify-content: center;
+      margin-top: auto; /* Push button to the bottom if other fields wrap */
     }
 
-    button:hover {
-      background-color: var(--primary-hover);
-      box-shadow: var(--shadow-sm);
+    .btn:hover {
+      background: var(--primary-hover);
     }
 
-    /* User Blocks */
+    .btn i {
+      margin-right: 0.5rem; /* Consistent icon spacing */
+    }
+
+    /* User Block (similar to stat-card/medicine-table-container) */
     .user-block {
       background: var(--white);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow);
+      padding: 1.5rem 2rem; /* Increased padding for consistency */
+      margin-bottom: 2rem; /* Consistent margin-bottom */
+      border-radius: 0.5rem; /* Consistent border-radius */
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Consistent shadow */
+      border-left: 4px solid var(--primary); /* Added primary border for visual emphasis */
     }
 
     .user-block h2 {
-      margin-bottom: 1.25rem;
-      color: var(--primary);
-      font-size: 1.25rem;
-      display: flex;
+      margin-bottom: 1rem; /* Adjusted margin */
+      color: var(--gray-800); /* Consistent heading color */
+      font-size: 1.25rem; /* Slightly larger heading */
+      font-weight: 600; /* Consistent font-weight */
+      display: flex; /* For icon alignment */
       align-items: center;
-      gap: 0.5rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--gray-200);
     }
 
-    /* Date Groups */
+    .user-block h2 i { /* Icon for user block title */
+        margin-right: 0.75rem;
+        color: var(--primary); /* Primary color for the icon */
+    }
+
     .date-group {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.5rem; /* Consistent spacing */
     }
 
     .date-group h3 {
-      background-color: var(--primary);
-      color: var(--white);
-      padding: 0.625rem 1rem;
-      border-radius: var(--radius);
-      margin-bottom: 1rem;
-      font-weight: 500;
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      background: var(--primary-light); /* Lighter primary background for date group header */
+      color: var(--primary); /* Primary text color for date group header */
+      padding: 0.75rem 1rem; /* Adjusted padding */
+      border-radius: 0.375rem; /* Consistent border-radius */
+      margin-bottom: 1rem; /* Adjusted margin */
+      font-weight: 600; /* Slightly bolder */
+      font-size: 1rem; /* Slightly larger font size */
     }
 
     ul {
-      list-style: none;
-      padding-left: 0;
+      list-style: none; /* Keep none */
+      padding-left: 0; /* Remove default padding for lists */
     }
 
     li {
-      padding: 0.75rem 0;
-      border-bottom: 1px solid var(--gray-100);
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 0.5rem;
+      padding: 0.5rem 0; /* Adjusted padding */
+      border-bottom: 1px dashed var(--gray-200); /* Lighter separator */
+      font-size: 0.9375rem; /* Slightly larger text */
+      color: var(--gray-700);
     }
-
     li:last-child {
-      border-bottom: none;
+        border-bottom: none; /* No border for the last item */
     }
 
     li strong {
-      color: var(--gray-800);
-      font-weight: 500;
+        color: var(--gray-800);
     }
 
-    li small {
-      color: var(--gray-500);
-      font-size: 0.875rem;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
+    a.back-link {
+      display: block;
+      margin: 2rem auto 1rem; /* Consistent margin */
+      text-align: center;
+      text-decoration: none;
+      color: var(--primary); /* Consistent primary color */
+      font-weight: 500; /* Consistent font-weight */
+      transition: all 0.2s ease;
+      font-size: 1rem;
     }
 
-    /* No Data Message */
+    a.back-link:hover {
+      color: var(--primary-hover);
+      transform: translateY(-1px); /* Consistent hover effect */
+    }
+
     .no-data {
       text-align: center;
       background: var(--white);
-      padding: 2rem;
-      border-radius: var(--radius-md);
-      margin: 2rem 0;
-      box-shadow: var(--shadow);
+      padding: 2rem; /* Increased padding */
+      border-radius: 0.5rem; /* Consistent border-radius */
+      margin: 2rem 0; /* Consistent margin */
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Consistent shadow */
+      border-left: 4px solid var(--danger); /* Consistent danger border */
+      display: flex; /* For icon alignment */
+      align-items: center;
+      justify-content: center; /* Center content horizontally */
+      gap: 0.75rem; /* Gap between icon and text */
     }
 
     .no-data p {
-      color: var(--gray-600);
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
+        margin: 0; /* Remove default paragraph margin */
+        color: var(--gray-700);
+        font-size: 1rem; /* Consistent font size */
     }
 
-    /* Back Link */
-    .back-link {
-      display: block;
-      margin: 2.5rem auto 1rem;
-      text-align: center;
-      text-decoration: none;
-      color: var(--primary);
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: all 0.2s;
+    .no-data strong {
+        color: var(--danger); /* Consistent danger color for strong text */
     }
 
-    .back-link:hover {
-      color: var(--primary-hover);
-      text-decoration: underline;
+    .no-data i { /* Icon for no-data message */
+        font-size: 1.5rem;
+        color: var(--danger);
     }
 
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      body {
-        padding: 1rem;
-      }
-
-      form {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 1rem;
-        padding: 1.25rem;
-      }
-
-      select, input[type="date"] {
-        width: 100%;
-      }
-
-      button {
-        width: 100%;
-        justify-content: center;
-      }
-
-      .user-block {
-        padding: 1.25rem;
-      }
+    .clinic-label {
+      font-style: normal; /* Remove italic to fit general style */
+      color: var(--gray-500); /* Use a consistent gray */
+      margin-left: 0.5rem; /* Adjusted margin */
+      font-size: 0.75rem; /* Smaller font for meta info */
     }
   </style>
 </head>
 <body>
-  <h1><i class="fas fa-file-alt"></i> Ripoti ya Matumizi ya Dawa kwa Watumiaji</h1>
-  <hr>
-  <h2><%= reportTitle %></h2>
+  <div class="min-h-screen"> <header>
+      <div class="container header-content">
+        <h1 class="header-title">
+          <i class="fas fa-file-alt"></i> Ripoti ya Matumizi ya Dawa
+        </h1>
+      </div>
+    </header>
 
-  <form action="/ripoti/matumizi" method="get">
-    <select name="mode" required onchange="this.form.submit()">
-      <option value="">Chagua aina ya ripoti</option>
-      <option value="day" <%= mode === 'day' ? 'selected' : '' %>>Ripoti ya Siku</option>
-      <option value="week" <%= mode === 'week' ? 'selected' : '' %>>Ripoti ya Wiki</option>
-      <option value="month" <%= mode === 'month' ? 'selected' : '' %>>Ripoti ya Mwezi</option>
-    </select>
+    <main class="container">
+      <form method="GET" action="/report-usage" class="filter-form"> <div class="form-group">
+            <label for="aina" class="form-label">Aina ya ripoti:</label>
+            <select name="aina" id="aina" class="form-select">
+              <option value="">-- Chagua --</option>
+              <option value="wiki" <%= query.aina === 'wiki' ? 'selected' : '' %>>Wiki hii</option>
+              <option value="mwezi" <%= query.aina === 'mwezi' ? 'selected' : '' %>>Mwezi huu</option>
+              <option value="range" <%= query.aina === 'range' ? 'selected' : '' %>>Tarehe Maalum</option>
+            </select>
+        </div>
 
-    <% if (mode === 'day') { %>
-      <input type="date" name="tarehe" value="<%= tarehe || '' %>" onchange="this.form.submit()" />
-    <% } else { %>
-      <input type="date" name="from" value="<%= from || '' %>" placeholder="Kutoka Tarehe" />
-      <input type="date" name="to" value="<%= to || '' %>" placeholder="Mpaka Tarehe" />
-    <% } %>
+        <% if (query.aina === 'range') { %>
+          <div class="form-group">
+            <label for="start" class="form-label">Tarehe ya mwanzo:</label>
+            <input type="date" name="start" id="start" value="<%= query.start || '' %>" class="form-input-date">
+          </div>
+          <div class="form-group">
+            <label for="end" class="form-label">Mpaka:</label>
+            <input type="date" name="end" id="end" value="<%= query.end || '' %>" class="form-input-date">
+          </div>
+        <% } %>
 
-    <button type="submit"><i class="fas fa-search"></i> Angalia Ripoti</button>
-  </form>
+        <button type="submit" class="btn">
+            <i class="fas fa-calendar-alt"></i> Tazama Ripoti
+        </button>
+      </form>
 
-  <% if(report.length === 0 || report.every(u => Object.keys(u.matumiziByDate).length === 0)) { %>
-    <div class="no-data">
-      <p><i class="fas fa-exclamation-triangle"></i> Hakuna taarifa za matumizi kwa kipindi ulichotaja.</p>
-    </div>
-  <% } else { %>
-    <% report.forEach(user => { %>
-      <div class="user-block">
-        <h2><i class="fas fa-user"></i> <%= user.jina %></h2>
+      <% if(report.length === 0 || report.every(u => Object.keys(u.matumiziByDate).length === 0)) { %>
+        <div class="no-data">
+          <i class="fas fa-exclamation-circle"></i>
+          <p><strong>Hakuna taarifa za matumizi kwa kipindi ulichotaja.</strong></p>
+        </div>
+      <% } else { %>
 
-        <% Object.keys(user.matumiziByDate).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { %>
-          <div class="date-group">
-            <h3><i class="far fa-calendar-alt"></i> <%= new Date(date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
-            <ul>
-              <% user.matumiziByDate[date].forEach(item => { %>
-                <li>
-                  <i class="fas fa-pills"></i> <strong><%= item.dawa %></strong>: <%= item.kiasi %>
-                  <small>
-                    <i class="far fa-clock"></i>
-                    <% 
-                      let time;
-                      if (item.saa?.includes(':')) {
-                        time = new Date("1970-01-01T" + item.saa);
-                      } else {
-                        time = new Date(item.saa);
-                      }
-
-                      if (!isNaN(time)) {
-                    %>
-                      <%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %>
-                    <% } else { %>
-                      hakujulikani
-                    <% } %>
-                  </small>
-                </li>
-              <% }) %>
-            </ul>
+        <% report.forEach(user => { %>
+          <div class="user-block">
+            <h2><i class="fas fa-user"></i> <%= user.jina %></h2> <% Object.keys(user.matumiziByDate).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { %>
+              <div class="date-group">
+                <h3><%= new Date(date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
+                <ul>
+                  <% user.matumiziByDate[date].forEach(item => { %>
+                    <li>
+                      <i class="fas fa-pills" style="margin-right: 0.5rem; color: var(--gray-500);"></i> <strong><%= item.dawa %></strong>: <%= item.kiasi %>
+                      <small>
+                        saa <%= item.saa || 'hakujulikana' %>
+                        <span class="clinic-label">(Kliniki: <%= item.kliniki %>)</span>
+                      </small>
+                    </li>
+                  <% }) %>
+                </ul>
+              </div>
+            <% }) %>
           </div>
         <% }) %>
-      </div>
-    <% }) %>
-  <% } %>
+      <% } %>
 
-  <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Rudi kwenye Dashibodi</a>
+      <a href="/" class="back-link">
+        <i class="fas fa-arrow-left"></i> Rudi kwenye Dashibodi
+      </a>
+    </main>
+  </div>
+
+  <script>
+    // Show/hide date range inputs based on select option
+    document.addEventListener("DOMContentLoaded", function() {
+      const ainaSelect = document.getElementById('aina');
+      const form = document.querySelector('.filter-form'); // Use the new class
+
+      function toggleDateInputs() {
+        const selectedValue = ainaSelect.value;
+        const dateRangeInputs = form.querySelectorAll('.form-group input[type="date"]');
+        
+        // Find the parent form-group for start and end dates and remove them if not 'range'
+        if (selectedValue !== 'range') {
+          dateRangeInputs.forEach(input => {
+            const parentGroup = input.closest('.form-group');
+            if (parentGroup) parentGroup.remove();
+          });
+        } else {
+            // If it is 'range' and elements are not already there, re-add them
+            // This assumes initial EJS rendering correctly adds them.
+            // For a dynamic front-end, you'd likely create and append them here if they don't exist.
+            // For now, we rely on EJS to render them initially if query.aina is 'range'.
+            // This part is mainly for if the user switches *back* to range after switching away.
+            // A more robust client-side solution would involve saving/hiding, not removing/re-adding.
+            // Since this is EJS, the page reloads anyway on form submit, making this JS less critical for *re-adding*.
+        }
+      }
+
+      // Initial check on load
+      toggleDateInputs();
+
+      // Listen for changes
+      ainaSelect.addEventListener('change', function() {
+        this.form.submit(); // Automatically submit the form on change
+      });
+    });
+  </script>
 </body>
 </html>
