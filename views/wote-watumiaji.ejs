@@ -86,10 +86,10 @@
       </tr>
     </thead>
     <tbody>
-      <% watumiaji.forEach(user => { %>
+       <% watumiaji.forEach(function(mtumiaji) { %>
         <tr>
-          <td><%= user.jina %></td>
-          <td><%= user.maelezo || '-' %></td>
+          <td><%= mtumiaji.jina %></td>
+          <td><%= mtumiaji.maelezo || '-' %></td>
           <td><%= mtumiaji.clinic || '-' %></td>
           <td>
             <a href="/mtumiaji/futa/<%= user.id %>" 
