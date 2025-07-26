@@ -362,13 +362,17 @@
           if (cb.checked) {
             quantityInput.disabled = false;
             quantityInput.focus();
-            medicineItem.style.borderColor = var(--primary);
-            medicineItem.style.backgroundColor = var(--primary-light);
+            medicineItem.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--primary');
+            medicineItem.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-light');
+
           } else {
             quantityInput.disabled = true;
             quantityInput.value = "";
-            medicineItem.style.borderColor = var(--gray-200);
-            medicineItem.style.backgroundColor = var(--gray-50);
+            medicineItem.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--gray-200');
+            medicineItem.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--gray-50');
+            
+
+            
           }
         });
 
