@@ -158,7 +158,9 @@
 
     .medicine-checkbox {
       margin-right: 1rem;
-      transform: scale(1.2);
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
     }
 
     .medicine-info {
@@ -194,6 +196,7 @@
       border: 1px solid var(--gray-300);
       border-radius: 0.25rem;
       text-align: center;
+      font-size: 0.875rem;
     }
 
     .quantity-input:disabled {
@@ -381,7 +384,7 @@
             const max = parseInt(quantityInput.max);
             const num = parseInt(value);
 
-            if (value && !isNaN(num) {
+            if (value && !isNaN(num)) {
               if (num < 1 || num > max) {
                 medicineItem.classList.add('has-error');
               } else {
