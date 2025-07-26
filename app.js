@@ -600,6 +600,11 @@ app.get('/admin/maelezo-dump', async (req, res, next) => {
   }
 });
 
+  app.get('/test-read', async (req, res) => {
+  const data = await readSheet('WATUMIAJI');
+  res.json(data);
+});
+
 
   app.use((req, res) => {
     res.status(404).render('error', { message: 'Ukurasa haupatikani' });
