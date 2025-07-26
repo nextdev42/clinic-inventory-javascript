@@ -579,34 +579,7 @@ app.get('/admin/maelezo-dump', async (req, res, next) => {
   }
 });
 
-  app.get('/debug/excel', async (req, res) => {
-  try {
-    const stats = await fs.stat(excelPath);
-    const workbook = xlsx.readFile(excelPath);
-    
-    const sheetsInfo = workbook.SheetNames.map(name => {
-      const sheet = workbook.Sheets[name];
-      return {
-        name,
-        rowCount: xlsx.utils.sheet_to_json(sheet).length,
-        headers: Object.keys(xlsx.utils.sheet_to_json(sheet)[0] || []
-      };
-    });
 
-    res.json({
-      filePath: excelPath,
-      fileSize: stats.size,
-      lastModified: stats.mtime,
-      permissions: {
-        readable: true,
-        writable: true
-      },
-      sheets: sheetsInfo
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
   app.use((req, res) => {
     res.status(404).render('error', { message: 'Ukurasa haupatikani' });
   });
