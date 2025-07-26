@@ -4,132 +4,35 @@
   <meta charset="UTF-8" />
   <title>Ripoti ya Matumizi ya Dawa</title>
   <style>
-    body {
-      font-family: sans-serif;
-      max-width: 900px;
-      margin: auto;
-      padding: 20px;
-      background: #f5f5f5;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    form {
-      background: white;
-      padding: 15px;
-      margin-bottom: 25px;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
-    label {
-      display: inline-block;
-      margin: 8px 10px 4px 0;
-    }
-    select, input[type="date"] {
-      padding: 6px;
-      margin-right: 10px;
-    }
-    button {
-      padding: 6px 12px;
-      background: #007acc;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #005c99;
-    }
-    .user-block {
-      background: white;
-      padding: 15px 20px;
-      margin-bottom: 25px;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
-    .user-block h2 {
-      margin-bottom: 15px;
-      color: #007acc;
-    }
-    .date-group {
-      margin-bottom: 15px;
-    }
-    .date-group h3 {
-      background: #007acc;
-      color: white;
-      padding: 5px 10px;
-      border-radius: 5px;
-      margin-bottom: 8px;
-      font-weight: normal;
-    }
-    ul {
-      list-style: none;
-      padding-left: 15px;
-    }
-    li {
-      padding: 4px 0;
-    }
-    a.back-link {
-      display: block;
-      margin: 30px auto 10px;
-      text-align: center;
-      text-decoration: none;
-      color: #007acc;
-      font-weight: bold;
-    }
-    .no-data {
-      text-align: center;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin: 20px 0;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
+    /* Styles yako hapa... */
   </style>
 </head>
 <body>
   <h1>📋 Ripoti ya Matumizi ya Dawa kwa Watumiaji</h1>
 
-  <!-- 🔍 Filter Form -->
-  <form method="GET" action="/report-usage">
-<form action="/ripoti/matumizi" method="get" class="flex gap-2">
-  <select name="mode" required>
-    <option value="">Chagua aina ya ripoti</option>
-    <option value="day">Ripoti ya Siku</option>
-    <option value="week">Ripoti ya Wiki</option>
-    <option value="month">Ripoti ya Mwezi</option>
-  </select>
+  <form action="/ripoti/matumizi" method="get" class="flex gap-2" style="background:white; padding:15px; border-radius:8px; margin-bottom:25px; box-shadow: 0 0 5px rgba(0,0,0,0.1);">
+    <select name="mode" required onchange="this.form.submit()">
+      <option value="">Chagua aina ya ripoti</option>
+      <option value="day" <%= mode === 'day' ? 'selected' : '' %>>Ripoti ya Siku</option>
+      <option value="week" <%= mode === 'week' ? 'selected' : '' %>>Ripoti ya Wiki</option>
+      <option value="month" <%= mode === 'month' ? 'selected' : '' %>>Ripoti ya Mwezi</option>
+    </select>
 
-  <input type="date" name="tarehe" placeholder="Tarehe (kwa siku)" />
+    <% if (mode === 'day') { %>
+      <input type="date" name="tarehe" value="<%= tarehe || '' %>" onchange="this.form.submit()" />
+    <% } else { %>
+      <input type="date" name="from" value="<%= from || '' %>" placeholder="Kutoka Tarehe" />
+      <input type="date" name="to" value="<%= to || '' %>" placeholder="Mpaka Tarehe" />
+    <% } %>
 
-  <input type="date" name="from" placeholder="Kutoka Tarehe" />
-  <input type="date" name="to" placeholder="Mpaka Tarehe" />
-
-  <button type="submit"> 📅 Angalia Ripoti</button>
-</form>
-
-
-
-<% report.forEach(user => { %>
-  <h3><%= user.jina %></h3>
-  <% for (const tarehe in user.matumiziByDate) { %>
-    <h4><%= tarehe %></h4>
-    <ul>
-      <% user.matumiziByDate[tarehe].forEach(usage => { %>
-        <li><%= usage.dawa %> - <%= usage.kiasi %> - <%= usage.saa %></li>
-      <% }) %>
-    </ul>
-  <% } %>
-<% }) %>
-
+    <button type="submit">📅 Angalia Ripoti</button>
+  </form>
 
   <% if(report.length === 0 || report.every(u => Object.keys(u.matumiziByDate).length === 0)) { %>
     <div class="no-data">
       <p><strong>⚠️ Hakuna taarifa za matumizi kwa kipindi ulichotaja.</strong></p>
     </div>
   <% } else { %>
-
     <% report.forEach(user => { %>
       <div class="user-block">
         <h2>👤 <%= user.jina %></h2>
@@ -154,7 +57,7 @@
                     %>
                       <%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %>
                     <% } else { %>
-                      hakujulikana
+                      hakujulikani
                     <% } %>
                   </small>
                 </li>
