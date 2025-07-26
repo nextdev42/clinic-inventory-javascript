@@ -24,6 +24,14 @@
       --gray-800: #1f2937;
       --gray-900: #111827;
       --white: #ffffff;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+      --radius-sm: 0.25rem;
+      --radius: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
     }
 
     * {
@@ -46,65 +54,98 @@
       width: 100%;
       background-color: var(--primary);
       color: var(--white);
-      padding: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 1.25rem 1rem;
+      box-shadow: var(--shadow-md);
       display: flex;
       justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .header-text {
-      font-size: 1.25rem;
+      font-size: 1.375rem;
       font-weight: 600;
       display: flex;
       align-items: center;
+      gap: 0.75rem;
     }
 
     .header-text i {
-      margin-right: 0.75rem;
+      font-size: 1.5rem;
+    }
+
+    /* Main Container */
+    .main-container {
+      min-height: calc(100vh - 4.5rem);
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 2rem;
     }
 
     /* Form Container */
     .form-container {
-      max-width: 600px;
+      max-width: 640px;
+      width: 100%;
       margin: 2rem auto;
-      padding: 0 1rem;
+      padding: 0 1.25rem;
+      flex-grow: 1;
     }
 
     /* Form Styles */
     form {
       background-color: var(--white);
-      padding: 2rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 2rem 2rem 1.5rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--gray-200);
     }
 
     .form-group {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
     }
 
     label {
       display: block;
-      font-size: 0.875rem;
+      font-size: 0.9375rem;
       font-weight: 500;
       color: var(--gray-700);
       margin-bottom: 0.5rem;
     }
 
     h3 {
-      font-size: 1rem;
+      font-size: 1.125rem;
       font-weight: 600;
       color: var(--gray-800);
-      margin: 1.5rem 0 1rem;
-      padding-bottom: 0.5rem;
+      margin: 2rem 0 1.25rem;
+      padding-bottom: 0.75rem;
       border-bottom: 1px solid var(--gray-200);
+      position: relative;
+    }
+
+    h3::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 4rem;
+      height: 2px;
+      background-color: var(--primary);
     }
 
     select, input[type="number"] {
       width: 100%;
-      padding: 0.75rem;
+      padding: 0.8125rem 0.75rem;
       border: 1px solid var(--gray-300);
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
+      border-radius: var(--radius);
+      font-size: 0.9375rem;
+      transition: all 0.15s ease;
+    }
+
+    select:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
     }
 
     select {
@@ -116,94 +157,134 @@
     }
 
     /* Medicine Items */
+    .dawa-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
     .dawa-item {
       display: flex;
       align-items: center;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-      background-color: var(--gray-50);
-      border-radius: 0.375rem;
+      padding: 1rem 1.25rem;
+      background-color: var(--white);
+      border-radius: var(--radius);
       border: 1px solid var(--gray-200);
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .dawa-item:hover {
+      border-color: var(--gray-300);
+      box-shadow: var(--shadow);
     }
 
     .dawa-item input[type="checkbox"] {
       width: 1.25rem;
       height: 1.25rem;
-      margin-right: 1rem;
+      margin-right: 1.25rem;
+      accent-color: var(--primary);
+      cursor: pointer;
     }
 
-    .dawa-item span {
+    .dawa-item-content {
       flex-grow: 1;
-      font-size: 0.875rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
     }
 
     .medicine-name {
       font-weight: 500;
       color: var(--gray-800);
+      font-size: 0.9375rem;
     }
 
     .medicine-stock {
       color: var(--gray-500);
-      font-size: 0.75rem;
+      font-size: 0.8125rem;
+    }
+
+    .quantity-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-left: 1rem;
     }
 
     .quantity-label {
-      font-size: 0.75rem;
+      font-size: 0.8125rem;
       color: var(--gray-600);
-      margin-right: 0.5rem;
+      white-space: nowrap;
     }
 
     .quantity-input {
-      width: 80px;
-      padding: 0.5rem;
+      width: 5rem;
+      padding: 0.625rem 0.5rem;
       text-align: center;
+      font-weight: 500;
     }
 
     /* Form Buttons */
     .form-buttons {
       display: flex;
       justify-content: space-between;
-      margin-top: 2rem;
+      margin-top: 2.5rem;
+      gap: 1rem;
     }
 
     button, .btn-back {
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.375rem;
+      padding: 0.8125rem 1.75rem;
+      border-radius: var(--radius);
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s;
-      font-size: 0.875rem;
+      transition: all 0.2s ease;
+      font-size: 0.9375rem;
       border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
 
     button {
       background-color: var(--primary);
       color: var(--white);
+      box-shadow: var(--shadow-sm);
     }
 
     button:hover {
       background-color: var(--primary-hover);
+      box-shadow: var(--shadow);
+    }
+
+    button:active {
+      transform: translateY(1px);
     }
 
     .btn-back {
-      background-color: var(--gray-200);
-      color: var(--gray-800);
+      background-color: var(--white);
+      color: var(--gray-700);
       text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      border: 1px solid var(--gray-300);
     }
 
     .btn-back:hover {
-      background-color: var(--gray-300);
+      background-color: var(--gray-50);
+      border-color: var(--gray-400);
     }
 
     /* Error States */
     .error-message {
       color: var(--danger);
       font-size: 0.875rem;
-      margin: 0.5rem 0;
+      margin: 0.75rem 0;
       text-align: center;
+      padding: 0.75rem;
+      background-color: rgba(220, 38, 38, 0.05);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--danger);
     }
 
     .error {
@@ -212,9 +293,48 @@
 
     .form-error {
       color: var(--danger);
-      font-size: 0.875rem;
-      margin: 1rem 0;
+      font-size: 0.9375rem;
+      margin: 0 0 1.5rem;
       text-align: center;
+      padding: 1rem;
+      background-color: rgba(220, 38, 38, 0.05);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border-left: 3px solid var(--danger);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .form-container {
+        padding: 0 1rem;
+      }
+      
+      form {
+        padding: 1.5rem 1.25rem;
+      }
+      
+      .dawa-item {
+        flex-wrap: wrap;
+        padding: 1rem;
+      }
+      
+      .quantity-container {
+        margin-left: 0;
+        margin-top: 0.75rem;
+        width: 100%;
+        justify-content: flex-end;
+      }
+      
+      .form-buttons {
+        flex-direction: column-reverse;
+      }
+      
+      button, .btn-back {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -225,53 +345,64 @@
     </span>
   </div>
 
-  <div class="form-container">
-    <% if (error) { %>
-      <div class="form-error">
-        <i class="fas fa-exclamation-circle"></i> <%= error %>
-      </div>
-    <% } %>
-
-    <form method="POST" action="/matumizi/sajili">
-      <div class="form-group">
-        <label>Chagua Mtumiaji:</label>
-        <select name="mtumiajiId" id="mtumiaji" required>
-          <option value="">-- Chagua mtumiaji --</option>
-          <% watumiaji.forEach(m => { %>
-            <option value="<%= m.id %>" <%= m.id == mtumiajiId ? 'selected' : '' %>>
-              <%= m.jina %> - <%= m.maelezo || '' %>
-            </option>
-          <% }) %>
-        </select>
-      </div>
-
-      <h3>Chagua Dawa na Kiasi</h3>
-      <div id="error-msg" class="error-message"></div>
-
-      <% dawa.forEach((d, index) => { %>
-        <div class="dawa-item">
-          <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox" data-index="<%= index %>">
-          <span class="medicine-name"><%= d.jina %><br>
-            <span class="medicine-stock">Hisa: <%= d.kiasi %></span>
-          </span>
-          <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
-          <span class="quantity-label">Kiasi:</span>
-          <input type="number"
-                 name="dawaList[<%= index %>][kiasi]"
-                 placeholder="0"
-                 min="1"
-                 max="<%= d.kiasi %>"
-                 class="quantity-input"
-                 id="kiasi-<%= index %>">
-          <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
+  <div class="main-container">
+    <div class="form-container">
+      <% if (error) { %>
+        <div class="form-error">
+          <i class="fas fa-exclamation-circle"></i> <%= error %>
         </div>
-      <% }) %>
+      <% } %>
 
-      <div class="form-buttons">
-        <button type="submit">Hifadhi Matumizi</button>
-        <a href="/" class="btn-back">Rudi Nyumbani</a>
-      </div>
-    </form>
+      <form method="POST" action="/matumizi/sajili">
+        <div class="form-group">
+          <label for="mtumiaji">Chagua Mtumiaji:</label>
+          <select name="mtumiajiId" id="mtumiaji" required>
+            <option value="">-- Chagua mtumiaji --</option>
+            <% watumiaji.forEach(m => { %>
+              <option value="<%= m.id %>" <%= m.id == mtumiajiId ? 'selected' : '' %>>
+                <%= m.jina %> - <%= m.maelezo || '' %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <h3>Chagua Dawa na Kiasi</h3>
+        <div id="error-msg" class="error-message"></div>
+
+        <div class="dawa-list">
+          <% dawa.forEach((d, index) => { %>
+            <div class="dawa-item">
+              <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox" data-index="<%= index %>">
+              <div class="dawa-item-content">
+                <span class="medicine-name"><%= d.jina %></span>
+                <span class="medicine-stock">Hisa: <%= d.kiasi %></span>
+              </div>
+              <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
+              <div class="quantity-container">
+                <span class="quantity-label">Kiasi:</span>
+                <input type="number"
+                      name="dawaList[<%= index %>][kiasi]"
+                      placeholder="0"
+                      min="1"
+                      max="<%= d.kiasi %>"
+                      class="quantity-input"
+                      id="kiasi-<%= index %>">
+              </div>
+              <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
+            </div>
+          <% }) %>
+        </div>
+
+        <div class="form-buttons">
+          <button type="submit">
+            <i class="fas fa-save"></i> Hifadhi Matumizi
+          </button>
+          <a href="/" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Rudi Nyumbani
+          </a>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- JavaScript remains exactly the same -->
