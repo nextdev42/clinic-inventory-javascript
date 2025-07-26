@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="sw">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Statistik za Watumiaji</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+
+    <div class="max-w-6xl mx-auto p-6">
+      <h1 class="text-3xl font-bold mb-4 text-center text-blue-700">Statistik za Watumiaji</h1>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Watumiaji Kwa Kliniki -->
+        <div class="bg-white p-4 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold mb-2 text-gray-800">Watumiaji kwa Kliniki</h2>
+          <canvas id="clinicChart"></canvas>
+        </div>
+
+        <!-- Matumizi ya Dawa -->
+        <div class="bg-white p-4 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold mb-2 text-gray-800">Matumizi ya Dawa</h2>
+          <canvas id="medicineChart"></canvas>
+        </div>
+      </div>
+
+      <div class="mt-8 flex justify-center">
+        <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">🏠 Rudi Nyumbani</a>
+      </div>
+    </div>
+
+    <script>
+      const clinicData = <%- JSON.stringify(clinicStats) %>;
+      const medicineData = <%- JSON.stringify(medicineStats) %>;
+
+      const clinicLabels = Object.keys(clinicData);
+      const clinicCounts = Object.values(clinicData);
+
+      const medicineLabels = Object.keys(medicineData);
+      const medicineCounts = Object.values(medicineData);
+
+      new Chart(document.getElementById('clinicChart'), {
+        type: 'bar',
+        data: {
+          labels: clinicLabels,
+          datasets: [{
+            label: 'Idadi ya Watumiaji',
+            data: clinicCounts,
+            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+            borderColor: 'rgba(59, 130, 246, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+
+      new Chart(document.getElementById('medicineChart'), {
+        type: 'bar',
+        data: {
+          labels: medicineLabels,
+          datasets: [{
+            label: 'Idadi ya Matumizi',
+            data: medicineCounts,
+            backgroundColor: 'rgba(34, 197, 94, 0.7)',
+            borderColor: 'rgba(34, 197, 94, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
