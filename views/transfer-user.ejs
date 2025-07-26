@@ -48,6 +48,25 @@
       color: #34495e;
       font-size: 1rem;
     }
+    .alert {
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.alert-success {
+  background-color: #dff0d8;
+  color: #3c763d;
+  border: 1px solid #d6e9c6;
+}
+
+.alert-error {
+  background-color: #f2dede;
+  color: #a94442;
+  border: 1px solid #ebccd1;
+}
+
 
     /* Select dropdowns */
     select {
@@ -125,8 +144,6 @@
     <%= errorMessage %>
   </div>
 <% } %>
-
-<h2>Hamisha Mtumiaji</h2>
 
 <form method="POST" action="/mtumiaji/transfer">
   <div class="form-group">
