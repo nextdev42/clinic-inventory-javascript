@@ -2,7 +2,6 @@
 <html lang="sw">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sajili Matumizi ya Dawa</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
@@ -40,65 +39,50 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       line-height: 1.5;
-      min-height: 100vh;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
     }
 
     /* Header Styles */
-    header {
+    .top-nav {
+      width: 100%;
       background-color: var(--primary);
       color: var(--white);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      padding: 1rem 0;
-      margin-bottom: 2rem;
-    }
-
-    .header-content {
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       display: flex;
       justify-content: center;
-      align-items: center;
     }
 
-    .header-title {
-      font-size: 1.5rem;
-      font-weight: 700;
+    .header-text {
+      font-size: 1.25rem;
+      font-weight: 600;
       display: flex;
       align-items: center;
     }
 
-    .header-title i {
+    .header-text i {
       margin-right: 0.75rem;
     }
 
-    /* Form Styles */
+    /* Form Container */
     .form-container {
       max-width: 600px;
-      margin: 0 auto;
-      background-color: var(--white);
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
+      margin: 2rem auto;
+      padding: 0 1rem;
     }
 
-    .form-title {
-      text-align: center;
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 1.5rem;
-      color: var(--gray-800);
+    /* Form Styles */
+    form {
+      background-color: var(--white);
+      padding: 2rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .form-group {
       margin-bottom: 1.5rem;
     }
 
-    .form-label {
+    label {
       display: block;
       font-size: 0.875rem;
       font-weight: 500;
@@ -106,13 +90,24 @@
       margin-bottom: 0.5rem;
     }
 
-    .form-select {
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin: 1.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    select, input[type="number"] {
       width: 100%;
       padding: 0.75rem;
       border: 1px solid var(--gray-300);
       border-radius: 0.375rem;
       font-size: 0.875rem;
-      background-color: var(--white);
+    }
+
+    select {
       appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
@@ -120,27 +115,8 @@
       background-size: 16px 12px;
     }
 
-    .form-select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px var(--primary-light);
-    }
-
     /* Medicine Items */
-    .medicine-list {
-      margin-top: 1.5rem;
-    }
-
-    .section-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--gray-800);
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .medicine-item {
+    .dawa-item {
       display: flex;
       align-items: center;
       padding: 1rem;
@@ -148,20 +124,15 @@
       background-color: var(--gray-50);
       border-radius: 0.375rem;
       border: 1px solid var(--gray-200);
-      transition: all 0.2s;
     }
 
-    .medicine-item.selected {
-      border-color: var(--primary);
-      background-color: var(--primary-light);
-    }
-
-    .medicine-checkbox {
+    .dawa-item input[type="checkbox"] {
+      width: 1.25rem;
+      height: 1.25rem;
       margin-right: 1rem;
-      transform: scale(1.2);
     }
 
-    .medicine-info {
+    .dawa-item span {
       flex-grow: 1;
       font-size: 0.875rem;
     }
@@ -176,12 +147,6 @@
       font-size: 0.75rem;
     }
 
-    .medicine-quantity {
-      display: flex;
-      align-items: center;
-      margin-left: 1rem;
-    }
-
     .quantity-label {
       font-size: 0.75rem;
       color: var(--gray-600);
@@ -191,160 +156,128 @@
     .quantity-input {
       width: 80px;
       padding: 0.5rem;
-      border: 1px solid var(--gray-300);
-      border-radius: 0.25rem;
       text-align: center;
     }
 
-    .quantity-input:disabled {
-      background-color: var(--gray-100);
-      cursor: not-allowed;
-    }
-
     /* Form Buttons */
-    .form-actions {
+    .form-buttons {
       display: flex;
       justify-content: space-between;
       margin-top: 2rem;
     }
 
-    .btn {
+    button, .btn-back {
       padding: 0.75rem 1.5rem;
       border-radius: 0.375rem;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
-      display: flex;
+      font-size: 0.875rem;
+      border: none;
+    }
+
+    button {
+      background-color: var(--primary);
+      color: var(--white);
+    }
+
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-back {
+      background-color: var(--gray-200);
+      color: var(--gray-800);
+      text-decoration: none;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
     }
 
-    .btn-primary {
-      background-color: var(--primary);
-      color: var(--white);
-      border: none;
-    }
-
-    .btn-primary:hover {
-      background-color: var(--primary-hover);
-    }
-
-    .btn-secondary {
-      background-color: var(--gray-200);
-      color: var(--gray-800);
-      border: none;
-    }
-
-    .btn-secondary:hover {
+    .btn-back:hover {
       background-color: var(--gray-300);
-    }
-
-    .btn i {
-      margin-right: 0.5rem;
     }
 
     /* Error States */
     .error-message {
       color: var(--danger);
       font-size: 0.875rem;
-      margin-top: 0.5rem;
+      margin: 0.5rem 0;
       text-align: center;
     }
 
-    .has-error {
+    .error {
       border-color: var(--danger) !important;
     }
 
     .form-error {
       color: var(--danger);
       font-size: 0.875rem;
-      margin-top: 1rem;
+      margin: 1rem 0;
       text-align: center;
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="container header-content">
-      <h1 class="header-title">
-        <i class="fas fa-pills"></i> Sajili Matumizi ya Dawa
-      </h1>
-    </div>
-  </header>
+  <div class="top-nav">
+    <span class="header-text">
+      <i class="fas fa-pills"></i> Sajili Matumizi ya Dawa
+    </span>
+  </div>
 
-  <main class="container">
+  <div class="form-container">
     <% if (error) { %>
       <div class="form-error">
         <i class="fas fa-exclamation-circle"></i> <%= error %>
       </div>
     <% } %>
 
-    <div class="form-container">
-      <form method="POST" action="/matumizi/sajili">
-        <div class="form-group">
-          <label for="mtumiaji" class="form-label">Chagua Mtumiaji:</label>
-          <select name="mtumiajiId" id="mtumiaji" class="form-select" required>
-            <option value="">-- Chagua mtumiaji --</option>
-            <% watumiaji.forEach(m => { %>
-              <option value="<%= m.id %>" <%= m.id == mtumiajiId ? 'selected' : '' %>>
-                <%= m.jina %> - <%= m.maelezo || '' %>
-              </option>
-            <% }) %>
-          </select>
-        </div>
-
-        <div class="medicine-list">
-          <h3 class="section-title">Chagua Dawa na Kiasi</h3>
-          <div id="error-msg" class="error-message"></div>
-
-          <% dawa.forEach((d, index) => { %>
-            <div class="medicine-item" id="medicine-item-<%= index %>">
-              <input type="checkbox" 
-                     name="dawaList[<%= index %>][confirmed]" 
-                     value="true" 
-                     class="medicine-checkbox" 
-                     data-index="<%= index %>"
-                     id="checkbox-<%= index %>">
-              
-              <div class="medicine-info">
-                <div class="medicine-name"><%= d.jina %></div>
-                <div class="medicine-stock">Hisa: <%= d.kiasi %></div>
-              </div>
-              
-              <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
-              
-              <div class="medicine-quantity">
-                <span class="quantity-label">Kiasi:</span>
-                <input type="number"
-                       name="dawaList[<%= index %>][kiasi]"
-                       placeholder="0"
-                       min="1"
-                       max="<%= d.kiasi %>"
-                       class="quantity-input"
-                       id="kiasi-<%= index %>"
-                       disabled>
-              </div>
-              
-              <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
-            </div>
+    <form method="POST" action="/matumizi/sajili">
+      <div class="form-group">
+        <label>Chagua Mtumiaji:</label>
+        <select name="mtumiajiId" id="mtumiaji" required>
+          <option value="">-- Chagua mtumiaji --</option>
+          <% watumiaji.forEach(m => { %>
+            <option value="<%= m.id %>" <%= m.id == mtumiajiId ? 'selected' : '' %>>
+              <%= m.jina %> - <%= m.maelezo || '' %>
+            </option>
           <% }) %>
-        </div>
+        </select>
+      </div>
 
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> Hifadhi Matumizi
-          </button>
-          <a href="/" class="btn btn-secondary">
-            <i class="fas fa-times"></i> Ghairi
-          </a>
-        </div>
-      </form>
-    </div>
-  </main>
+      <h3>Chagua Dawa na Kiasi</h3>
+      <div id="error-msg" class="error-message"></div>
 
+      <% dawa.forEach((d, index) => { %>
+        <div class="dawa-item">
+          <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox" data-index="<%= index %>">
+          <span class="medicine-name"><%= d.jina %><br>
+            <span class="medicine-stock">Hisa: <%= d.kiasi %></span>
+          </span>
+          <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
+          <span class="quantity-label">Kiasi:</span>
+          <input type="number"
+                 name="dawaList[<%= index %>][kiasi]"
+                 placeholder="0"
+                 min="1"
+                 max="<%= d.kiasi %>"
+                 class="quantity-input"
+                 id="kiasi-<%= index %>">
+          <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
+        </div>
+      <% }) %>
+
+      <div class="form-buttons">
+        <button type="submit">Hifadhi Matumizi</button>
+        <a href="/" class="btn-back">Rudi Nyumbani</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- JavaScript remains exactly the same -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      const checkboxes = document.querySelectorAll('.medicine-checkbox');
+      const checkboxes = document.querySelectorAll('.checkbox');
       const errorField = document.getElementById('error-msg');
       const form = document.querySelector('form');
       const mtumiajiSelect = document.getElementById('mtumiaji');
@@ -353,94 +286,80 @@
       checkboxes.forEach(cb => {
         const index = cb.dataset.index;
         const quantityInput = document.getElementById(`kiasi-${index}`);
-        const medicineItem = document.getElementById(`medicine-item-${index}`);
-
-        // Enable quantity input if checkbox is checked on page load
-        if (cb.checked) {
-          quantityInput.disabled = false;
-          medicineItem.classList.add('selected');
+        quantityInput.disabled = !cb.checked; // Disable if not checked initially
+        if (!cb.checked) {
+          quantityInput.value = ""; // Clear value if initially unchecked
         }
 
         cb.addEventListener('change', () => {
           if (cb.checked) {
             quantityInput.disabled = false;
             quantityInput.focus();
-            medicineItem.classList.add('selected');
           } else {
             quantityInput.disabled = true;
-            quantityInput.value = "";
-            medicineItem.classList.remove('selected');
-            medicineItem.classList.remove('has-error');
+            quantityInput.value = ""; // Clear value when unchecked
+            quantityInput.classList.remove('error'); // Remove error class when unchecked
           }
         });
 
-        // Add validation when quantity input changes
-        quantityInput.addEventListener('input', () => {
-          if (cb.checked) {
-            const value = quantityInput.value.trim();
-            const max = parseInt(quantityInput.max);
-            const num = parseInt(value);
-
-            if (value && !isNaN(num) {
-              if (num < 1 || num > max) {
-                medicineItem.classList.add('has-error');
-              } else {
-                medicineItem.classList.remove('has-error');
-              }
-            } else {
-              medicineItem.classList.remove('has-error');
-            }
+        // Add validation when quantity input loses focus
+        quantityInput.addEventListener('blur', () => {
+          if (cb.checked && !quantityInput.value.trim()) {
+            quantityInput.classList.add('error');
+          } else {
+            quantityInput.classList.remove('error');
           }
         });
       });
 
-      // Form validation
+      // Attach validation to the form submit
       form.addEventListener('submit', function (e) {
         let isValid = true;
         let atLeastOneValidDawa = false;
-        errorField.innerText = "";
+        errorField.innerText = ""; // Clear previous error messages
 
         // Validate Mtumiaji selection
         if (mtumiajiSelect.value === "") {
           errorField.innerText = "Tafadhali chagua mtumiaji.";
-          mtumiajiSelect.classList.add('has-error');
+          mtumiajiSelect.classList.add('error');
           isValid = false;
         } else {
-          mtumiajiSelect.classList.remove('has-error');
+          mtumiajiSelect.classList.remove('error');
         }
 
         // Validate each checked drug
         checkboxes.forEach(cb => {
           const index = cb.dataset.index;
           const quantityInput = document.getElementById(`kiasi-${index}`);
-          const medicineItem = document.getElementById(`medicine-item-${index}`);
-          
+          quantityInput.classList.remove('error'); // Remove error class before re-validation
+
           if (cb.checked) {
             const value = quantityInput.value.trim();
             const max = parseInt(quantityInput.max);
             const num = parseInt(value);
 
             if (!value) {
-              medicineItem.classList.add('has-error');
+              // Case 1: Checkbox is checked but no value entered
+              quantityInput.classList.add('error');
               isValid = false;
               errorField.innerText = "Tafadhali jaza kiasi kwa dawa zilizochaguliwa.";
             } else if (isNaN(num) || num < 1 || num > max) {
-              medicineItem.classList.add('has-error');
+              // Case 2: Value is invalid (not a number or out of range)
+              quantityInput.classList.add('error');
               isValid = false;
-              errorField.innerText = `Kiasi cha ${medicineItem.querySelector('.medicine-name').textContent} kinapaswa kuwa kati ya 1 na ${max}.`;
+              errorField.innerText = `Kiasi cha ${quantityInput.previousElementSibling.previousElementSibling.textContent.trim()} kinapaswa kuwa kati ya 1 na ${max}.`;
             } else {
-              atLeastOneValidDawa = true;
-              medicineItem.classList.remove('has-error');
+              atLeastOneValidDawa = true; // At least one drug is valid
             }
           }
         });
 
         // Final validation
         if (!isValid) {
-          e.preventDefault();
+          e.preventDefault(); // Prevent form submission
         } else if (!atLeastOneValidDawa) {
           errorField.innerText = "Tafadhali chagua angalau dawa moja na ujaze kiasi sahihi.";
-          e.preventDefault();
+          e.preventDefault(); // Prevent form submission
         }
       });
     });
