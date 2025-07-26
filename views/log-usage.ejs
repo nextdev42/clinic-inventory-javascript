@@ -254,15 +254,21 @@
       text-align: center;
     }
 
-    .has-error {
+    .input-error { /* Renamed from .has-error for clarity on inputs */
       border-color: var(--danger) !important;
+      box-shadow: 0 0 0 2px var(--danger); /* Add a subtle shadow for better visibility */
     }
 
-    .form-error {
+    .form-error-summary { /* New class for the main form error */
       color: var(--danger);
       font-size: 0.875rem;
       margin-top: 1rem;
       text-align: center;
+      padding: 0.75rem 1rem;
+      background-color: var(--danger); /* A light red background */
+      color: var(--white); /* White text for contrast */
+      border-radius: 0.375rem;
+      margin-bottom: 1.5rem; /* Space below the summary */
     }
   </style>
 </head>
@@ -276,17 +282,17 @@
   </header>
 
   <main class="container">
-    <% if (error) { %>
-      <div class="form-error">
+    <div id="form-error-summary" class="form-error-summary" role="alert" aria-live="polite">
+      <% if (error) { %>
         <i class="fas fa-exclamation-circle"></i> <%= error %>
-      </div>
-    <% } %>
+      <% } %>
+    </div>
 
     <div class="form-container">
-      <form method="POST" action="/matumizi/sajili">
+      <form method="POST" action="/matumizi/sajili" novalidate>
         <div class="form-group">
           <label for="mtumiaji" class="form-label">Chagua Mtumiaji:</label>
-          <select name="mtumiajiId" id="mtumiaji" class="form-select" required>
+          <select name="mtumiajiId" id="mtumiaji" class="form-select" required aria-describedby="mtumiaji-error">
             <option value="">-- Chagua mtumiaji --</option>
             <% watumiaji.forEach(m => { %>
               <option value="<%= m.id %>" <%= m.id == mtumiajiId ? 'selected' : '' %>>
@@ -294,30 +300,33 @@
               </option>
             <% }) %>
           </select>
+          <div id="mtumiaji-error" class="error-message" aria-live="polite"></div>
         </div>
 
         <div class="medicine-list">
           <h3 class="section-title">Chagua Dawa na Kiasi</h3>
-          <div id="error-msg" class="error-message"></div>
+          <div id="medicine-list-error" class="error-message" aria-live="polite"></div>
 
           <% dawa.forEach((d, index) => { %>
             <div class="medicine-item" id="medicine-item-<%= index %>">
-              <input type="checkbox" 
-                     name="dawaList[<%= index %>][confirmed]" 
-                     value="true" 
-                     class="medicine-checkbox" 
+              <input type="checkbox"
+                     name="dawaList[<%= index %>][confirmed]"
+                     value="true"
+                     class="medicine-checkbox"
                      data-index="<%= index %>"
-                     id="checkbox-<%= index %>">
-              
+                     id="checkbox-<%= index %>"
+                     aria-labelledby="medicine-name-<%= index %>"
+                     aria-controls="kiasi-<%= index %>">
+
               <div class="medicine-info">
-                <div class="medicine-name"><%= d.jina %></div>
-                <div class="medicine-stock">Hisa: <%= d.kiasi %></div>
+                <div class="medicine-name" id="medicine-name-<%= index %>"><%= d.jina %></div>
+                <div class="medicine-stock">Hisa: <span id="medicine-stock-<%= index %>"><%= d.kiasi %></span></div>
               </div>
-              
+
               <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
-              
+
               <div class="medicine-quantity">
-                <span class="quantity-label">Kiasi:</span>
+                <label for="kiasi-<%= index %>" class="quantity-label">Kiasi:</label>
                 <input type="number"
                        name="dawaList[<%= index %>][kiasi]"
                        placeholder="0"
@@ -325,16 +334,18 @@
                        max="<%= d.kiasi %>"
                        class="quantity-input"
                        id="kiasi-<%= index %>"
-                       disabled>
+                       disabled
+                       aria-labelledby="medicine-name-<%= index %> quantity-label-<%= index %>"
+                       aria-describedby="kiasi-error-<%= index %>">
               </div>
-              
-              <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
+
+              <div id="kiasi-error-<%= index %>" class="error-message" aria-live="polite"></div>
             </div>
           <% }) %>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" class="btn btn-primary" id="submit-button">
             <i class="fas fa-save"></i> Hifadhi Matumizi
           </button>
           <a href="/" class="btn btn-secondary">
@@ -347,21 +358,47 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      const checkboxes = document.querySelectorAll('.medicine-checkbox');
-      const errorField = document.getElementById('error-msg');
       const form = document.querySelector('form');
+      const submitButton = document.getElementById('submit-button');
       const mtumiajiSelect = document.getElementById('mtumiaji');
+      const mtumiajiErrorDiv = document.getElementById('mtumiaji-error');
+      const medicineListErrorDiv = document.getElementById('medicine-list-error');
+      const formErrorSummaryDiv = document.getElementById('form-error-summary');
+      const checkboxes = document.querySelectorAll('.medicine-checkbox');
 
-      // Initialize quantity inputs based on checkbox state
+      // Function to clear all individual medicine item errors
+      function clearMedicineErrors() {
+        checkboxes.forEach(cb => {
+          const index = cb.dataset.index;
+          const medicineItem = document.getElementById(`medicine-item-${index}`);
+          const quantityInput = document.getElementById(`kiasi-${index}`);
+          const quantityErrorDiv = document.getElementById(`kiasi-error-${index}`);
+
+          medicineItem.classList.remove('input-error'); // Updated class name
+          quantityInput.classList.remove('input-error'); // Apply error to input directly
+          if (quantityErrorDiv) quantityErrorDiv.innerText = '';
+        });
+      }
+
+      // Initialize quantity inputs based on checkbox state on page load
       checkboxes.forEach(cb => {
         const index = cb.dataset.index;
         const quantityInput = document.getElementById(`kiasi-${index}`);
         const medicineItem = document.getElementById(`medicine-item-${index}`);
+        const quantityErrorDiv = document.getElementById(`kiasi-error-${index}`);
 
-        // Enable quantity input if checkbox is checked on page load
+        // Set initial state for quantity input and item selection
         if (cb.checked) {
           quantityInput.disabled = false;
           medicineItem.classList.add('selected');
+        } else {
+          quantityInput.disabled = true;
+          // Ensure value is cleared if not checked
+          quantityInput.value = "";
+          medicineItem.classList.remove('selected');
+          medicineItem.classList.remove('input-error'); // Clear potential server-side error
+          quantityInput.classList.remove('input-error');
+          if (quantityErrorDiv) quantityErrorDiv.innerText = '';
         }
 
         cb.addEventListener('change', () => {
@@ -369,81 +406,150 @@
             quantityInput.disabled = false;
             quantityInput.focus();
             medicineItem.classList.add('selected');
+            // Clear specific error when checked
+            medicineItem.classList.remove('input-error');
+            quantityInput.classList.remove('input-error');
+            if (quantityErrorDiv) quantityErrorDiv.innerText = '';
           } else {
             quantityInput.disabled = true;
-            quantityInput.value = "";
+            quantityInput.value = ""; // Always clear value when unchecked
             medicineItem.classList.remove('selected');
-            medicineItem.classList.remove('has-error');
+            medicineItem.classList.remove('input-error'); // Clear specific error when unchecked
+            quantityInput.classList.remove('input-error');
+            if (quantityErrorDiv) quantityErrorDiv.innerText = '';
           }
         });
 
-        // Add validation when quantity input changes
         quantityInput.addEventListener('input', () => {
           if (cb.checked) {
             const value = quantityInput.value.trim();
             const max = parseInt(quantityInput.max);
             const num = parseInt(value);
+            const medicineName = document.getElementById(`medicine-name-${index}`).textContent;
 
-            if (value && !isNaN(num)) {
-              if (num < 1 || num > max) {
-                medicineItem.classList.add('has-error');
-              } else {
-                medicineItem.classList.remove('has-error');
-              }
-            } else {
-              medicineItem.classList.remove('has-error');
+            // Clear previous error
+            medicineItem.classList.remove('input-error');
+            quantityInput.classList.remove('input-error');
+            if (quantityErrorDiv) quantityErrorDiv.innerText = '';
+
+            if (value === "") {
+                // Allow empty input if it's not required (handled by form submission validation)
+                // This state will be caught by the submit handler
+            } else if (isNaN(num) || num < 1 || num > max) {
+              medicineItem.classList.add('input-error');
+              quantityInput.classList.add('input-error');
+              quantityErrorDiv.innerText = `Kiasi cha ${medicineName} kinapaswa kuwa kati ya 1 na ${max}.`;
             }
           }
         });
       });
 
-      // Form validation
-      form.addEventListener('submit', function (e) {
-        let isValid = true;
-        let atLeastOneValidDawa = false;
-        errorField.innerText = "";
+      // Clear server-side errors on first interaction
+      mtumiajiSelect.addEventListener('change', () => {
+        mtumiajiSelect.classList.remove('input-error');
+        mtumiajiErrorDiv.innerText = '';
+        // Clear overall summary if this was the only issue
+        if (!mtumiajiSelect.value && medicineListErrorDiv.innerText === '') {
+          formErrorSummaryDiv.innerText = '';
+          formErrorSummaryDiv.style.display = 'none';
+        }
+      });
 
-        // Validate Mtumiaji selection
+      // Clear the main form error summary when user starts making changes, but only if it's not a server-side error
+      form.addEventListener('input', () => {
+        // If the server-side error was set, we might keep it until a full successful validation.
+        // For now, let's clear all client-side related summary errors.
+        formErrorSummaryDiv.innerText = formErrorSummaryDiv.dataset.serverError ? formErrorSummaryDiv.innerText : '';
+        if (!formErrorSummaryDiv.dataset.serverError) {
+          formErrorSummaryDiv.style.display = 'none';
+        }
+      });
+
+      // Form validation on submit
+      form.addEventListener('submit', function (e) {
+        e.preventDefault(); // Prevent default submission initially
+        let formIsValid = true;
+        let atLeastOneDawaSelectedAndValid = false;
+        let selectedDawaCount = 0;
+
+        // Reset all error displays
+        mtumiajiErrorDiv.innerText = '';
+        medicineListErrorDiv.innerText = '';
+        formErrorSummaryDiv.innerText = '';
+        formErrorSummaryDiv.style.display = 'none';
+        mtumiajiSelect.classList.remove('input-error');
+        clearMedicineErrors(); // Clear all specific medicine errors
+
+        const errors = []; // Array to collect all error messages
+
+        // 1. Validate Mtumiaji selection
         if (mtumiajiSelect.value === "") {
-          errorField.innerText = "Tafadhali chagua mtumiaji.";
-          mtumiajiSelect.classList.add('has-error');
-          isValid = false;
-        } else {
-          mtumiajiSelect.classList.remove('has-error');
+          mtumiajiSelect.classList.add('input-error');
+          mtumiajiErrorDiv.innerText = "Tafadhali chagua mtumiaji.";
+          errors.push("Tafadhali chagua mtumiaji.");
+          formIsValid = false;
         }
 
-        // Validate each checked drug
+        // 2. Validate each checked drug
         checkboxes.forEach(cb => {
           const index = cb.dataset.index;
           const quantityInput = document.getElementById(`kiasi-${index}`);
           const medicineItem = document.getElementById(`medicine-item-${index}`);
-          
+          const quantityErrorDiv = document.getElementById(`kiasi-error-${index}`);
+          const medicineName = document.getElementById(`medicine-name-${index}`).textContent;
+          const maxStock = parseInt(quantityInput.max);
+
           if (cb.checked) {
+            selectedDawaCount++;
             const value = quantityInput.value.trim();
-            const max = parseInt(quantityInput.max);
             const num = parseInt(value);
 
-            if (!value) {
-              medicineItem.classList.add('has-error');
-              isValid = false;
-              errorField.innerText = "Tafadhali jaza kiasi kwa dawa zilizochaguliwa.";
-            } else if (isNaN(num) || num < 1 || num > max) {
-              medicineItem.classList.add('has-error');
-              isValid = false;
-              errorField.innerText = `Kiasi cha ${medicineItem.querySelector('.medicine-name').textContent} kinapaswa kuwa kati ya 1 na ${max}.`;
+            // Check if quantity is empty or invalid
+            if (value === "") {
+              medicineItem.classList.add('input-error');
+              quantityInput.classList.add('input-error');
+              quantityErrorDiv.innerText = `Tafadhali jaza kiasi cha ${medicineName}.`;
+              errors.push(`Kiasi kinakosekana kwa dawa ya "${medicineName}".`);
+              formIsValid = false;
+            } else if (isNaN(num) || num < 1 || num > maxStock) {
+              medicineItem.classList.add('input-error');
+              quantityInput.classList.add('input-error');
+              quantityErrorDiv.innerText = `Kiasi cha ${medicineName} kinapaswa kuwa kati ya 1 na ${maxStock}.`;
+              errors.push(`Kiasi cha "${medicineName}" ni batili (kati ya 1 na ${maxStock}).`);
+              formIsValid = false;
             } else {
-              atLeastOneValidDawa = true;
-              medicineItem.classList.remove('has-error');
+              // Valid drug selected with a valid quantity
+              atLeastOneDawaSelectedAndValid = true;
+              medicineItem.classList.remove('input-error');
+              quantityInput.classList.remove('input-error');
+              quantityErrorDiv.innerText = '';
             }
           }
         });
 
-        // Final validation
-        if (!isValid) {
-          e.preventDefault();
-        } else if (!atLeastOneValidDawa) {
-          errorField.innerText = "Tafadhali chagua angalau dawa moja na ujaze kiasi sahihi.";
-          e.preventDefault();
+        // 3. Overall medicine list validation (at least one valid drug selected)
+        if (selectedDawaCount === 0) {
+            medicineListErrorDiv.innerText = "Tafadhali chagua angalau dawa moja ya kutumia.";
+            errors.push("Tafadhali chagua angalau dawa moja ya kutumia.");
+            formIsValid = false;
+        } else if (!atLeastOneDawaSelectedAndValid && selectedDawaCount > 0) {
+            // This case means drugs were selected, but none had valid quantities
+            // Specific errors for each drug would have been added above.
+            // No additional generic error needed here as specific ones are better.
+        }
+
+
+        // Display cumulative errors in the form error summary
+        if (!formIsValid) {
+          formErrorSummaryDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Tafadhali rekebisha makosa yafuatayo:<br>' + errors.map(msg => `&bull; ${msg}`).join('<br>');
+          formErrorSummaryDiv.style.display = 'block';
+          // Scroll to the top of the form or the first error
+          mtumiajiSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          submitButton.disabled = false; // Re-enable if it was disabled
+        } else {
+          // If all client-side checks pass, submit the form
+          submitButton.disabled = true; // Prevent double submission
+          form.submit();
         }
       });
     });
