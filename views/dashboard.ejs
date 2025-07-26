@@ -2,56 +2,211 @@
 <html lang="sw">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashibodi ya Dawa</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2563eb',
+            secondary: '#f0f9ff',
+            success: '#16a34a',
+            warning: '#ea580c',
+            danger: '#dc2626',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .medicine-row:hover {
+      background-color: #f8fafc;
+      transform: translateY(-1px);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .stock-low {
+      color: #dc2626;
+      font-weight: 600;
+    }
+    .stock-medium {
+      color: #ea580c;
+      font-weight: 600;
+    }
+    .stock-ok {
+      color: #16a34a;
+      font-weight: 600;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-6 font-sans">
+<body class="bg-gray-50 font-sans antialiased">
+  <div class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-primary text-white shadow-md">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-2xl md:text-3xl font-bold flex items-center">
+            <i class="fas fa-capsules mr-3"></i> Dashibodi ya Dawa
+          </h1>
+          <div class="text-sm text-primary-100">
+            <i class="fas fa-calendar-alt mr-1"></i>
+            <span id="current-date"></span>
+          </div>
+        </div>
+      </div>
+    </header>
 
-  <h1 class="text-2xl font-bold text-gray-800 mb-4">📦 Dashibodi ya Dawa</h1>
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-primary">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-gray-500 text-sm">Dawa Zilizosajiliwa</p>
+              <h3 class="text-2xl font-bold text-gray-800"><%= dawa.length %></h3>
+            </div>
+            <i class="fas fa-pills text-primary text-2xl"></i>
+          </div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-warning">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-gray-500 text-sm">Dawa Zilizokaribia Kuisha</p>
+              <h3 class="text-2xl font-bold text-gray-800">
+                <%= dawa.filter(d => d.kilichobaki < 10 && d.kilichobaki > 0).length %>
+              </h3>
+            </div>
+            <i class="fas fa-exclamation-triangle text-warning text-2xl"></i>
+          </div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-danger">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-gray-500 text-sm">Dawa Zilizoisha</p>
+              <h3 class="text-2xl font-bold text-gray-800">
+                <%= dawa.filter(d => d.kilichobaki <= 0).length %>
+              </h3>
+            </div>
+            <i class="fas fa-times-circle text-danger text-2xl"></i>
+          </div>
+        </div>
+      </div>
 
-  <!-- Navigation Links -->
-  <div class="flex flex-wrap gap-3 mb-6">
-    <a href="/dawa/ongeza" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">➕ Ongeza Dawa</a>
-    <a href="/mtumiaji/ongeza" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">👤 Ongeza Mtumiaji</a>
-    <a href="/matumizi/sajili" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">📝 Sajili Matumizi ya Dawa</a>
-    <a href="/ripoti/matumizi" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">📋 Tazama Ripoti ya Matumizi</a>
-    <a href="/admin/watumiaji" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">👥 Orodha ya Watumiaji</a>
-    <a href="/mtumiaji/transfer" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">🔁 Hamisha Mtumiaji</a>
-    <a href="/admin/statistics" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">📈 Hamisha Mtumiaji</a>
+      <!-- Navigation Links -->
+      <div class="flex flex-wrap gap-3 mb-6">
+        <a href="/dawa/ongeza" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
+          <i class="fas fa-plus mr-2"></i> Ongeza Dawa
+        </a>
+        <a href="/mtumiaji/ongeza" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
+          <i class="fas fa-user-plus mr-2"></i> Ongeza Mtumiaji
+        </a>
+        <a href="/matumizi/sajili" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
+          <i class="fas fa-pen mr-2"></i> Sajili Matumizi
+        </a>
+        <a href="/ripoti/matumizi" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
+          <i class="fas fa-file-alt mr-2"></i> Ripoti ya Matumizi
+        </a>
+        <a href="/admin/watumiaji" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
+          <i class="fas fa-users mr-2"></i> Watumiaji
+        </a>
+        <a href="/mtumiaji/transfer" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
+          <i class="fas fa-exchange-alt mr-2"></i> Hamisha Mtumiaji
+        </a>
+      </div>
+
+      <% if (dawa.length > 0) { %>
+        <!-- Medicine Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+          <div class="p-4 border-b flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-800">Orodha ya Dawa Zote</h2>
+            <div class="relative">
+              <input type="text" placeholder="Tafuta dawa..." class="pl-8 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200">
+              <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            </div>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jina la Dawa</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aina</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kiasi Kilicholetwa</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kiasi Kilichotumika</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kilichobaki</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hali</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <% dawa.forEach(d => { 
+                  let statusClass = '';
+                  let statusText = '';
+                  if (d.kilichobaki <= 0) {
+                    statusClass = 'stock-low';
+                    statusText = 'Imekwisha';
+                  } else if (d.kilichobaki < 10) {
+                    statusClass = 'stock-medium';
+                    statusText = 'Karibu Kuisha';
+                  } else {
+                    statusClass = 'stock-ok';
+                    statusText = 'Inatosha';
+                  }
+                %>
+                  <tr class="medicine-row transition duration-150 ease-in-out">
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900"><%= d.jina %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500"><%= d.aina %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500"><%= d.kiasi %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500"><%= d.jumlaMatumizi %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500"><%= d.kilichobaki %></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="<%= statusClass %>"><%= statusText %></span>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% } else { %>
+        <!-- No Data Message -->
+        <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <i class="fas fa-exclamation-circle text-red-400"></i>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-red-700">
+                <%= error || "Hakuna data ya dawa kupatikana kwa sasa." %>
+              </p>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </main>
   </div>
 
-  <% if (dawa.length > 0) { %>
-    <!-- Table of Medicine -->
-    <div class="overflow-x-auto">
-      <table class="min-w-full bg-white rounded-lg shadow-md">
-        <thead class="bg-gray-200 text-gray-700">
-          <tr>
-            <th class="px-4 py-2 text-left">Jina la Dawa</th>
-            <th class="px-4 py-2 text-left">Aina</th>
-            <th class="px-4 py-2 text-left">Kiasi Kilicholetwa</th>
-            <th class="px-4 py-2 text-left">Kiasi Kilichotumika</th>
-            <th class="px-4 py-2 text-left">Kilichobaki</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% dawa.forEach(d => { %>
-            <tr class="border-t">
-              <td class="px-4 py-2"><%= d.jina %></td>
-              <td class="px-4 py-2"><%= d.aina %></td>
-              <td class="px-4 py-2"><%= d.kiasi %></td>
-              <td class="px-4 py-2"><%= d.jumlaMatumizi %></td>
-              <td class="px-4 py-2"><%= d.kilichobaki %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-  <% } else { %>
-    <!-- No Data Message -->
-    <div class="bg-red-100 text-red-600 p-4 rounded-md mt-4 text-center">
-      <p><%= error || "Hakuna data ya dawa kupatikana kwa sasa." %></p>
-    </div>
-  <% } %>
-
+  <script>
+    // Display current date
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('sw-TZ', options);
+    
+    // Simple search functionality
+    document.querySelector('input[type="text"]').addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('tbody tr');
+      
+      rows.forEach(row => {
+        const medicineName = row.querySelector('td:first-child').textContent.toLowerCase();
+        if (medicineName.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  </script>
 </body>
 </html>
