@@ -352,16 +352,22 @@ async function startApp() {
       readSheet('CLINICS')
     ]);
 
-    // Get success message and clear it from session
+    // Fetch session messages
     const successMessage = req.session.successMessage;
-    delete req.session.successMessage;
+    const errorMessage = req.session.errorMessage;
 
-    res.render('transfer-user', { watumiaji, clinics, successMessage });
+    // Clear session messages after reading
+    delete req.session.successMessage;
+    delete req.session.errorMessage;
+
+    // ✅ Pass both successMessage and errorMessage
+    res.render('transfer-user', { watumiaji, clinics, successMessage, errorMessage });
 
   } catch (error) {
     next(error);
   }
 });
+
 
 
 app.post('/mtumiaji/transfer', async (req, res, next) => {
