@@ -1,196 +1,242 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8">
-  <title>Sajili Matumizi ya Dawa</title>
+  <meta charset="UTF-8" />
+  <title>Ripoti ya Matumizi ya Dawa</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
+    :root {
+      --primary: #007acc;
+      --primary-hover: #005c99;
+      --secondary: #f0f9ff;
+      --danger: #dc2626;
+      --gray-50: #f5f5f5;
+      --gray-100: #e5e5e5;
+      --gray-200: #d4d4d4;
+      --gray-300: #a3a3a3;
+      --gray-400: #737373;
+      --gray-500: #525252;
+      --gray-600: #404040;
+      --gray-700: #262626;
+      --white: #ffffff;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      --radius-sm: 0.25rem;
+      --radius: 0.375rem;
+      --radius-md: 0.5rem;
+    }
+
     body {
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       max-width: 900px;
-      margin: auto;
-      padding: 20px;
-      background: #f5f5f5;
+      margin: 0 auto;
+      padding: 1.25rem;
+      background-color: var(--gray-50);
+      color: var(--gray-700);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
-    
-    h1, h2 {
+
+    h1 {
       text-align: center;
-      margin-bottom: 10px;
-      color: #007acc;
+      margin-bottom: 0.75rem;
+      color: var(--primary);
+      font-size: 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
     }
-    
+
     hr {
       border: 0;
       height: 1px;
-      background: #ddd;
-      margin: 15px 0;
+      background-color: var(--gray-200);
+      margin: 1rem 0 1.5rem;
     }
-    
-    .form-container {
-      background: white;
-      padding: 20px;
-      margin-bottom: 25px;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+
+    /* Filter Form */
+    form {
+      background: var(--white);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
     }
-    
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
+
     label {
-      display: block;
-      margin: 8px 0 4px;
-      color: #555;
+      font-size: 0.9375rem;
+      color: var(--gray-600);
+      font-weight: 500;
+      margin-right: 0.5rem;
     }
-    
-    select, input[type="number"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 16px;
-      margin-bottom: 5px;
+
+    select, input[type="date"] {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      font-size: 0.9375rem;
+      transition: all 0.15s;
     }
-    
+
     select {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: right 10px center;
+      background-position: right 0.75rem center;
       background-size: 16px 12px;
+      min-width: 180px;
     }
-    
-    h3 {
-      background: #007acc;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 5px;
-      margin: 20px 0 15px;
-      font-weight: normal;
-      font-size: 16px;
+
+    select:focus, input[type="date"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.1);
     }
-    
-    .dawa-item {
-      background: white;
-      padding: 12px 15px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      box-shadow: 0 0 3px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      border-left: 3px solid #007acc;
-    }
-    
-    .dawa-item input[type="checkbox"] {
-      margin-right: 15px;
-      width: 18px;
-      height: 18px;
-    }
-    
-    .medicine-info {
-      flex-grow: 1;
-    }
-    
-    .medicine-name {
-      font-weight: bold;
-      color: #333;
-    }
-    
-    .medicine-stock {
-      color: #666;
-      font-size: 14px;
-    }
-    
-    .quantity-container {
-      display: flex;
-      align-items: center;
-      margin-left: 15px;
-    }
-    
-    .quantity-label {
-      margin-right: 8px;
-      color: #666;
-      font-size: 14px;
-    }
-    
-    .quantity-input {
-      width: 70px;
-      padding: 6px;
-      text-align: center;
-    }
-    
-    .form-buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 25px;
-    }
-    
-    button, .btn-back {
-      padding: 8px 16px;
-      border-radius: 4px;
-      font-size: 16px;
+
+    button {
+      padding: 0.5rem 1rem;
+      background-color: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.9375rem;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 0.5rem;
     }
-    
-    button {
-      background: #007acc;
-      color: white;
-      border: none;
-    }
-    
+
     button:hover {
-      background: #005c99;
+      background-color: var(--primary-hover);
     }
-    
-    .btn-back {
-      background: white;
-      color: #007acc;
-      border: 1px solid #ddd;
-      text-decoration: none;
+
+    /* User Blocks */
+    .user-block {
+      background: var(--white);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
     }
-    
-    .btn-back:hover {
-      background: #f0f0f0;
-    }
-    
-    .error-message, .form-error {
-      background: rgba(220, 38, 38, 0.1);
-      color: #dc2626;
-      padding: 10px 15px;
-      border-radius: 4px;
-      margin: 15px 0;
-      border-left: 3px solid #dc2626;
+
+    .user-block h2 {
+      margin-bottom: 1rem;
+      color: var(--primary);
+      font-size: 1.25rem;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 0.5rem;
     }
-    
-    .error {
-      border-color: #dc2626 !important;
+
+    /* Date Groups */
+    .date-group {
+      margin-bottom: 1.25rem;
     }
-    
-    @media (max-width: 600px) {
-      .dawa-item {
-        flex-wrap: wrap;
+
+    .date-group h3 {
+      background-color: var(--primary);
+      color: var(--white);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+      font-size: 0.9375rem;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    li {
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed var(--gray-100);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    li:last-child {
+      border-bottom: none;
+    }
+
+    li strong {
+      color: var(--gray-800);
+    }
+
+    li small {
+      color: var(--gray-500);
+      font-size: 0.8125rem;
+    }
+
+    .clinic-label {
+      font-style: italic;
+      color: var(--gray-400);
+    }
+
+    /* No Data Message */
+    .no-data {
+      text-align: center;
+      background: var(--white);
+      padding: 1.5rem;
+      border-radius: var(--radius-md);
+      margin: 1.5rem 0;
+      box-shadow: var(--shadow);
+    }
+
+    .no-data p {
+      color: var(--gray-600);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    /* Back Link */
+    .back-link {
+      display: block;
+      margin: 2rem auto 1rem;
+      text-align: center;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      form {
+        flex-direction: column;
+        align-items: flex-start;
       }
-      
-      .quantity-container {
-        margin-left: 0;
-        margin-top: 10px;
+
+      label {
+        margin-bottom: 0.25rem;
+      }
+
+      select, input[type="date"] {
         width: 100%;
-        justify-content: flex-end;
       }
-      
-      .form-buttons {
-        flex-direction: column-reverse;
-        gap: 10px;
-      }
-      
-      button, .btn-back {
+
+      button {
         width: 100%;
         justify-content: center;
       }
@@ -198,154 +244,60 @@
   </style>
 </head>
 <body>
-  <h1><i class="fas fa-pills"></i> Sajili Matumizi ya Dawa</h1>
+  <h1><i class="fas fa-file-alt"></i> Ripoti ya Matumizi ya Dawa kwa Watumiaji</h1>
   <hr>
 
-  <div class="form-container">
-    <% if (error) { %>
-      <div class="form-error">
-        <i class="fas fa-exclamation-circle"></i> <%= error %>
-      </div>
+  <!-- 🔍 Filter Form -->
+  <form method="GET" action="/report-usage">
+    <label for="aina"><i class="fas fa-filter"></i> Aina ya ripoti:</label>
+    <select name="aina" id="aina">
+      <option value="">-- Chagua --</option>
+      <option value="wiki" <%= query.aina === 'wiki' ? 'selected' : '' %>>Wiki hii</option>
+      <option value="mwezi" <%= query.aina === 'mwezi' ? 'selected' : '' %>>Mwezi huu</option>
+      <option value="range" <%= query.aina === 'range' ? 'selected' : '' %>>Tarehe Maalum</option>
+    </select>
+
+    <% if (query.aina === 'range') { %>
+      <label for="start"><i class="far fa-calendar-alt"></i> Tarehe ya mwanzo:</label>
+      <input type="date" name="start" id="start" value="<%= query.start || '' %>">
+
+      <label for="end"><i class="far fa-calendar-alt"></i> Mpaka:</label>
+      <input type="date" name="end" id="end" value="<%= query.end || '' %>">
     <% } %>
 
-    <form method="POST" action="/matumizi/sajili">
-      <div class="form-group">
-        <label for="mtumiaji">Chagua Mtumiaji:</label>
-        <select name="mtumiajiId" id="mtumiaji" required>
-          <option value="">-- Chagua mtumiaji --</option>
-          <% watumiaji.forEach(m => { %>
-            <option value="<%= m.id %>" <%= m.id == mtumiajiId ? 'selected' : '' %>>
-              <%= m.jina %> - <%= m.maelezo || '' %>
-            </option>
-          <% }) %>
-        </select>
-      </div>
+    <button type="submit"><i class="fas fa-search"></i> Tazama Ripoti</button>
+  </form>
 
-      <h3><i class="fas fa-medkit"></i> Chagua Dawa na Kiasi</h3>
-      <div id="error-msg" class="error-message"></div>
+  <% if(report.length === 0 || report.every(u => Object.keys(u.matumiziByDate).length === 0)) { %>
+    <div class="no-data">
+      <p><i class="fas fa-exclamation-triangle"></i> <strong>Hakuna taarifa za matumizi kwa kipindi ulichotaja.</strong></p>
+    </div>
+  <% } else { %>
 
-      <% dawa.forEach((d, index) => { %>
-        <div class="dawa-item">
-          <input type="checkbox" name="dawaList[<%= index %>][confirmed]" value="true" class="checkbox" data-index="<%= index %>">
-          <div class="medicine-info">
-            <div class="medicine-name"><%= d.jina %></div>
-            <div class="medicine-stock">Hisa: <%= d.kiasi %></div>
+    <% report.forEach(user => { %>
+      <div class="user-block">
+        <h2><i class="fas fa-user"></i> <%= user.jina %></h2>
+
+        <% Object.keys(user.matumiziByDate).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { %>
+          <div class="date-group">
+            <h3><i class="far fa-calendar"></i> <%= new Date(date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
+            <ul>
+              <% user.matumiziByDate[date].forEach(item => { %>
+                <li>
+                  <i class="fas fa-pills"></i> <strong><%= item.dawa %></strong>: <%= item.kiasi %>
+                  <small>
+                    <i class="far fa-clock"></i> <%= item.saa || 'hakujulikana' %>
+                    <span class="clinic-label">(Kliniki: <%= item.kliniki %>)</span>
+                  </small>
+                </li>
+              <% }) %>
+            </ul>
           </div>
-          <input type="hidden" name="dawaList[<%= index %>][id]" value="<%= d.id %>">
-          <div class="quantity-container">
-            <span class="quantity-label">Kiasi:</span>
-            <input type="number"
-                  name="dawaList[<%= index %>][kiasi]"
-                  placeholder="0"
-                  min="1"
-                  max="<%= d.kiasi %>"
-                  class="quantity-input"
-                  id="kiasi-<%= index %>">
-          </div>
-          <input type="hidden" name="dawaList[<%= index %>][tarehe]" value="<%= new Date().toISOString() %>">
-        </div>
-      <% }) %>
-
-      <div class="form-buttons">
-        <button type="submit">
-          <i class="fas fa-save"></i> Hifadhi Matumizi
-        </button>
-        <a href="/" class="btn-back">
-          <i class="fas fa-arrow-left"></i> Rudi Nyumbani
-        </a>
+        <% }) %>
       </div>
-    </form>
-  </div>
+    <% }) %>
+  <% } %>
 
-  <!-- JavaScript remains exactly the same -->
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const checkboxes = document.querySelectorAll('.checkbox');
-      const errorField = document.getElementById('error-msg');
-      const form = document.querySelector('form');
-      const mtumiajiSelect = document.getElementById('mtumiaji');
-
-      // Initialize quantity inputs based on checkbox state
-      checkboxes.forEach(cb => {
-        const index = cb.dataset.index;
-        const quantityInput = document.getElementById(`kiasi-${index}`);
-        quantityInput.disabled = !cb.checked; // Disable if not checked initially
-        if (!cb.checked) {
-          quantityInput.value = ""; // Clear value if initially unchecked
-        }
-
-        cb.addEventListener('change', () => {
-          if (cb.checked) {
-            quantityInput.disabled = false;
-            quantityInput.focus();
-          } else {
-            quantityInput.disabled = true;
-            quantityInput.value = ""; // Clear value when unchecked
-            quantityInput.classList.remove('error'); // Remove error class when unchecked
-          }
-        });
-
-        // Add validation when quantity input loses focus
-        quantityInput.addEventListener('blur', () => {
-          if (cb.checked && !quantityInput.value.trim()) {
-            quantityInput.classList.add('error');
-          } else {
-            quantityInput.classList.remove('error');
-          }
-        });
-      });
-
-      // Attach validation to the form submit
-      form.addEventListener('submit', function (e) {
-        let isValid = true;
-        let atLeastOneValidDawa = false;
-        errorField.innerText = ""; // Clear previous error messages
-
-        // Validate Mtumiaji selection
-        if (mtumiajiSelect.value === "") {
-          errorField.innerText = "Tafadhali chagua mtumiaji.";
-          mtumiajiSelect.classList.add('error');
-          isValid = false;
-        } else {
-          mtumiajiSelect.classList.remove('error');
-        }
-
-        // Validate each checked drug
-        checkboxes.forEach(cb => {
-          const index = cb.dataset.index;
-          const quantityInput = document.getElementById(`kiasi-${index}`);
-          quantityInput.classList.remove('error'); // Remove error class before re-validation
-
-          if (cb.checked) {
-            const value = quantityInput.value.trim();
-            const max = parseInt(quantityInput.max);
-            const num = parseInt(value);
-
-            if (!value) {
-              // Case 1: Checkbox is checked but no value entered
-              quantityInput.classList.add('error');
-              isValid = false;
-              errorField.innerText = "Tafadhali jaza kiasi kwa dawa zilizochaguliwa.";
-            } else if (isNaN(num) || num < 1 || num > max) {
-              // Case 2: Value is invalid (not a number or out of range)
-              quantityInput.classList.add('error');
-              isValid = false;
-              errorField.innerText = `Kiasi cha ${quantityInput.previousElementSibling.previousElementSibling.textContent.trim()} kinapaswa kuwa kati ya 1 na ${max}.`;
-            } else {
-              atLeastOneValidDawa = true; // At least one drug is valid
-            }
-          }
-        });
-
-        // Final validation
-        if (!isValid) {
-          e.preventDefault(); // Prevent form submission
-        } else if (!atLeastOneValidDawa) {
-          errorField.innerText = "Tafadhali chagua angalau dawa moja na ujaze kiasi sahihi.";
-          e.preventDefault(); // Prevent form submission
-        }
-      });
-    });
-  </script>
+  <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Rudi kwenye Dashibodi</a>
 </body>
 </html>
