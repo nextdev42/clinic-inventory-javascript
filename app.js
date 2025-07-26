@@ -438,7 +438,7 @@ app.post('/mtumiaji/transfer', async (req, res, next) => {
 
 app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
-    const { mode, from, to, tarehe } = req.query;
+    const { mode, from, to, tarehe, mtumiajiId } = req.query;
     const [watumiaji, dawa, matumizi] = await Promise.all([
       readSheet('WATUMIAJI'),
       readSheet('DAWA'),
