@@ -1,84 +1,250 @@
 <!DOCTYPE html>
 <html lang="sw">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Statistik za Watumiaji</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-gray-100 min-h-screen">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistik za Watumiaji</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #dbeafe;
+      --secondary: #f0f9ff;
+      --success: #16a34a;
+      --warning: #ea580c;
+      --danger: #dc2626;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --white: #ffffff;
+    }
 
-    <div class="max-w-6xl mx-auto p-6">
-      <h1 class="text-3xl font-bold mb-4 text-center text-blue-700">Statistik za Watumiaji</h1>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-      <div class="grid md:grid-cols-2 gap-6">
-        <!-- Watumiaji Kwa Kliniki -->
-        <div class="bg-white p-4 rounded-lg shadow-md">
-          <h2 class="text-xl font-semibold mb-2 text-gray-800">Watumiaji kwa Kliniki</h2>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--gray-50);
+      color: var(--gray-800);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    /* Header Styles */
+    header {
+      background-color: var(--primary);
+      color: var(--white);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+    }
+
+    .header-title i {
+      margin-right: 0.75rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (min-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat-card {
+      background-color: var(--white);
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      height: 100%;
+    }
+
+    .stat-card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
+
+    /* Home Button */
+    .home-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--primary);
+      color: var(--white);
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.375rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      margin: 2rem auto 0;
+    }
+
+    .home-button:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .home-button i {
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1 class="header-title">
+        <i class="fas fa-chart-bar"></i> Statistik za Watumiaji
+      </h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="stats-grid">
+      <!-- Watumiaji Kwa Kliniki -->
+      <div class="stat-card">
+        <h2 class="stat-card-title">Watumiaji kwa Kliniki</h2>
+        <div class="chart-container">
           <canvas id="clinicChart"></canvas>
         </div>
+      </div>
 
-        <!-- Matumizi ya Dawa -->
-        <div class="bg-white p-4 rounded-lg shadow-md">
-          <h2 class="text-xl font-semibold mb-2 text-gray-800">Matumizi ya Dawa</h2>
+      <!-- Matumizi ya Dawa -->
+      <div class="stat-card">
+        <h2 class="stat-card-title">Matumizi ya Dawa</h2>
+        <div class="chart-container">
           <canvas id="medicineChart"></canvas>
         </div>
       </div>
-
-      <div class="mt-8 flex justify-center">
-        <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">🏠 Rudi Nyumbani</a>
-      </div>
     </div>
 
-    <script>
-      const clinicData = <%- JSON.stringify(clinicStats) %>;
-      const medicineData = <%- JSON.stringify(medicineStats) %>;
+    <a href="/" class="home-button">
+      <i class="fas fa-home"></i> Rudi Nyumbani
+    </a>
+  </main>
 
-      const clinicLabels = Object.keys(clinicData);
-      const clinicCounts = Object.values(clinicData);
+  <script>
+    const clinicData = <%- JSON.stringify(clinicStats) %>;
+    const medicineData = <%- JSON.stringify(medicineStats) %>;
 
-      const medicineLabels = Object.keys(medicineData);
-      const medicineCounts = Object.values(medicineData);
+    const clinicLabels = Object.keys(clinicData);
+    const clinicCounts = Object.values(clinicData);
 
-      new Chart(document.getElementById('clinicChart'), {
-        type: 'bar',
-        data: {
-          labels: clinicLabels,
-          datasets: [{
-            label: 'Idadi ya Watumiaji',
-            data: clinicCounts,
-            backgroundColor: 'rgba(59, 130, 246, 0.7)',
-            borderColor: 'rgba(59, 130, 246, 1)',
-            borderWidth: 1
-          }]
+    const medicineLabels = Object.keys(medicineData);
+    const medicineCounts = Object.values(medicineData);
+
+    // Clinic Chart
+    new Chart(document.getElementById('clinicChart'), {
+      type: 'bar',
+      data: {
+        labels: clinicLabels,
+        datasets: [{
+          label: 'Idadi ya Watumiaji',
+          data: clinicCounts,
+          backgroundColor: 'rgba(37, 99, 235, 0.7)',
+          borderColor: 'rgba(37, 99, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { 
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
         },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true }
+        plugins: {
+          legend: {
+            position: 'top',
           }
         }
-      });
+      }
+    });
 
-      new Chart(document.getElementById('medicineChart'), {
-        type: 'bar',
-        data: {
-          labels: medicineLabels,
-          datasets: [{
-            label: 'Idadi ya Matumizi',
-            data: medicineCounts,
-            backgroundColor: 'rgba(34, 197, 94, 0.7)',
-            borderColor: 'rgba(34, 197, 94, 1)',
-            borderWidth: 1
-          }]
+    // Medicine Chart
+    new Chart(document.getElementById('medicineChart'), {
+      type: 'bar',
+      data: {
+        labels: medicineLabels,
+        datasets: [{
+          label: 'Idadi ya Matumizi',
+          data: medicineCounts,
+          backgroundColor: 'rgba(22, 163, 74, 0.7)',
+          borderColor: 'rgba(22, 163, 74, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { 
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
         },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true }
+        plugins: {
+          legend: {
+            position: 'top',
           }
         }
-      });
-    </script>
-  </body>
+      }
+    });
+  </script>
+</body>
 </html>
