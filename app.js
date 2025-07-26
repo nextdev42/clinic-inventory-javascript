@@ -17,31 +17,47 @@ const excelPath = path.join(dataDir, 'database.xlsx');
 
 const SHEETS = {
   DAWA: { name: 'Dawa', headers: ['id', 'jina', 'aina', 'kiasi'] },
-  WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina',  'maelezo'] },
-  MATUMIZI: { name: 'Matumizi', headers: ['id', 'dawaId', 'mtumiajiId', 'mtumiajiJina', 'maelezo', 'kiasi', 'tarehe'] }
+  WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina',  'maelezo', 'clinicId'] }, // *** clinicId added ***
+  MATUMIZI: { name: 'Matumizi', headers: ['id', 'dawaId', 'mtumiajiId', 'mtumiajiJina', 'maelezo', 'kiasi', 'tarehe', 'clinicId'] }, // *** clinicId added ***
+  CLINICS: { name: 'Clinics', headers: ['id', 'jina'] } // *** new Clinics sheet ***
 };
 
 async function initializeDatabase() {
   try {
     await fs.mkdir(dataDir, { recursive: true });
+    let workbook;
     try {
       await fs.access(excelPath);
-      const workbook = xlsx.readFile(excelPath);
+      workbook = xlsx.readFile(excelPath);
       for (const config of Object.values(SHEETS)) {
         if (!workbook.Sheets[config.name]) {
           const worksheet = xlsx.utils.aoa_to_sheet([config.headers]);
           xlsx.utils.book_append_sheet(workbook, worksheet, config.name);
         }
       }
-      await xlsx.writeFile(workbook, excelPath);
     } catch {
-      const workbook = xlsx.utils.book_new();
+      workbook = xlsx.utils.book_new();
       for (const config of Object.values(SHEETS)) {
         const worksheet = xlsx.utils.aoa_to_sheet([config.headers]);
         xlsx.utils.book_append_sheet(workbook, worksheet, config.name);
       }
-      await xlsx.writeFile(workbook, excelPath);
     }
+
+    // *** Add default clinics if none exist ***
+    const clinicsSheet = workbook.Sheets[SHEETS.CLINICS.name];
+    const clinicsData = clinicsSheet ? xlsx.utils.sheet_to_json(clinicsSheet) : [];
+    if (!clinicsData.length) {
+      const defaultClinics = [
+        { id: 'C001', jina: 'Kisiwani' },
+        { id: 'C002', jina: 'Mikwambe' },
+        { id: 'C003', jina: 'Kibada' },
+        { id: 'C004', jina: 'Jirambe' }
+      ];
+      const ws = xlsx.utils.json_to_sheet(defaultClinics, { header: SHEETS.CLINICS.headers });
+      workbook.Sheets[SHEETS.CLINICS.name] = ws;
+    }
+
+    await xlsx.writeFile(workbook, excelPath);
   } catch (error) {
     console.error('❌ Database initialization failed:', error);
     throw error;
