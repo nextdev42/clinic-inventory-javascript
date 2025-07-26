@@ -553,6 +553,43 @@ if (mode === 'day' && tarehe) {
   }
 });
 
+app.get('/admin/statistics', async (req, res, next) => {
+  try {
+    const [watumiaji, matumizi, dawa, clinics] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('MATUMIZI'),
+      readSheet('DAWA'),
+      readSheet('CLINICS')
+    ]);
+
+    // === Takwimu za Watumiaji kwa kila Kliniki ===
+    const clinicMap = {};
+    clinics.forEach(clinic => {
+      clinicMap[clinic.id] = clinic.jina;
+    });
+
+    const clinicStats = {};
+    watumiaji.forEach(mtumiaji => {
+      const jinaKliniki = clinicMap[mtumiaji.clinicId] || 'Haijulikani';
+      clinicStats[jinaKliniki] = (clinicStats[jinaKliniki] || 0) + 1;
+    });
+
+    // === Takwimu za Matumizi ya Dawa ===
+    const medicineStats = {};
+    matumizi.forEach(entry => {
+      const jinaDawa = entry.dawa;
+      const kiasi = parseInt(entry.kiasi) || 0;
+      medicineStats[jinaDawa] = (medicineStats[jinaDawa] || 0) + kiasi;
+    });
+
+    res.render('admin-statistics', {
+      clinicStats,
+      medicineStats
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 
 app.get('/mtumiaji/futa/:id', async (req, res, next) => {
