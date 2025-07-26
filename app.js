@@ -546,7 +546,8 @@ if (mode === 'day' && tarehe) {
       to,
       tarehe,
       reportTitle,
-      query: { aina: mode, start: from, end: to }
+      query: { aina: mode, start: from, end: to },
+      error: null
     });
   } catch (error) {
     next(error);
