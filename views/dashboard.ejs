@@ -4,143 +4,403 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashibodi ya Dawa</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#2563eb',
-            secondary: '#f0f9ff',
-            success: '#16a34a',
-            warning: '#ea580c',
-            danger: '#dc2626',
-          }
-        }
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #dbeafe;
+      --secondary: #f0f9ff;
+      --success: #16a34a;
+      --warning: #ea580c;
+      --danger: #dc2626;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --white: #ffffff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--gray-50);
+      color: var(--gray-800);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* Header Styles */
+    header {
+      background-color: var(--primary);
+      color: var(--white);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      padding: 1rem 0;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+    }
+
+    .header-title i {
+      margin-right: 0.75rem;
+    }
+
+    .header-date {
+      font-size: 0.875rem;
+      color: var(--primary-light);
+      display: flex;
+      align-items: center;
+    }
+
+    .header-date i {
+      margin-right: 0.25rem;
+    }
+
+    /* Main Content */
+    main {
+      padding: 1.5rem 0;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
       }
     }
-  </script>
-  <style>
-    .medicine-row:hover {
-      background-color: #f8fafc;
+
+    .stat-card {
+      background-color: var(--white);
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      border-left: 4px solid;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-card-primary {
+      border-left-color: var(--primary);
+    }
+
+    .stat-card-warning {
+      border-left-color: var(--warning);
+    }
+
+    .stat-card-danger {
+      border-left-color: var(--danger);
+    }
+
+    .stat-card-content p {
+      color: var(--gray-500);
+      font-size: 0.875rem;
+    }
+
+    .stat-card-content h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
+    .stat-card-icon {
+      font-size: 1.5rem;
+    }
+
+    .stat-card-icon-primary {
+      color: var(--primary);
+    }
+
+    .stat-card-icon-warning {
+      color: var(--warning);
+    }
+
+    .stat-card-icon-danger {
+      color: var(--danger);
+    }
+
+    /* Navigation Links */
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .nav-link {
+      background-color: var(--primary);
+      color: var(--white);
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-link:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .nav-link i {
+      margin-right: 0.5rem;
+    }
+
+    /* Medicine Table */
+    .medicine-table-container {
+      background-color: var(--white);
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .table-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-header h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .search-container {
+      position: relative;
+    }
+
+    .search-input {
+      padding: 0.5rem 1rem 0.5rem 2rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      width: 100%;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-light);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray-400);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background-color: var(--gray-50);
+    }
+
+    th {
+      padding: 0.75rem 1.5rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--gray-200);
+      transition: all 0.15s ease;
+    }
+
+    tbody tr:hover {
+      background-color: var(--gray-50);
       transform: translateY(-1px);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
+
+    td {
+      padding: 1rem 1.5rem;
+      white-space: nowrap;
+    }
+
+    td:first-child {
+      font-weight: 500;
+      color: var(--gray-900);
+    }
+
+    /* Stock Status */
     .stock-low {
-      color: #dc2626;
+      color: var(--danger);
       font-weight: 600;
     }
+
     .stock-medium {
-      color: #ea580c;
+      color: var(--warning);
       font-weight: 600;
     }
+
     .stock-ok {
-      color: #16a34a;
+      color: var(--success);
       font-weight: 600;
+    }
+
+    /* No Data Message */
+    .no-data {
+      background-color: #fef2f2;
+      border-left: 4px solid var(--danger);
+      padding: 1rem;
+      border-radius: 0.375rem;
+      display: flex;
+    }
+
+    .no-data-icon {
+      color: var(--danger);
+      margin-right: 0.75rem;
+    }
+
+    .no-data-text {
+      color: var(--danger);
+      font-size: 0.875rem;
     }
   </style>
 </head>
-<body class="bg-gray-50 font-sans antialiased">
+<body>
   <div class="min-h-screen">
     <!-- Header -->
-    <header class="bg-primary text-white shadow-md">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex justify-between items-center">
-          <h1 class="text-2xl md:text-3xl font-bold flex items-center">
-            <i class="fas fa-capsules mr-3"></i> Dashibodi ya Dawa
-          </h1>
-          <div class="text-sm text-primary-100">
-            <i class="fas fa-calendar-alt mr-1"></i>
-            <span id="current-date"></span>
-          </div>
+    <header>
+      <div class="container header-content">
+        <h1 class="header-title">
+          <i class="fas fa-capsules"></i> Dashibodi ya Dawa
+        </h1>
+        <div class="header-date">
+          <i class="fas fa-calendar-alt"></i>
+          <span id="current-date"></span>
         </div>
       </div>
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-6">
+    <main class="container">
       <!-- Quick Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-primary">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="text-gray-500 text-sm">Dawa Zilizosajiliwa</p>
-              <h3 class="text-2xl font-bold text-gray-800"><%= dawa.length %></h3>
-            </div>
-            <i class="fas fa-pills text-primary text-2xl"></i>
+      <div class="stats-grid">
+        <div class="stat-card stat-card-primary">
+          <div class="stat-card-content">
+            <p>Dawa Zilizosajiliwa</p>
+            <h3><%= dawa.length %></h3>
           </div>
+          <i class="fas fa-pills stat-card-icon stat-card-icon-primary"></i>
         </div>
-        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-warning">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="text-gray-500 text-sm">Dawa Zilizokaribia Kuisha</p>
-              <h3 class="text-2xl font-bold text-gray-800">
-                <%= dawa.filter(d => d.kilichobaki < 10 && d.kilichobaki > 0).length %>
-              </h3>
-            </div>
-            <i class="fas fa-exclamation-triangle text-warning text-2xl"></i>
+        <div class="stat-card stat-card-warning">
+          <div class="stat-card-content">
+            <p>Dawa Zilizokaribia Kuisha</p>
+            <h3><%= dawa.filter(d => d.kilichobaki < 10 && d.kilichobaki > 0).length %></h3>
           </div>
+          <i class="fas fa-exclamation-triangle stat-card-icon stat-card-icon-warning"></i>
         </div>
-        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-danger">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="text-gray-500 text-sm">Dawa Zilizoisha</p>
-              <h3 class="text-2xl font-bold text-gray-800">
-                <%= dawa.filter(d => d.kilichobaki <= 0).length %>
-              </h3>
-            </div>
-            <i class="fas fa-times-circle text-danger text-2xl"></i>
+        <div class="stat-card stat-card-danger">
+          <div class="stat-card-content">
+            <p>Dawa Zilizoisha</p>
+            <h3><%= dawa.filter(d => d.kilichobaki <= 0).length %></h3>
           </div>
+          <i class="fas fa-times-circle stat-card-icon stat-card-icon-danger"></i>
         </div>
       </div>
 
       <!-- Navigation Links -->
-      <div class="flex flex-wrap gap-3 mb-6">
-        <a href="/dawa/ongeza" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
-          <i class="fas fa-plus mr-2"></i> Ongeza Dawa
+      <div class="nav-links">
+        <a href="/dawa/ongeza" class="nav-link">
+          <i class="fas fa-plus"></i> Ongeza Dawa
         </a>
-        <a href="/mtumiaji/ongeza" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
-          <i class="fas fa-user-plus mr-2"></i> Ongeza Mtumiaji
+        <a href="/mtumiaji/ongeza" class="nav-link">
+          <i class="fas fa-user-plus"></i> Ongeza Mtumiaji
         </a>
-        <a href="/matumizi/sajili" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
-          <i class="fas fa-pen mr-2"></i> Sajili Matumizi
+        <a href="/matumizi/sajili" class="nav-link">
+          <i class="fas fa-pen"></i> Sajili Matumizi
         </a>
-        <a href="/ripoti/matumizi" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
-          <i class="fas fa-file-alt mr-2"></i> Ripoti ya Matumizi
+        <a href="/ripoti/matumizi" class="nav-link">
+          <i class="fas fa-file-alt"></i> Ripoti ya Matumizi
         </a>
-        <a href="/admin/watumiaji" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
-          <i class="fas fa-users mr-2"></i> Watumiaji
+        <a href="/admin/watumiaji" class="nav-link">
+          <i class="fas fa-users"></i> Watumiaji
         </a>
-        <a href="/mtumiaji/transfer" class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
-          <i class="fas fa-exchange-alt mr-2"></i> Hamisha Mtumiaji
+        <a href="/mtumiaji/transfer" class="nav-link">
+          <i class="fas fa-exchange-alt"></i> Hamisha Mtumiaji
         </a>
       </div>
 
       <% if (dawa.length > 0) { %>
         <!-- Medicine Table -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-          <div class="p-4 border-b flex justify-between items-center">
-            <h2 class="text-lg font-semibold text-gray-800">Orodha ya Dawa Zote</h2>
-            <div class="relative">
-              <input type="text" placeholder="Tafuta dawa..." class="pl-8 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200">
-              <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        <div class="medicine-table-container">
+          <div class="table-header">
+            <h2>Orodha ya Dawa Zote</h2>
+            <div class="search-container">
+              <i class="fas fa-search search-icon"></i>
+              <input type="text" placeholder="Tafuta dawa..." class="search-input">
             </div>
           </div>
           
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
+          <div class="table-wrapper">
+            <table>
+              <thead>
                 <tr>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jina la Dawa</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aina</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kiasi Kilicholetwa</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kiasi Kilichotumika</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kilichobaki</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hali</th>
+                  <th>Jina la Dawa</th>
+                  <th>Aina</th>
+                  <th>Kiasi Kilicholetwa</th>
+                  <th>Kiasi Kilichotumika</th>
+                  <th>Kilichobaki</th>
+                  <th>Hali</th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
+              <tbody>
                 <% dawa.forEach(d => { 
                   let statusClass = '';
                   let statusText = '';
@@ -155,13 +415,13 @@
                     statusText = 'Inatosha';
                   }
                 %>
-                  <tr class="medicine-row transition duration-150 ease-in-out">
-                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900"><%= d.jina %></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500"><%= d.aina %></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500"><%= d.kiasi %></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500"><%= d.jumlaMatumizi %></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500"><%= d.kilichobaki %></td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                  <tr>
+                    <td><%= d.jina %></td>
+                    <td><%= d.aina %></td>
+                    <td><%= d.kiasi %></td>
+                    <td><%= d.jumlaMatumizi %></td>
+                    <td><%= d.kilichobaki %></td>
+                    <td>
                       <span class="<%= statusClass %>"><%= statusText %></span>
                     </td>
                   </tr>
@@ -172,17 +432,13 @@
         </div>
       <% } else { %>
         <!-- No Data Message -->
-        <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <i class="fas fa-exclamation-circle text-red-400"></i>
-            </div>
-            <div class="ml-3">
-              <p class="text-sm text-red-700">
-                <%= error || "Hakuna data ya dawa kupatikana kwa sasa." %>
-              </p>
-            </div>
+        <div class="no-data">
+          <div class="no-data-icon">
+            <i class="fas fa-exclamation-circle"></i>
           </div>
+          <p class="no-data-text">
+            <%= error || "Hakuna data ya dawa kupatikana kwa sasa." %>
+          </p>
         </div>
       <% } %>
     </main>
@@ -194,7 +450,7 @@
     document.getElementById('current-date').textContent = new Date().toLocaleDateString('sw-TZ', options);
     
     // Simple search functionality
-    document.querySelector('input[type="text"]').addEventListener('input', function(e) {
+    document.querySelector('.search-input').addEventListener('input', function(e) {
       const searchTerm = e.target.value.toLowerCase();
       const rows = document.querySelectorAll('tbody tr');
       
