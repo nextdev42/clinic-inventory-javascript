@@ -411,6 +411,19 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
         matumiziByDate: byDate
       };
     });
+let reportTitle = 'Ripoti ya Matumizi';
+
+if (mode === 'day' && tarehe) {
+  const d = new Date(tarehe);
+  reportTitle = `Ripoti ya Siku: ${formatDate(d)}`;
+} else if (mode === 'week') {
+  reportTitle = `Ripoti ya Wiki: ${formatDate(startDate)} - ${formatDate(endDate)}`;
+} else if (mode === 'month') {
+  const mwezi = startDate.toLocaleDateString('sw-TZ', { month: 'long', year: 'numeric' });
+  reportTitle = `Ripoti ya Mwezi: ${mwezi}`;
+} else if (from && to) {
+  reportTitle = `Ripoti ya Kuanzia ${formatDate(from)} hadi ${formatDate(to)}`;
+}
 
     res.render('report-usage', {
       report,
@@ -418,6 +431,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       from,
       to,
       tarehe,
+      reportTitle,
       query: { aina: mode, start: from, end: to }
     });
   } catch (error) {
