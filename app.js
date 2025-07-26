@@ -146,11 +146,13 @@ async function startApp() {
 
   app.get('/matumizi/sajili', async (req, res, next) => {
     try {
+      const clinicId = 'C001'; 
       const [dawa, watumiaji] = await Promise.all([
         readSheet('DAWA'),
         readSheet('WATUMIAJI')
       ]);
-      res.render('log-usage', { dawa, watumiaji, error: null, mtumiajiId: null });
+      const filteredWatumiaji = watumiaji.filter(u => u.clinicId === clinicId);
+      res.render('log-usage', { dawa, watumiaji: filteredWatumiaji, error: null, mtumiajiId: null });
 
     } catch (error) {
       next(error);
@@ -203,7 +205,7 @@ async function startApp() {
         });
       }
 
-      const newUser = { id: nanoid(), jina: jina.trim(), maelezo: description?.trim() || '' };
+      const newUser = { id: nanoid(), jina: jina.trim(), maelezo: description?.trim() || '',  clinicId: 'C001' };
       await writeSheet('WATUMIAJI', [...watumiaji, newUser]);
       res.redirect('/');
     } catch (error) {
@@ -335,6 +337,36 @@ async function startApp() {
   }
 });
 
+  app.get('/mtumiaji/transfer', async (req, res, next) => {
+  try {
+    const [watumiaji, clinics] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('CLINICS')
+    ]);
+    res.render('transfer-user', { watumiaji, clinics });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/mtumiaji/transfer', async (req, res, next) => {
+  try {
+    const { userId, newClinic } = req.body;
+    const watumiaji = await readSheet('WATUMIAJI');
+
+    const updatedWatumiaji = watumiaji.map(user => {
+      if (user.id === userId) {
+        return { ...user, clinicId: newClinic };
+      }
+      return user;
+    });
+
+    await writeSheet('WATUMIAJI', updatedWatumiaji);
+    res.redirect('/mtumiaji/transfer');
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
