@@ -3,98 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <title>Dashibodi ya Dawa</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-    h1 {
-      color: #333;
-    }
-    .nav-links a {
-      display: inline-block;
-      padding: 10px 15px;
-      background: #007acc;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      margin: 5px 5px 10px 0;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      margin-top: 15px;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: center;
-      font-size: 14px;
-    }
-    th {
-      background: #eee;
-    }
-    .no-data {
-      background: #fff0f0;
-      color: red;
-      padding: 15px;
-      text-align: center;
-      border-radius: 5px;
-    }
-
-    @media screen and (max-width: 500px) {
-      th, td {
-        font-size: 12px;
-        padding: 8px;
-      }
-      .nav-links a {
-        display: block;
-        margin-bottom: 10px;
-      }
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 p-6 font-sans">
 
-  <h1>📦 Dashibodi ya Dawa</h1>
+  <h1 class="text-2xl font-bold text-gray-800 mb-4">📦 Dashibodi ya Dawa</h1>
 
-  <div class="nav-links">
-    <a href="/dawa/ongeza">➕ Ongeza Dawa</a>
-    <a href="/mtumiaji/ongeza">👤 Ongeza Mtumiaji</a>
-    <a href="/matumizi/sajili">📝 Sajili Matumizi ya Dawa</a>
-     <a href="/ripoti/matumizi">📋 Tazama Ripoti ya Matumizi</a> 
-     <a href="/admin/watumiaji">👥 Orodha ya Watumiaji</a>
-    <a href="/mtumiaji/transfer">🔁 Hamisha Mtumiaji</a>
-
+  <!-- Navigation Links -->
+  <div class="flex flex-wrap gap-3 mb-6">
+    <a href="/dawa/ongeza" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">➕ Ongeza Dawa</a>
+    <a href="/mtumiaji/ongeza" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">👤 Ongeza Mtumiaji</a>
+    <a href="/matumizi/sajili" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">📝 Sajili Matumizi ya Dawa</a>
+    <a href="/ripoti/matumizi" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">📋 Tazama Ripoti ya Matumizi</a>
+    <a href="/admin/watumiaji" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">👥 Orodha ya Watumiaji</a>
+    <a href="/mtumiaji/transfer" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">🔁 Hamisha Mtumiaji</a>
+    <a href="/admin/statistics" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">📈 Hamisha Mtumiaji</a>
   </div>
 
   <% if (dawa.length > 0) { %>
-    <table>
-      <thead>
-        <tr>
-          <th>Jina la Dawa</th>
-          <th>Aina</th>
-          <th>Kiasi Kilicholetwa</th>
-          <th>Kiasi Kilichotumika</th>
-          <th>Kilichobaki</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% dawa.forEach(d => { %>
+    <!-- Table of Medicine -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white rounded-lg shadow-md">
+        <thead class="bg-gray-200 text-gray-700">
           <tr>
-            <td><%= d.jina %></td>
-            <td><%= d.aina %></td>
-            <td><%= d.kiasi %></td>
-            <td><%= d.jumlaMatumizi %></td>
-            <td><%= d.kilichobaki %></td>
+            <th class="px-4 py-2 text-left">Jina la Dawa</th>
+            <th class="px-4 py-2 text-left">Aina</th>
+            <th class="px-4 py-2 text-left">Kiasi Kilicholetwa</th>
+            <th class="px-4 py-2 text-left">Kiasi Kilichotumika</th>
+            <th class="px-4 py-2 text-left">Kilichobaki</th>
           </tr>
-        <% }) %>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <% dawa.forEach(d => { %>
+            <tr class="border-t">
+              <td class="px-4 py-2"><%= d.jina %></td>
+              <td class="px-4 py-2"><%= d.aina %></td>
+              <td class="px-4 py-2"><%= d.kiasi %></td>
+              <td class="px-4 py-2"><%= d.jumlaMatumizi %></td>
+              <td class="px-4 py-2"><%= d.kilichobaki %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
   <% } else { %>
-    <div class="no-data">
+    <!-- No Data Message -->
+    <div class="bg-red-100 text-red-600 p-4 rounded-md mt-4 text-center">
       <p><%= error || "Hakuna data ya dawa kupatikana kwa sasa." %></p>
     </div>
   <% } %>
