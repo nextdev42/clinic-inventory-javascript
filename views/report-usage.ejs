@@ -7,33 +7,45 @@
   <style>
     :root {
       --primary: #007acc;
-      --primary-hover: #005c99;
-      --secondary: #f0f9ff;
-      --danger: #dc2626;
-      --gray-50: #f5f5f5;
-      --gray-100: #e5e5e5;
-      --gray-200: #d4d4d4;
-      --gray-300: #a3a3a3;
-      --gray-400: #737373;
-      --gray-500: #525252;
-      --gray-600: #404040;
-      --gray-700: #262626;
+      --primary-hover: #0061a7;
+      --secondary: #e6f2ff;
+      --danger: #e74c3c;
+      --success: #2ecc71;
+      --warning: #f39c12;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
       --white: #ffffff;
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
       --radius-sm: 0.25rem;
       --radius: 0.375rem;
       --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       max-width: 900px;
       margin: 0 auto;
-      padding: 1.25rem;
+      padding: 1.5rem;
       background-color: var(--gray-50);
-      color: var(--gray-700);
+      color: var(--gray-800);
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
     }
@@ -41,7 +53,7 @@
     h1 {
       text-align: center;
       margin-bottom: 0.75rem;
-      color: var(--primary);
+      color: var(--gray-800);
       font-size: 1.75rem;
       display: flex;
       align-items: center;
@@ -49,39 +61,40 @@
       gap: 0.75rem;
     }
 
+    h2 {
+      color: var(--primary);
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
     hr {
       border: 0;
       height: 1px;
       background-color: var(--gray-200);
-      margin: 1rem 0 1.5rem;
+      margin: 1rem 0;
     }
 
-    /* Filter Form */
+    /* Form Styles */
     form {
       background: var(--white);
-      padding: 1.25rem;
-      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
       border-radius: var(--radius-md);
       box-shadow: var(--shadow);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.75rem;
-    }
-
-    label {
-      font-size: 0.9375rem;
-      color: var(--gray-600);
-      font-weight: 500;
-      margin-right: 0.5rem;
+      gap: 1rem;
     }
 
     select, input[type="date"] {
-      padding: 0.5rem 0.75rem;
-      border: 1px solid var(--gray-200);
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--gray-300);
       border-radius: var(--radius);
       font-size: 0.9375rem;
       transition: all 0.15s;
+      min-width: 180px;
     }
 
     select {
@@ -89,7 +102,6 @@
       background-repeat: no-repeat;
       background-position: right 0.75rem center;
       background-size: 16px 12px;
-      min-width: 180px;
     }
 
     select:focus, input[type="date"]:focus {
@@ -99,7 +111,7 @@
     }
 
     button {
-      padding: 0.5rem 1rem;
+      padding: 0.625rem 1.25rem;
       background-color: var(--primary);
       color: var(--white);
       border: none;
@@ -115,39 +127,45 @@
 
     button:hover {
       background-color: var(--primary-hover);
+      box-shadow: var(--shadow-sm);
     }
 
     /* User Blocks */
     .user-block {
       background: var(--white);
-      padding: 1.25rem 1.5rem;
+      padding: 1.5rem;
       margin-bottom: 1.5rem;
       border-radius: var(--radius-md);
       box-shadow: var(--shadow);
     }
 
     .user-block h2 {
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
       color: var(--primary);
       font-size: 1.25rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--gray-200);
     }
 
     /* Date Groups */
     .date-group {
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.5rem;
     }
 
     .date-group h3 {
       background-color: var(--primary);
       color: var(--white);
-      padding: 0.5rem 1rem;
+      padding: 0.625rem 1rem;
       border-radius: var(--radius);
-      margin-bottom: 0.75rem;
+      margin-bottom: 1rem;
       font-weight: 500;
-      font-size: 0.9375rem;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     ul {
@@ -156,8 +174,8 @@
     }
 
     li {
-      padding: 0.5rem 0;
-      border-bottom: 1px dashed var(--gray-100);
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--gray-100);
       display: flex;
       flex-wrap: wrap;
       align-items: baseline;
@@ -170,25 +188,24 @@
 
     li strong {
       color: var(--gray-800);
+      font-weight: 500;
     }
 
     li small {
       color: var(--gray-500);
-      font-size: 0.8125rem;
-    }
-
-    .clinic-label {
-      font-style: italic;
-      color: var(--gray-400);
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
     }
 
     /* No Data Message */
     .no-data {
       text-align: center;
       background: var(--white);
-      padding: 1.5rem;
+      padding: 2rem;
       border-radius: var(--radius-md);
-      margin: 1.5rem 0;
+      margin: 2rem 0;
       box-shadow: var(--shadow);
     }
 
@@ -204,7 +221,7 @@
     /* Back Link */
     .back-link {
       display: block;
-      margin: 2rem auto 1rem;
+      margin: 2.5rem auto 1rem;
       text-align: center;
       text-decoration: none;
       color: var(--primary);
@@ -213,7 +230,7 @@
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      transition: color 0.2s;
+      transition: all 0.2s;
     }
 
     .back-link:hover {
@@ -223,13 +240,15 @@
 
     /* Responsive Design */
     @media (max-width: 768px) {
-      form {
-        flex-direction: column;
-        align-items: flex-start;
+      body {
+        padding: 1rem;
       }
 
-      label {
-        margin-bottom: 0.25rem;
+      form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1.25rem;
       }
 
       select, input[type="date"] {
@@ -240,54 +259,68 @@
         width: 100%;
         justify-content: center;
       }
+
+      .user-block {
+        padding: 1.25rem;
+      }
     }
   </style>
 </head>
 <body>
   <h1><i class="fas fa-file-alt"></i> Ripoti ya Matumizi ya Dawa kwa Watumiaji</h1>
   <hr>
+  <h2><%= reportTitle %></h2>
 
-  <!-- 🔍 Filter Form -->
-  <form method="GET" action="/report-usage">
-    <label for="aina"><i class="fas fa-filter"></i> Aina ya ripoti:</label>
-    <select name="aina" id="aina">
-      <option value="">-- Chagua --</option>
-      <option value="wiki" <%= query.aina === 'wiki' ? 'selected' : '' %>>Wiki hii</option>
-      <option value="mwezi" <%= query.aina === 'mwezi' ? 'selected' : '' %>>Mwezi huu</option>
-      <option value="range" <%= query.aina === 'range' ? 'selected' : '' %>>Tarehe Maalum</option>
+  <form action="/ripoti/matumizi" method="get">
+    <select name="mode" required onchange="this.form.submit()">
+      <option value="">Chagua aina ya ripoti</option>
+      <option value="day" <%= mode === 'day' ? 'selected' : '' %>>Ripoti ya Siku</option>
+      <option value="week" <%= mode === 'week' ? 'selected' : '' %>>Ripoti ya Wiki</option>
+      <option value="month" <%= mode === 'month' ? 'selected' : '' %>>Ripoti ya Mwezi</option>
     </select>
 
-    <% if (query.aina === 'range') { %>
-      <label for="start"><i class="far fa-calendar-alt"></i> Tarehe ya mwanzo:</label>
-      <input type="date" name="start" id="start" value="<%= query.start || '' %>">
-
-      <label for="end"><i class="far fa-calendar-alt"></i> Mpaka:</label>
-      <input type="date" name="end" id="end" value="<%= query.end || '' %>">
+    <% if (mode === 'day') { %>
+      <input type="date" name="tarehe" value="<%= tarehe || '' %>" onchange="this.form.submit()" />
+    <% } else { %>
+      <input type="date" name="from" value="<%= from || '' %>" placeholder="Kutoka Tarehe" />
+      <input type="date" name="to" value="<%= to || '' %>" placeholder="Mpaka Tarehe" />
     <% } %>
 
-    <button type="submit"><i class="fas fa-search"></i> Tazama Ripoti</button>
+    <button type="submit"><i class="fas fa-search"></i> Angalia Ripoti</button>
   </form>
 
   <% if(report.length === 0 || report.every(u => Object.keys(u.matumiziByDate).length === 0)) { %>
     <div class="no-data">
-      <p><i class="fas fa-exclamation-triangle"></i> <strong>Hakuna taarifa za matumizi kwa kipindi ulichotaja.</strong></p>
+      <p><i class="fas fa-exclamation-triangle"></i> Hakuna taarifa za matumizi kwa kipindi ulichotaja.</p>
     </div>
   <% } else { %>
-
     <% report.forEach(user => { %>
       <div class="user-block">
         <h2><i class="fas fa-user"></i> <%= user.jina %></h2>
 
         <% Object.keys(user.matumiziByDate).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { %>
           <div class="date-group">
-            <h3><i class="far fa-calendar"></i> <%= new Date(date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
+            <h3><i class="far fa-calendar-alt"></i> <%= new Date(date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
             <ul>
               <% user.matumiziByDate[date].forEach(item => { %>
                 <li>
                   <i class="fas fa-pills"></i> <strong><%= item.dawa %></strong>: <%= item.kiasi %>
                   <small>
-                    <i class="far fa-clock"></i> <%= item.saa || 'hakujulikana' %>
-                    <span class="clinic-label">(Kliniki: <%= item.kliniki %>)</span>
+                    <i class="far fa-clock"></i>
+                    <% 
+                      let time;
+                      if (item.saa?.includes(':')) {
+                        time = new Date("1970-01-01T" + item.saa);
+                      } else {
+                        time = new Date(item.saa);
+                      }
+
+                      if (!isNaN(time)) {
+                    %>
+                      <%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %>
+                    <% } else { %>
+                      hakujulikani
+                    <% } %>
                   </small>
                 </li>
               <% }) %>
