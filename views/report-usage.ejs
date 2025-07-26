@@ -93,24 +93,36 @@
 
   <!-- 🔍 Filter Form -->
   <form method="GET" action="/report-usage">
-    <label for="aina">Aina ya ripoti:</label>
-    <select name="aina" id="aina">
-      <option value="">-- Chagua --</option>
-      <option value="wiki" <%= query.aina === 'wiki' ? 'selected' : '' %>>Wiki hii</option>
-      <option value="mwezi" <%= query.aina === 'mwezi' ? 'selected' : '' %>>Mwezi huu</option>
-      <option value="range" <%= query.aina === 'range' ? 'selected' : '' %>>Tarehe Maalum</option>
-    </select>
+<form action="/ripoti/matumizi" method="get" class="flex gap-2">
+  <select name="mode" required>
+    <option value="">Chagua aina ya ripoti</option>
+    <option value="day">Ripoti ya Siku</option>
+    <option value="week">Ripoti ya Wiki</option>
+    <option value="month">Ripoti ya Mwezi</option>
+  </select>
 
-    <% if (query.aina === 'range') { %>
-      <label for="start">Tarehe ya mwanzo:</label>
-      <input type="date" name="start" id="start" value="<%= query.start || '' %>">
+  <input type="date" name="tarehe" placeholder="Tarehe (kwa siku)" />
 
-      <label for="end">Mpaka:</label>
-      <input type="date" name="end" id="end" value="<%= query.end || '' %>">
-    <% } %>
+  <input type="date" name="from" placeholder="Kutoka Tarehe" />
+  <input type="date" name="to" placeholder="Mpaka Tarehe" />
 
-    <button type="submit">📅 Tazama Ripoti</button>
-  </form>
+  <button type="submit"> 📅 Angalia Ripoti</button>
+</form>
+
+
+
+<% report.forEach(user => { %>
+  <h3><%= user.jina %></h3>
+  <% for (const tarehe in user.matumiziByDate) { %>
+    <h4><%= tarehe %></h4>
+    <ul>
+      <% user.matumiziByDate[tarehe].forEach(usage => { %>
+        <li><%= usage.dawa %> - <%= usage.kiasi %> - <%= usage.saa %></li>
+      <% }) %>
+    </ul>
+  <% } %>
+<% }) %>
+
 
   <% if(report.length === 0 || report.every(u => Object.keys(u.matumiziByDate).length === 0)) { %>
     <div class="no-data">
