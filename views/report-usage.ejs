@@ -2,7 +2,8 @@
 <html lang="sw">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Ripoti ya Matumizi ya Dawa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ripoti ya Matumizi ya Dawa</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
     /* Root variables from the main dashboard for consistency */
@@ -35,12 +36,12 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background-color: var(--gray-50); /* Consistent background */
-      color: var(--gray-800); /* Consistent text color */
+      background-color: var(--gray-50);
+      color: var(--gray-800);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       line-height: 1.5;
-      min-height: 100vh; /* Ensure full height for consistent look */
+      min-height: 100vh;
     }
 
     /* Re-using the container class for consistent width and padding */
@@ -99,6 +100,10 @@
         display: flex;
         flex-direction: column;
         margin-bottom: 0; /* Reset margin from original */
+    }
+
+    .form-group.hidden { /* New class to hide form groups */
+        display: none;
     }
 
     .form-label { /* Consistent with previous forms */
@@ -270,7 +275,8 @@
   </style>
 </head>
 <body>
-  <div class="min-h-screen"> <header>
+  <div class="min-h-screen">
+    <header>
       <div class="container header-content">
         <h1 class="header-title">
           <i class="fas fa-file-alt"></i> Ripoti ya Matumizi ya Dawa
@@ -279,7 +285,8 @@
     </header>
 
     <main class="container">
-      <form method="GET" action="/report-usage" class="filter-form"> <div class="form-group">
+      <form method="GET" action="/report-usage" class="filter-form">
+        <div class="form-group">
             <label for="aina" class="form-label">Aina ya ripoti:</label>
             <select name="aina" id="aina" class="form-select">
               <option value="">-- Chagua --</option>
@@ -289,16 +296,14 @@
             </select>
         </div>
 
-        <% if (query.aina === 'range') { %>
-          <div class="form-group">
-            <label for="start" class="form-label">Tarehe ya mwanzo:</label>
-            <input type="date" name="start" id="start" value="<%= query.start || '' %>" class="form-input-date">
-          </div>
-          <div class="form-group">
-            <label for="end" class="form-label">Mpaka:</label>
-            <input type="date" name="end" id="end" value="<%= query.end || '' %>" class="form-input-date">
-          </div>
-        <% } %>
+        <div class="form-group" id="start-date-group" <%= query.aina === 'range' ? '' : 'class="hidden"' %>>
+          <label for="start" class="form-label">Tarehe ya mwanzo:</label>
+          <input type="date" name="start" id="start" value="<%= query.start || '' %>" class="form-input-date">
+        </div>
+        <div class="form-group" id="end-date-group" <%= query.aina === 'range' ? '' : 'class="hidden"' %>>
+          <label for="end" class="form-label">Mpaka:</label>
+          <input type="date" name="end" id="end" value="<%= query.end || '' %>" class="form-input-date">
+        </div>
 
         <button type="submit" class="btn">
             <i class="fas fa-calendar-alt"></i> Tazama Ripoti
@@ -314,7 +319,9 @@
 
         <% report.forEach(user => { %>
           <div class="user-block">
-            <h2><i class="fas fa-user"></i> <%= user.jina %></h2> <% Object.keys(user.matumiziByDate).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { %>
+            <h2><i class="fas fa-user"></i> <%= user.jina %></h2>
+
+            <% Object.keys(user.matumiziByDate).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { %>
               <div class="date-group">
                 <h3><%= new Date(date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
                 <ul>
@@ -341,38 +348,30 @@
   </div>
 
   <script>
-    // Show/hide date range inputs based on select option
     document.addEventListener("DOMContentLoaded", function() {
       const ainaSelect = document.getElementById('aina');
-      const form = document.querySelector('.filter-form'); // Use the new class
+      const startDateGroup = document.getElementById('start-date-group');
+      const endDateGroup = document.getElementById('end-date-group');
 
-      function toggleDateInputs() {
-        const selectedValue = ainaSelect.value;
-        const dateRangeInputs = form.querySelectorAll('.form-group input[type="date"]');
-        
-        // Find the parent form-group for start and end dates and remove them if not 'range'
-        if (selectedValue !== 'range') {
-          dateRangeInputs.forEach(input => {
-            const parentGroup = input.closest('.form-group');
-            if (parentGroup) parentGroup.remove();
-          });
+      function toggleDateInputVisibility() {
+        if (ainaSelect.value === 'range') {
+          startDateGroup.classList.remove('hidden');
+          endDateGroup.classList.remove('hidden');
         } else {
-            // If it is 'range' and elements are not already there, re-add them
-            // This assumes initial EJS rendering correctly adds them.
-            // For a dynamic front-end, you'd likely create and append them here if they don't exist.
-            // For now, we rely on EJS to render them initially if query.aina is 'range'.
-            // This part is mainly for if the user switches *back* to range after switching away.
-            // A more robust client-side solution would involve saving/hiding, not removing/re-adding.
-            // Since this is EJS, the page reloads anyway on form submit, making this JS less critical for *re-adding*.
+          startDateGroup.classList.add('hidden');
+          endDateGroup.classList.add('hidden');
         }
       }
 
-      // Initial check on load
-      toggleDateInputs();
+      // Initial check on page load based on server-side 'query.aina'
+      toggleDateInputVisibility();
 
-      // Listen for changes
+      // Listen for changes and update visibility immediately (without submitting)
+      // The form will still submit on change, which is fine for server-side filtering.
+      // This just provides a better instant visual feedback.
       ainaSelect.addEventListener('change', function() {
-        this.form.submit(); // Automatically submit the form on change
+        toggleDateInputVisibility(); // Update UI immediately
+        this.form.submit(); // Then submit the form for server processing
       });
     });
   </script>
