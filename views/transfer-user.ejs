@@ -133,10 +133,19 @@
     <label for="userId">Chagua Mtumiaji:</label>
     <select name="userId" id="userId" required>
       <% watumiaji.forEach(user => { %>
-        <% const currentClinic = clinics.find(c => c.id === user.clinicId); %>
-        <option value="<%= user.id %>">
-        <%= user.jina %> (Current: <%= currentClinic ? currentClinic.jina : 'Unknown' %>)
+   <% 
+       var currentClinic = null;
+       for (var i = 0; i < clinics.length; i++) {
+      if (clinics[i].id === user.clinicId) {
+      currentClinic = clinics[i];
+      break;
+    }
+  }
+%>
+<option value="<%= user.id %>">
+  <%= user.jina %> (Current: <%= currentClinic ? currentClinic.jina : 'Unknown' %>)
 </option>
+
 
       <% }) %>
     </select>
