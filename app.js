@@ -578,28 +578,31 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
 
 app.get('/admin/watumiaji', async (req, res, next) => {
   try {
-    const [watumiaji, kliniki] = await Promise.all([
-      readSheet('WATUMIAJI'),
-      readSheet('CLINIC')
-    ]);
+    const [watumiaji, clinics] = await Promise.all([
+  readSheet('WATUMIAJI'),
+  readSheet('CLINICS')
+]);
 
-    // Fanya map ya clinicId kuwa jina
-    const clinicMap = {};
-    kliniki.forEach(c => {
-      clinicMap[c.id] = c.jina;
-    });
+// Tengeneza ramani ya clinicId -> jina
+const clinicMap = {};
+clinics.forEach(clinic => {
+  clinicMap[clinic.id] = clinic.jina;
+});
 
-    // Ongeza jina la kliniki kwa kila mtumiaji
-    const watumiajiWithClinic = watumiaji.map(mtumiaji => ({
-      ...mtumiaji,
-      clinic: clinicMap[mtumiaji.clinicId] || 'Haijulikani'
-    }));
+// Ongeza jina la kliniki kwenye kila mtumiaji
+const watumiajiWithClinic = watumiaji.map(mtumiaji => ({
+  ...mtumiaji,
+  clinic: clinicMap[mtumiaji.clinicId] || 'Haijulikani'
+}));
 
-    res.render('wote-watumiaji', { watumiaji: watumiajiWithClinic });
+res.render('wote-watumiaji', {
+  watumiaji: watumiajiWithClinic
+});
   } catch (error) {
     next(error);
   }
 });
+
 
 
 
