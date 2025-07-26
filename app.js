@@ -551,6 +551,7 @@ if (mode === 'day' && tarehe) {
       query: { aina: mode, start: from, end: to },
       watumiaji,
       mtumiajiId,
+      dawa,
       error: null
     });
   } catch (error) {
