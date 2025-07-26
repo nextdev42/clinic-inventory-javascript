@@ -6,8 +6,16 @@ import { promises as fs } from 'fs';
 import xlsx from 'xlsx';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import session from 'express-session';
 
 const app = express();
+
+app.use(session({
+  secret: 'siri-yako-hapa',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // secure:true kwa HTTPS
+}));
 
 app.set('trust proxy', 1);
 const __filename = fileURLToPath(import.meta.url);
