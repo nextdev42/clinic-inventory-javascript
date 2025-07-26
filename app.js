@@ -352,18 +352,63 @@ async function startApp() {
 app.post('/mtumiaji/transfer', async (req, res, next) => {
   try {
     const { userId, newClinic } = req.body;
-    const watumiaji = await readSheet('WATUMIAJI');
+    
+    // Validate inputs
+    if (!userId || !newClinic) {
+      return res.status(400).render('error', {
+        message: 'Tafadhali chagua mtumiaji na kliniki mpya'
+      });
+    }
 
-    const updatedWatumiaji = watumiaji.map(user => {
-      if (user.id === userId) {
-        return { ...user, clinicId: newClinic };
-      }
-      return user;
-    });
+    // Read current data
+    const [watumiaji, clinics] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('CLINICS')
+    ]);
 
-    await writeSheet('WATUMIAJI', updatedWatumiaji);
+    // Verify clinic exists
+    const clinicExists = clinics.some(c => c.id === newClinic);
+    if (!clinicExists) {
+      return res.status(400).render('error', {
+        message: 'Kliniki iliyochaguliwa haipo kwenye mfumo'
+      });
+    }
+
+    // Find and update user
+    const userIndex = watumiaji.findIndex(u => u.id === userId);
+    if (userIndex === -1) {
+      return res.status(404).render('error', {
+        message: 'Mtumiaji aliyechaguliwa hayupo kwenye mfumo'
+      });
+    }
+
+    // Create updated array
+    const updatedWatumiaji = [...watumiaji];
+    updatedWatumiaji[userIndex] = {
+      ...updatedWatumiaji[userIndex],
+      clinicId: newClinic
+    };
+
+    // Write back to sheet
+    const writeSuccess = await writeSheet('WATUMIAJI', updatedWatumiaji);
+    if (!writeSuccess) {
+      throw new Error('Failed to save changes to Excel file');
+    }
+
+    // Verify the change was saved
+    const verifyData = await readSheet('WATUMIAJI');
+    const updatedUser = verifyData.find(u => u.id === userId);
+    
+    if (!updatedUser || updatedUser.clinicId !== newClinic) {
+      throw new Error('Verification failed - change not persisted');
+    }
+
+    // Redirect with success message
+    req.session.successMessage = 'Mtumiaji amehamishwa kwa mafanikio!';
     res.redirect('/mtumiaji/transfer');
+
   } catch (error) {
+    console.error('Transfer error:', error);
     next(error);
   }
 });
@@ -531,6 +576,35 @@ app.get('/admin/maelezo-dump', async (req, res, next) => {
     res.render('maelezo-dump', { dump });
   } catch (error) {
     next(error);
+  }
+});
+
+  app.get('/debug/excel', async (req, res) => {
+  try {
+    const stats = await fs.stat(excelPath);
+    const workbook = xlsx.readFile(excelPath);
+    
+    const sheetsInfo = workbook.SheetNames.map(name => {
+      const sheet = workbook.Sheets[name];
+      return {
+        name,
+        rowCount: xlsx.utils.sheet_to_json(sheet).length,
+        headers: Object.keys(xlsx.utils.sheet_to_json(sheet)[0] || []
+      };
+    });
+
+    res.json({
+      filePath: excelPath,
+      fileSize: stats.size,
+      lastModified: stats.mtime,
+      permissions: {
+        readable: true,
+        writable: true
+      },
+      sheets: sheetsInfo
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
   app.use((req, res) => {
