@@ -322,26 +322,37 @@ async function startApp() {
 
 app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
-    const { mode, from, to } = req.query;
-
+    const { mode, from, to, tarehe } = req.query;
     const [watumiaji, dawa, matumizi] = await Promise.all([
       readSheet('WATUMIAJI'),
       readSheet('DAWA'),
       readSheet('MATUMIZI')
     ]);
 
-    const now = new Date();
     let startDate = null;
     let endDate = null;
 
-    if (mode === 'week') {
-      const day = now.getDay();
-      startDate = new Date(now);
-      startDate.setDate(now.getDate() - day);
+    const now = new Date();
+
+    if (mode === 'day' && tarehe) {
+      startDate = new Date(tarehe);
       startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(tarehe);
+      endDate.setHours(23, 59, 59, 999);
+    } else if (mode === 'week') {
+      const day = now.getDay(); // 0 = Sunday
+      const diffToMonday = day === 0 ? 6 : day - 1;
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - diffToMonday);
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      endDate.setHours(23, 59, 59, 999);
     } else if (mode === 'month') {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      endDate.setHours(23, 59, 59, 999);
     } else if (from && to) {
       startDate = new Date(from);
       endDate = new Date(to);
@@ -377,50 +388,43 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       });
     }
 
-    // Group usage by user (including deleted users)
-    const usageByUser = {};
+    const report = watumiaji.map(user => {
+      const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
+      const byDate = {};
 
-    filteredMatumizi.forEach(usage => {
-      const user = watumiaji.find(u => u.id === usage.mtumiajiId);
-      const jina = user ? user.jina : '(Mtumiaji amefutwa)';
+      userUsages.forEach(usage => {
+        const day = formatDate(usage.tarehe);
+        if (!byDate[day]) byDate[day] = [];
 
-      if (!usageByUser[jina]) usageByUser[jina] = {};
+        const medicine = dawa.find(d => d.id === usage.dawaId);
+        const formattedTime = formatTime(usage.tarehe);
 
-      const day = formatDate(usage.tarehe);
-      const saa = formatTime(usage.tarehe);
-      const dawaInfo = dawa.find(d => d.id === usage.dawaId);
-
-      if (!usageByUser[jina][day]) usageByUser[jina][day] = [];
-
-      usageByUser[jina][day].push({
-        dawa: dawaInfo ? dawaInfo.jina : 'Haijulikani',
-        kiasi: usage.kiasi,
-        saa
+        byDate[day].push({
+          dawa: medicine ? medicine.jina : 'Haijulikani',
+          kiasi: usage.kiasi,
+          saa: formattedTime
+        });
       });
-    });
 
-    // Convert usageByUser object to array for template
-    const report = Object.entries(usageByUser).map(([jina, matumiziByDate]) => ({
-      jina,
-      matumiziByDate
-    }));
+      return {
+        jina: user.jina,
+        matumiziByDate: byDate
+      };
+    });
 
     res.render('report-usage', {
       report,
       mode,
       from,
       to,
-      query: {
-        aina: mode,
-        start: from,
-        end: to
-      }
+      tarehe,
+      query: { aina: mode, start: from, end: to }
     });
-
   } catch (error) {
     next(error);
   }
 });
+
 
 
 app.get('/mtumiaji/futa/:id', async (req, res, next) => {
