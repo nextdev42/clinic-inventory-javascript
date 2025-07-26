@@ -10,6 +10,8 @@ import session from 'express-session';
 
 const app = express();
 
+app.use(express.urlencoded({ extended: true }));
+
 app.use(session({
   secret: 'siri-yako-hapa',
   resave: false,
