@@ -583,15 +583,16 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       readSheet('CLINIC')
     ]);
 
-    // Ramani ya clinicId -> jina
-    const clinicMap = Object.fromEntries(
-      kliniki.map(c => [c.id, c.jina])
-    );
+    // Fanya map ya clinicId kuwa jina
+    const clinicMap = {};
+    kliniki.forEach(c => {
+      clinicMap[c.id] = c.jina;
+    });
 
     // Ongeza jina la kliniki kwa kila mtumiaji
-    const watumiajiWithClinic = watumiaji.map(user => ({
-      ...user,
-      clinicName: clinicMap[user.clinicId] || 'Haijulikani'
+    const watumiajiWithClinic = watumiaji.map(mtumiaji => ({
+      ...mtumiaji,
+      clinic: clinicMap[mtumiaji.clinicId] || 'Haijulikani'
     }));
 
     res.render('wote-watumiaji', { watumiaji: watumiajiWithClinic });
@@ -599,6 +600,7 @@ app.get('/admin/watumiaji', async (req, res, next) => {
     next(error);
   }
 });
+
 
 
 app.get('/admin/maelezo-dump', async (req, res, next) => {
