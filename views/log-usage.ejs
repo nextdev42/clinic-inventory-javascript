@@ -223,13 +223,14 @@
   <form method="POST" action="/matumizi/sajili">
     <label>Chagua Mtumiaji:</label>
     <select name="mtumiajiId" id="mtumiaji" required>
-      <option value="">-- Chagua mtumiaji --</option>
-      <% watumiaji.forEach(m => { %>
-        <option value="<%= m.id %>" <%= m.id == mtumiajiId ? 'selected' : '' %>>
-          <%= m.jina %> - <%= m.maelezo || '' %>
-        </option>
-      <% }) %>
-    </select>
+  <option value="">-- Chagua mtumiaji --</option>
+  <% watumiaji.forEach(m => { %>
+    <option value="<%= m.id %>" <%= m.id == mtumiajiId ? 'selected' : '' %>>
+      <%= m.jina %> - <%= m.maelezo || '' %>
+    </option>
+  <% }) %>
+</select>
+
 
     <h3>Chagua Dawa na Kiasi</h3>
     <div id="error-msg" class="error-message"></div>
