@@ -86,18 +86,20 @@
       </tr>
     </thead>
     <tbody>
-          <% watumiaji.forEach(mtumiaji => { %>
-      <tr>
-        <td><%= mtumiaji.jina %></td>
-        <td><%= mtumiaji.maelezo %></td>
-        <td><%= mtumiaji.clinic || '-' %></td>
-        <td>
-          <form method="POST" action="/admin/delete-user/<%= mtumiaji.id %>" onsubmit="return confirm('Una uhakika unataka kufuta?');">
-            <button type="submit">🗑️ Futa</button>
-          </form>
-        </td>
-      </tr>
-    <% }) %>
+       <% watumiaji.forEach(function(mtumiaji) { %>
+    <tr>
+    <td><%= mtumiaji.jina %></td>
+    <td><%= mtumiaji.maelezo || '-' %></td>
+    <td><%= mtumiaji.clinic || '-' %></td>
+    <td>
+      <a href="/mtumiaji/futa/<%= mtumiaji.id %>" 
+         class="action-link" 
+         onclick="return confirm('Una uhakika unataka kufuta mtumiaji huyu?')">
+         🗑️ Futa
+      </a>
+    </td>
+  </tr>
+<% }) %>
 
     </tbody>
   </table>
