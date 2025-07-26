@@ -548,6 +548,7 @@ if (mode === 'day' && tarehe) {
       reportTitle,
       query: { aina: mode, start: from, end: to },
       watumiaji,
+      mtumiajiId,
       error: null
     });
   } catch (error) {
