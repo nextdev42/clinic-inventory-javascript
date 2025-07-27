@@ -86,36 +86,50 @@
       margin: 20px 0;
       box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
-    .clinic-label {
-      font-style: italic;
-      color: #666;
-      margin-left: 8px;
-    }
   </style>
 </head>
 <body>
   <h1>📋 Ripoti ya Matumizi ya Dawa kwa Watumiaji</h1>
 
   <!-- 🔍 Filter Form -->
-  <form method="GET" action="/report-usage">
-    <label for="aina">Aina ya ripoti:</label>
-    <select name="aina" id="aina">
-      <option value="">-- Chagua --</option>
-      <option value="wiki" <%= query.aina === 'wiki' ? 'selected' : '' %>>Wiki hii</option>
-      <option value="mwezi" <%= query.aina === 'mwezi' ? 'selected' : '' %>>Mwezi huu</option>
-      <option value="range" <%= query.aina === 'range' ? 'selected' : '' %>>Tarehe Maalum</option>
-    </select>
 
-    <% if (query.aina === 'range') { %>
-      <label for="start">Tarehe ya mwanzo:</label>
-      <input type="date" name="start" id="start" value="<%= query.start || '' %>">
+<form action="/ripoti/matumizi" method="get">
+  <label for="mode">Aina ya Ripoti:</label>
+  <select name="mode" id="mode" required>
+    <option value="">Chagua aina ya ripoti</option>
+    <option value="day">Ripoti ya Siku</option>
+    <option value="week">Ripoti ya Wiki</option>
+    <option value="month">Ripoti ya Mwezi</option>
+  </select>
 
-      <label for="end">Mpaka:</label>
-      <input type="date" name="end" id="end" value="<%= query.end || '' %>">
-    <% } %>
+  <label for="tarehe">Tarehe (kwa siku):</label>
+  <input type="date" name="tarehe" id="tarehe" />
 
-    <button type="submit">📅 Tazama Ripoti</button>
-  </form>
+  <label for="from">Kutoka Tarehe:</label>
+  <input type="date" name="from" id="from" />
+
+  <label for="to">Mpaka Tarehe:</label>
+  <input type="date" name="to" id="to" />
+
+  <button type="submit">📅 Angalia Ripoti</button>
+</form>
+
+
+
+
+
+<% report.forEach(user => { %>
+  <h3><%= user.jina %></h3>
+  <% for (const tarehe in user.matumiziByDate) { %>
+    <h4><%= tarehe %></h4>
+    <ul>
+      <% user.matumiziByDate[tarehe].forEach(usage => { %>
+        <li><%= usage.dawa %> - <%= usage.kiasi %> - <%= usage.saa %></li>
+      <% }) %>
+    </ul>
+  <% } %>
+<% }) %>
+
 
   <% if(report.length === 0 || report.every(u => Object.keys(u.matumiziByDate).length === 0)) { %>
     <div class="no-data">
@@ -135,8 +149,20 @@
                 <li>
                   - <strong><%= item.dawa %></strong>: <%= item.kiasi %>
                   <small>
-                    saa <%= item.saa || 'hakujulikana' %>
-                    <span class="clinic-label">(Kliniki: <%= item.kliniki %>)</span>
+                    <% 
+                      let time;
+                      if (item.saa?.includes(':')) {
+                        time = new Date("1970-01-01T" + item.saa);
+                      } else {
+                        time = new Date(item.saa);
+                      }
+
+                      if (!isNaN(time)) {
+                    %>
+                      <%= time.toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' }) %>
+                    <% } else { %>
+                      hakujulikana
+                    <% } %>
                   </small>
                 </li>
               <% }) %>
