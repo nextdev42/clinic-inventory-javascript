@@ -437,6 +437,7 @@ app.post('/mtumiaji/transfer', async (req, res, next) => {
 });
 
 
+
 app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
     const { mode, from, to, tarehe, mtumiajiId } = req.query;
@@ -448,38 +449,35 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
 
     let startDate = null;
     let endDate = null;
+    const now = new Date();
 
-    // Convert tarehe/from/to to Date objects if available
-    const tareheDate = tarehe ? new Date(tarehe) : null;
-    const fromDate = from ? new Date(from) : null;
-    const toDate = to ? new Date(to) : null;
-
-    if (mode === 'day' && tareheDate) {
-      startDate = new Date(tareheDate);
+    // Filtering range based on mode
+    if (mode === 'day' && tarehe) {
+      startDate = new Date(tarehe);
       startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(tareheDate);
+      endDate = new Date(tarehe);
       endDate.setHours(23, 59, 59, 999);
-    } else if (mode === 'week' && tareheDate) {
-      const day = tareheDate.getDay(); // 0 = Sunday
+    } else if (mode === 'week') {
+      const day = now.getDay(); // Sunday = 0
       const diffToMonday = day === 0 ? 6 : day - 1;
-      startDate = new Date(tareheDate);
-      startDate.setDate(tareheDate.getDate() - diffToMonday);
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - diffToMonday);
       startDate.setHours(0, 0, 0, 0);
       endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 6);
       endDate.setHours(23, 59, 59, 999);
-    } else if (mode === 'month' && tareheDate) {
-      startDate = new Date(tareheDate.getFullYear(), tareheDate.getMonth(), 1);
+    } else if (mode === 'month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(tareheDate.getFullYear(), tareheDate.getMonth() + 1, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       endDate.setHours(23, 59, 59, 999);
-    } else if (fromDate && toDate) {
-      startDate = new Date(fromDate);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(toDate);
+    } else if (from && to) {
+      startDate = new Date(from);
+      endDate = new Date(to);
       endDate.setHours(23, 59, 59, 999);
     }
 
+    // Filter usage logs within selected period
     const filteredMatumizi = startDate
       ? matumizi.filter(m => {
           const t = new Date(m.tarehe);
@@ -509,42 +507,47 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       });
     }
 
-    const report = watumiaji.map(user => {
-      const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
-      const byDate = {};
+    // Generate report only for users with usage records
+    const report = watumiaji
+      .map(user => {
+        const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
+        if (userUsages.length === 0) return null; // Skip users with no usage
 
-      userUsages.forEach(usage => {
-        const day = formatDate(usage.tarehe);
-        if (!byDate[day]) byDate[day] = [];
+        const byDate = {};
+        userUsages.forEach(usage => {
+          const day = formatDate(usage.tarehe);
+          if (!byDate[day]) byDate[day] = [];
 
-        const medicine = dawa.find(d => d.id === usage.dawaId);
-        const formattedTime = formatTime(usage.tarehe);
+          const medicine = dawa.find(d => d.id === usage.dawaId);
+          const formattedTime = formatTime(usage.tarehe);
 
-        byDate[day].push({
-          dawa: medicine ? medicine.jina : 'Haijulikani',
-          kiasi: usage.kiasi,
-          saa: formattedTime
+          byDate[day].push({
+            dawa: medicine ? medicine.jina : 'Haijulikani',
+            kiasi: usage.kiasi,
+            saa: formattedTime
+          });
         });
-      });
 
-      return {
-        jina: user.jina,
-        matumiziByDate: byDate
-      };
-    });
+        return {
+          jina: user.jina,
+          matumiziByDate: byDate
+        };
+      })
+      .filter(Boolean); // Remove nulls (users with no usage)
 
-    // Report title
+    // Title for report
     let reportTitle = 'Ripoti ya Matumizi';
 
-    if (mode === 'day' && tareheDate) {
-      reportTitle = `Ripoti ya Siku: ${formatDate(tareheDate)}`;
-    } else if (mode === 'week' && startDate && endDate) {
+    if (mode === 'day' && tarehe) {
+      const d = new Date(tarehe);
+      reportTitle = `Ripoti ya Siku: ${formatDate(d)}`;
+    } else if (mode === 'week') {
       reportTitle = `Ripoti ya Wiki: ${formatDate(startDate)} - ${formatDate(endDate)}`;
-    } else if (mode === 'month' && tareheDate) {
-      const mwezi = tareheDate.toLocaleDateString('sw-TZ', { month: 'long', year: 'numeric' });
+    } else if (mode === 'month') {
+      const mwezi = startDate.toLocaleDateString('sw-TZ', { month: 'long', year: 'numeric' });
       reportTitle = `Ripoti ya Mwezi: ${mwezi}`;
-    } else if (fromDate && toDate) {
-      reportTitle = `Ripoti ya Kuanzia ${formatDate(fromDate)} hadi ${formatDate(toDate)}`;
+    } else if (from && to) {
+      reportTitle = `Ripoti ya Kuanzia ${formatDate(from)} hadi ${formatDate(to)}`;
     }
 
     res.render('report-usage', {
@@ -565,6 +568,9 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
   }
 });
 
+    
+
+    
     
 
 
