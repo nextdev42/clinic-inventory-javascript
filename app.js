@@ -437,7 +437,6 @@ app.post('/mtumiaji/transfer', async (req, res, next) => {
 });
 
 
-
 app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
     const { mode, from, to, tarehe, mtumiajiId } = req.query;
@@ -447,11 +446,10 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       readSheet('MATUMIZI')
     ]);
 
+    const now = new Date();
     let startDate = null;
     let endDate = null;
-    const now = new Date();
 
-    // Filtering range based on mode
     if (mode === 'day' && tarehe) {
       startDate = new Date(tarehe);
       startDate.setHours(0, 0, 0, 0);
@@ -459,7 +457,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       endDate.setHours(23, 59, 59, 999);
     } else if (mode === 'week') {
       const day = now.getDay(); // Sunday = 0
-      const diffToMonday = day === 0 ? 6 : day - 1;
+      const diffToMonday = (day === 0 ? 6 : day - 1);
       startDate = new Date(now);
       startDate.setDate(now.getDate() - diffToMonday);
       startDate.setHours(0, 0, 0, 0);
@@ -473,17 +471,17 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       endDate.setHours(23, 59, 59, 999);
     } else if (from && to) {
       startDate = new Date(from);
+      startDate.setHours(0, 0, 0, 0);
       endDate = new Date(to);
       endDate.setHours(23, 59, 59, 999);
     }
 
-    // Filter usage logs within selected period
-    const filteredMatumizi = startDate
-      ? matumizi.filter(m => {
-          const t = new Date(m.tarehe);
-          return t >= startDate && (!endDate || t <= endDate);
-        })
-      : matumizi;
+    const filteredMatumizi = matumizi.filter(m => {
+      const t = new Date(m.tarehe);
+      const inDateRange = (!startDate || t >= startDate) && (!endDate || t <= endDate);
+      const matchesUser = mtumiajiId ? m.mtumiajiId === mtumiajiId : true;
+      return inDateRange && matchesUser;
+    });
 
     function formatDate(dateStr) {
       const date = new Date(dateStr);
@@ -507,37 +505,33 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       });
     }
 
-    // Generate report only for users with usage records
-    const report = watumiaji
-      .map(user => {
-        const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
-        if (userUsages.length === 0) return null; // Skip users with no usage
+    const report = watumiaji.map(user => {
+      const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
+      if (userUsages.length === 0) return null; // skip users with no usage in range
 
-        const byDate = {};
-        userUsages.forEach(usage => {
-          const day = formatDate(usage.tarehe);
-          if (!byDate[day]) byDate[day] = [];
+      const byDate = {};
+      userUsages.forEach(usage => {
+        const day = formatDate(usage.tarehe);
+        if (!byDate[day]) byDate[day] = [];
 
-          const medicine = dawa.find(d => d.id === usage.dawaId);
-          const formattedTime = formatTime(usage.tarehe);
+        const medicine = dawa.find(d => d.id === usage.dawaId);
+        const formattedTime = formatTime(usage.tarehe);
 
-          byDate[day].push({
-            dawa: medicine ? medicine.jina : 'Haijulikani',
-            kiasi: usage.kiasi,
-            saa: formattedTime
-          });
+        byDate[day].push({
+          dawa: medicine ? medicine.jina : 'Haijulikani',
+          kiasi: usage.kiasi,
+          saa: formattedTime
         });
+      });
 
-        return {
-          jina: user.jina,
-          matumiziByDate: byDate
-        };
-      })
-      .filter(Boolean); // Remove nulls (users with no usage)
+      return {
+        jina: user.jina,
+        matumiziByDate: byDate
+      };
+    }).filter(r => r !== null); // Ondoa waliokosa matumizi
 
-    // Title for report
+    // Jina la Ripoti
     let reportTitle = 'Ripoti ya Matumizi';
-
     if (mode === 'day' && tarehe) {
       const d = new Date(tarehe);
       reportTitle = `Ripoti ya Siku: ${formatDate(d)}`;
@@ -563,16 +557,14 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       dawa,
       error: null
     });
+
   } catch (error) {
     next(error);
   }
 });
 
-    
 
     
-    
-
 
 app.get('/admin/statistics', async (req, res, next) => {
   try {
