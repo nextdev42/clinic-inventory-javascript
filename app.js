@@ -437,7 +437,7 @@ app.post('/mtumiaji/transfer', async (req, res, next) => {
 });
 
       
-
+    
 app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
     const { mode, from, to, tarehe, mtumiajiId } = req.query;
@@ -481,6 +481,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       endDate.setHours(23, 59, 59, 999);
     }
 
+    // Filter matumizi by date range
     const filteredMatumizi = startDate
       ? matumizi.filter(m => {
           const t = new Date(m.tarehe);
@@ -510,29 +511,37 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       });
     }
 
-    const report = watumiaji.map(user => {
-      const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
-      const byDate = {};
+    // First get all users who have consumption records in the filtered period
+    const usersWithConsumption = new Set(
+      filteredMatumizi.map(m => m.mtumiajiId)
+    );
 
-      userUsages.forEach(usage => {
-        const day = formatDate(usage.tarehe);
-        if (!byDate[day]) byDate[day] = [];
+    // Only process users who have actual consumption
+    const report = watumiaji
+      .filter(user => usersWithConsumption.has(user.id))
+      .map(user => {
+        const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
+        const byDate = {};
 
-        const medicine = dawa.find(d => d.id === usage.dawaId);
-        const formattedTime = formatTime(usage.tarehe);
+        userUsages.forEach(usage => {
+          const day = formatDate(usage.tarehe);
+          if (!byDate[day]) byDate[day] = [];
 
-        byDate[day].push({
-          dawa: medicine ? medicine.jina : 'Haijulikani',
-          kiasi: usage.kiasi,
-          saa: formattedTime
+          const medicine = dawa.find(d => d.id === usage.dawaId);
+          const formattedTime = formatTime(usage.tarehe);
+
+          byDate[day].push({
+            dawa: medicine ? medicine.jina : 'Haijulikani',
+            kiasi: usage.kiasi,
+            saa: formattedTime
+          });
         });
-      });
 
-      return {
-        jina: user.jina,
-        matumiziByDate: byDate
-      };
-    });
+        return {
+          jina: user.jina,
+          matumiziByDate: byDate
+        };
+      });
 
     // Report title
     let reportTitle = 'Ripoti ya Matumizi';
@@ -565,10 +574,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
     next(error);
   }
 });
-
-    
-
-
+      
 
 
     
