@@ -93,20 +93,27 @@
 
   <!-- 🔍 Filter Form -->
 
-<form action="/ripoti/matumizi" method="get" class="flex gap-2">
-  <select name="mode" required>
+<form action="/ripoti/matumizi" method="get">
+  <label for="mode">Aina ya Ripoti:</label>
+  <select name="mode" id="mode" required>
     <option value="">Chagua aina ya ripoti</option>
     <option value="day">Ripoti ya Siku</option>
     <option value="week">Ripoti ya Wiki</option>
     <option value="month">Ripoti ya Mwezi</option>
   </select>
 
-  <input type="date" name="tarehe" placeholder="Tarehe (kwa siku)" />
-  <input type="date" name="from" placeholder="Kutoka Tarehe" />
-  <input type="date" name="to" placeholder="Mpaka Tarehe" />
+  <label for="tarehe">Tarehe (kwa siku):</label>
+  <input type="date" name="tarehe" id="tarehe" />
 
-  <button type="submit"> 📅 Angalia Ripoti</button>
+  <label for="from">Kutoka Tarehe:</label>
+  <input type="date" name="from" id="from" />
+
+  <label for="to">Mpaka Tarehe:</label>
+  <input type="date" name="to" id="to" />
+
+  <button type="submit">📅 Angalia Ripoti</button>
 </form>
+
 
 
 
