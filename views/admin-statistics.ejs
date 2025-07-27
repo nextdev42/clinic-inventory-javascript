@@ -30,31 +30,39 @@
   <canvas id="medicineChart" width="400" height="200"></canvas>
 
   <!-- ... your charts ... -->
+const chartData = {
+  labels: medicineStats.map(stat => stat.dawa),     // e.g., ['Paracetamol', 'Amoxicillin']
+  data: medicineStats.map(stat => stat.count)        // e.g., [10, 7]
+};
+
+res.render('admin-statistics', {
+  ...otherData,
+  chartData: JSON.stringify(chartData)
+});
+
+
 <script>
-  const chartData = <%- chartData %>; // Passed from backend as JSON string
+  const chartData = <%- chartData %>;  // This line injects server-side JSON
 
   const ctx = document.getElementById('medicineChart').getContext('2d');
-
-  const medicineChart = new Chart(ctx, {
+  new Chart(ctx, {
     type: 'bar',
     data: {
       labels: chartData.labels,
       datasets: [{
-        label: 'Idadi ya Matumizi',
+        label: 'Idadi ya Watumiaji wa Dawa',
         data: chartData.data,
-        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: 'rgba(75, 192, 192, 1)',
         borderWidth: 1
       }]
     },
     options: {
-      responsive: true,
       scales: {
         y: {
           beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Idadi ya Watumiaji'
+          ticks: {
+            stepSize: 1
           }
         }
       }
