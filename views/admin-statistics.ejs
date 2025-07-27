@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ... your head content ... -->
+  <style>
+    .debug-panel {
+      background: #f3f4f6;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0.5rem;
+      font-family: monospace;
+    }
+    .debug-title {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- ... your header ... -->
+
+  <!-- Debug Panel -->
+  <div class="debug-panel">
+    <div class="debug-title">Debug Information</div>
+    <div id="debugOutput">Loading debug data...</div>
+  </div>
+
+  <!-- ... your charts ... -->
+
+  <script>
+    // Debugging output
+    const debugOutput = document.getElementById('debugOutput');
+    
+    try {
+      // 1. Verify data exists
+      const clinicStats = <%- JSON.stringify(clinicStats) %>;
+      const medicineStats = <%- JSON.stringify(medicineStats) %>;
+      const chartData = JSON.parse('<%- chartData %>');
+      
+      let debugHtml = `
+        <p><strong>Data Loaded:</strong> Yes</p>
+        <p><strong>Chart.js:</strong> ${typeof Chart !== 'undefined' ? 'Loaded' : 'NOT LOADED'}</p>
+        <p><strong>Canvas Elements:</strong> ${
+          document.getElementById('clinicChart') ? 'Found' : 'Missing'
+        }</p>
+        <details>
+          <summary>View Raw Data</summary>
+          <pre>${JSON.stringify({clinicStats, medicineStats, chartData}, null, 2)}</pre>
+        </details>
+      `;
+      
+      debugOutput.innerHTML = debugHtml;
+      
+      // 2. Initialize charts with error handling
+      try {
+        new Chart(document.getElementById('clinicChart'), {
+          // ... your chart config ...
+        });
+        console.log("Clinic chart initialized");
+      } catch (e) {
+        debugHtml += `<p class="text-red-500">Clinic Chart Error: ${e.message}</p>`;
+      }
+      
+      // Repeat for other charts...
+      
+    } catch (e) {
+      debugOutput.innerHTML = `
+        <p class="text-red-500">Critical Error: ${e.message}</p>
+        <p>Check your backend data structure</p>
+      `;
+    }
+  </script>
+</body>
+</html>
