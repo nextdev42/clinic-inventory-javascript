@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orodha ya Watumiaji</title>
+  <title>Watumiaji Wote</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
     :root {
@@ -75,6 +75,69 @@
       margin-right: 0.75rem;
     }
 
+    /* Filter Styles */
+    .filter-section {
+      background-color: var(--white);
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .filter-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .filter-group {
+      margin-bottom: 0;
+    }
+
+    .filter-label {
+      display: block;
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .filter-input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+
+    .filter-button {
+      background-color: var(--primary);
+      color: var(--white);
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .filter-button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .filter-button i {
+      margin-right: 0.5rem;
+    }
+
     /* Table Styles */
     .table-container {
       background-color: var(--white);
@@ -128,12 +191,29 @@
 
     tbody tr:hover {
       background-color: var(--gray-50);
-      transform: translateY(-1px);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
     td {
       padding: 1rem 1.5rem;
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .badge-active {
+      background-color: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .badge-inactive {
+      background-color: var(--gray-100);
+      color: var(--gray-600);
     }
 
     /* Action Links */
@@ -141,17 +221,30 @@
       display: inline-flex;
       align-items: center;
       padding: 0.375rem 0.75rem;
-      background-color: var(--danger);
-      color: var(--white) !important;
       border-radius: 0.375rem;
       font-size: 0.75rem;
       font-weight: 500;
       transition: all 0.2s ease;
+      margin-right: 0.5rem;
     }
 
-    .action-link:hover {
+    .action-link-primary {
+      background-color: var(--primary);
+      color: var(--white) !important;
+    }
+
+    .action-link-primary:hover {
+      background-color: var(--primary-hover);
+      text-decoration: none;
+    }
+
+    .action-link-danger {
+      background-color: var(--danger);
+      color: var(--white) !important;
+    }
+
+    .action-link-danger:hover {
       background-color: #b91c1c;
-      transform: translateY(-1px);
       text-decoration: none;
     }
 
@@ -167,7 +260,6 @@
       font-size: 0.875rem;
       font-weight: 500;
       text-decoration: none;
-      margin-top: 1.5rem;
       transition: all 0.2s ease;
     }
 
@@ -187,17 +279,74 @@
     <header>
       <div class="container header-content">
         <h1 class="header-title">
-          <i class="fas fa-users"></i> Orodha ya Watumiaji
+          <i class="fas fa-users-cog"></i> Usimamizi wa Watumiaji
         </h1>
       </div>
     </header>
 
     <!-- Main Content -->
     <main class="container">
+      <!-- Filters Section -->
+      <div class="filter-section">
+        <form method="get" action="/admin/watumiaji">
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label class="filter-label" for="clinicId">Chagua Kliniki:</label>
+              <select class="filter-input" name="clinicId" id="clinicId">
+                <option value="">Wote</option>
+                <% clinics.forEach(clinic => { %>
+                  <option value="<%= clinic.id %>" <%= filters.clinicId === clinic.id ? 'selected' : '' %>>
+                    <%= clinic.jina %>
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label" for="dawaType">Aina ya Dawa:</label>
+              <select class="filter-input" name="dawaType" id="dawaType">
+                <option value="">Wote</option>
+                <% dawaTypes.forEach(type => { %>
+                  <option value="<%= type %>" <%= filters.dawaType === type ? 'selected' : '' %>>
+                    <%= type %>
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label" for="dawaContent">Umbali wa Dawa:</label>
+              <input 
+                type="text" 
+                class="filter-input" 
+                name="dawaContent" 
+                id="dawaContent" 
+                placeholder="Ingiza umbali..."
+                value="<%= filters.dawaContent || '' %>"
+              >
+            </div>
+          </div>
+
+          <div style="margin-top: 1rem;">
+            <button type="submit" class="filter-button">
+              <i class="fas fa-filter"></i> Chuja
+            </button>
+            <a href="/admin/watumiaji" class="filter-button" style="margin-left: 0.5rem; background-color: var(--gray-500);">
+              <i class="fas fa-times"></i> Safisha
+            </a>
+          </div>
+        </form>
+      </div>
+
       <!-- Users Table -->
       <div class="table-container">
         <div class="table-header">
-          <h2>Watumiaji Wote</h2>
+          <h2>Watumiaji Waliochujwa</h2>
+          <div>
+            <span style="font-size: 0.875rem; color: var(--gray-500);">
+              Jumla: <%= watumiaji.length %>
+            </span>
+          </div>
         </div>
         
         <div class="table-wrapper">
@@ -205,21 +354,46 @@
             <thead>
               <tr>
                 <th>Jina</th>
-                <th>Maelezo</th>
                 <th>Kliniki</th>
+                <th>Matumizi ya Mwisho</th>
+                <th>Jumla Matumizi</th>
                 <th>Vitendo</th>
               </tr>
             </thead>
             <tbody>
-              <% watumiaji.forEach(function(mtumiaji) { %>
+              <% if (watumiaji.length === 0) { %>
                 <tr>
-                  <td><%= mtumiaji.jina %></td>
-                  <td><%= mtumiaji.maelezo || '-' %></td>
-                  <td><%= mtumiaji.clinic || '-' %></td>
+                  <td colspan="5" style="text-align: center; padding: 2rem;">
+                    Hakuna watumiaji waliochujwa
+                  </td>
+                </tr>
+              <% } %>
+
+              <% watumiaji.forEach(user => { %>
+                <tr>
                   <td>
-                    <a href="/mtumiaji/futa/<%= mtumiaji.id %>" 
-                       class="action-link" 
-                       onclick="return confirm('Una uhakika unataka kufuta mtumiaji huyu?')">
+                    <div style="font-weight: 500;"><%= user.jina %></div>
+                    <% if (user.maelezo) { %>
+                      <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
+                        <%= user.maelezo %>
+                      </div>
+                    <% } %>
+                  </td>
+                  <td><%= user.clinic %></td>
+                  <td><%= formatDate(user.lastUsage) %></td>
+                  <td><%= formatCount(user.totalUsage) %></td>
+                  <td>
+                    <a 
+                      href="/mtumiaji/angalia/<%= user.id %>" 
+                      class="action-link action-link-primary"
+                    >
+                      <i class="fas fa-eye"></i> Angalia
+                    </a>
+                    <a 
+                      href="/mtumiaji/futa/<%= user.id %>" 
+                      class="action-link action-link-danger"
+                      onclick="return confirm('Una uhakika unataka kufuta mtumiaji huyu?')"
+                    >
                       <i class="fas fa-trash-alt"></i> Futa
                     </a>
                   </td>
