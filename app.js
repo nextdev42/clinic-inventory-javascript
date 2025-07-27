@@ -701,9 +701,10 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
       );
 
       filteredUsers = filteredUsers.filter(user => 
-        usersWithMatchingDawa.has(user.id))
-      );
-    }
+      usersWithMatchingDawa.has(user.id)
+);
+
+    
 
     // Calculate statistics
     const totalUsers = watumiaji.length;
