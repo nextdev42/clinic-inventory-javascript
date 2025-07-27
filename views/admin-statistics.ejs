@@ -366,6 +366,29 @@
   </main>
 
   <script>
+// Sample data - replace with your actual data
+const clinicStats = {
+  totalUsers: 150,
+  activeUsers: 120,
+  inactiveUsers: 30,
+  byClinic: {
+    "Kliniki A": { totalUsers: 50, activeUsers: 45, inactiveUsers: 5 },
+    "Kliniki B": { totalUsers: 40, activeUsers: 30, inactiveUsers: 10 },
+    "Kliniki C": { totalUsers: 60, activeUsers: 45, inactiveUsers: 15 }
+  }
+};
+
+const medicineStats = {
+  totalUsage: 500,
+  byMedicine: {
+    "Dawa A": { totalUsed: 150, remaining: 50 },
+    "Dawa B": { totalUsed: 120, remaining: 80 },
+    "Dawa C": { totalUsed: 100, remaining: 100 },
+    "Dawa D": { totalUsed: 80, remaining: 120 },
+    "Dawa E": { totalUsed: 50, remaining: 150 }
+  }
+};
+   
     // Parse the data passed from the server
     const clinicStats = <%- JSON.stringify(clinicStats) %>;
     const medicineStats = <%- JSON.stringify(medicineStats) %>;
