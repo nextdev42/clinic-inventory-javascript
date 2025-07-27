@@ -576,46 +576,135 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
 });
       
 
-
-    
-
 app.get('/admin/statistics', async (req, res, next) => {
   try {
     const [watumiaji, matumizi, dawa, clinics] = await Promise.all([
-      readSheet('WATUMIAJI'),
-      readSheet('MATUMIZI'),
-      readSheet('DAWA'),
-      readSheet('CLINICS')
+      readSheet('WATUMIAJI').catch(() => []),
+      readSheet('MATUMIZI').catch(() => []),
+      readSheet('DAWA').catch(() => []),
+      readSheet('CLINICS').catch(() => [])
     ]);
 
-    // === Takwimu za Watumiaji kwa kila Kliniki ===
+    // 1. Prepare clinic statistics
+    const clinicStats = {
+      totalUsers: watumiaji.length,
+      activeUsers: 0,
+      inactiveUsers: 0,
+      byClinic: {}
+    };
+
+    // 2. Prepare medicine statistics
+    const medicineStats = {
+      totalUsage: 0,
+      byMedicine: {},
+      mostUsed: []
+    };
+
+    // 3. Create lookup maps
     const clinicMap = {};
     clinics.forEach(clinic => {
       clinicMap[clinic.id] = clinic.jina;
+      clinicStats.byClinic[clinic.jina] = {
+        totalUsers: 0,
+        activeUsers: 0,
+        inactiveUsers: 0
+      };
     });
 
-    const clinicStats = {};
-    watumiaji.forEach(mtumiaji => {
-      const jinaKliniki = clinicMap[mtumiaji.clinicId] || 'Haijulikani';
-      clinicStats[jinaKliniki] = (clinicStats[jinaKliniki] || 0) + 1;
+    const dawaMap = {};
+    dawa.forEach(item => {
+      dawaMap[item.id] = item;
+      medicineStats.byMedicine[item.jina] = {
+        totalUsed: 0,
+        remaining: parseInt(item.kilichobaki) || 0
+      };
     });
 
-    // === Takwimu za Matumizi ya Dawa ===
-    const medicineStats = {};
-    matumizi.forEach(entry => {
-      const jinaDawa = entry.dawa;
-      const kiasi = parseInt(entry.kiasi) || 0;
-      medicineStats[jinaDawa] = (medicineStats[jinaDawa] || 0) + kiasi;
+    // 4. Process user data
+    watumiaji.forEach(user => {
+      const clinicName = clinicMap[user.clinicId] || 'Unknown';
+      clinicStats.byClinic[clinicName].totalUsers++;
     });
+
+    // 5. Process medicine usage
+    const activeUsers = new Set();
+    matumizi.forEach(usage => {
+      const medicine = dawaMap[usage.dawaId];
+      if (!medicine) return;
+
+      const clinicName = clinicMap[usage.clinicId] || 'Unknown';
+      const kiasi = parseInt(usage.kiasi) || 0;
+      
+      // Update medicine stats
+      medicineStats.byMedicine[medicine.jina].totalUsed += kiasi;
+      medicineStats.totalUsage += kiasi;
+      
+      // Track active users
+      activeUsers.add(usage.mtumiajiId);
+      
+      // Update clinic stats for active users
+      if (clinicStats.byClinic[clinicName]) {
+        clinicStats.byClinic[clinicName].activeUsers++;
+      }
+    });
+
+    // 6. Calculate inactive users
+    clinicStats.activeUsers = activeUsers.size;
+    clinicStats.inactiveUsers = clinicStats.totalUsers - clinicStats.activeUsers;
+    
+    Object.keys(clinicStats.byClinic).forEach(clinicName => {
+      clinicStats.byClinic[clinicName].inactiveUsers = 
+        clinicStats.byClinic[clinicName].totalUsers - 
+        clinicStats.byClinic[clinicName].activeUsers;
+    });
+
+    // 7. Prepare most used medicines
+    medicineStats.mostUsed = Object.entries(medicineStats.byMedicine)
+      .sort((a, b) => b[1].totalUsed - a[1].totalUsed)
+      .slice(0, 5)
+      .map(([name, data]) => ({
+        name,
+        totalUsed: data.totalUsed,
+        remaining: data.remaining
+      }));
+
+    // 8. Prepare data for charts
+    const chartData = {
+      clinics: {
+        labels: Object.keys(clinicStats.byClinic),
+        datasets: [{
+          label: 'Watumiaji Wote',
+          data: Object.values(clinicStats.byClinic).map(c => c.totalUsers),
+          backgroundColor: 'rgba(37, 99, 235, 0.7)'
+        }, {
+          label: 'Watumiaji Waliotumia',
+          data: Object.values(clinicStats.byClinic).map(c => c.activeUsers),
+          backgroundColor: 'rgba(22, 163, 74, 0.7)'
+        }]
+      },
+      medicines: {
+        labels: Object.keys(medicineStats.byMedicine),
+        data: Object.values(medicineStats.byMedicine).map(m => m.totalUsed),
+        backgroundColor: 'rgba(220, 38, 38, 0.7)'
+      }
+    };
 
     res.render('admin-statistics', {
       clinicStats,
-      medicineStats
+      medicineStats,
+      chartData: JSON.stringify(chartData),
+      helpers: {
+        formatCount: (count) => count?.toString() || '0'
+      }
     });
+
   } catch (error) {
+    console.error('Error in /admin/statistics:', error);
     next(error);
   }
 });
+    
+
 
 
 app.get('/mtumiaji/futa/:id', async (req, res, next) => {
