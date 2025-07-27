@@ -639,13 +639,14 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
   }
 });
 
- 
+  
+
 
 app.get('/admin/watumiaji', async (req, res, next) => {
   try {
     const { clinicId, dawaType, dawaContent } = req.query;
 
-    // 1. Read all data with error handling
+    // Read all data with error handling
     const [watumiaji, clinics, matumizi, dawa] = await Promise.all([
       readSheet('WATUMIAJI').catch(() => []),
       readSheet('CLINICS').catch(() => []),
@@ -653,102 +654,68 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       readSheet('DAWA').catch(() => [])
     ]);
 
-    // 2. Create lookup maps for performance
+    // Create lookup maps
     const clinicMap = clinics.reduce((map, clinic) => {
       map[clinic.id] = clinic.jina;
       return map;
     }, {});
 
-    const dawaMap = dawa.reduce((map, medicine) => {
-      map[medicine.id] = medicine;
-      return map;
-    }, {});
+    // Track which users have actually used medicine
+    const activeUserIds = new Set();
+    const userUsageStats = {};
 
-    // 3. Calculate usage statistics
-    const usageStats = {};
-    const now = new Date();
-    
     matumizi.forEach(usage => {
-      try {
-        if (!usage.userId) return;
-        
-        if (!usageStats[usage.userId]) {
-          usageStats[usage.userId] = {
-            count: 0,
-            lastDate: null,
-            medicinesUsed: new Set()
-          };
-        }
-        
-        usageStats[usage.userId].count++;
-        usageStats[usage.userId].medicinesUsed.add(usage.dawaId);
-        
-        const usageDate = new Date(usage.tarehe);
-        if (isNaN(usageDate.getTime())) {
-          console.warn(`Invalid date for usage ${usage.id}: ${usage.tarehe}`);
-          return;
-        }
-        
-        if (!usageStats[usage.userId].lastDate || usageDate > usageStats[usage.userId].lastDate) {
-          usageStats[usage.userId].lastDate = usageDate;
-        }
-      } catch (err) {
-        console.error(`Error processing usage ${usage.id}:`, err);
+      activeUserIds.add(usage.userId);
+      
+      if (!userUsageStats[usage.userId]) {
+        userUsageStats[usage.userId] = {
+          count: 0,
+          lastDate: null
+        };
+      }
+      
+      userUsageStats[usage.userId].count++;
+      const usageDate = new Date(usage.tarehe);
+      if (!userUsageStats[usage.userId].lastDate || usageDate > userUsageStats[usage.userId].lastDate) {
+        userUsageStats[usage.userId].lastDate = usageDate;
       }
     });
 
-    // 4. Process and filter users
-    let filteredUsers = watumiaji
-      .map(user => {
-        const stats = usageStats[user.id] || {};
-        return {
-          ...user,
-          clinic: clinicMap[user.clinicId] || 'Haijulikani',
-          hasUsed: !!stats.count,
-          totalUsage: stats.count || 0,
-          lastUsage: stats.lastDate || null,
-          medicinesUsed: stats.medicinesUsed || new Set()
-        };
-      })
-      .filter(user => {
-        // Clinic filter
-        if (clinicId && user.clinicId !== clinicId) return false;
-        
-        // Medicine filters
-        if (dawaType || dawaContent) {
-          let hasMatchingMedicine = false;
-          
-          user.medicinesUsed.forEach(dawaId => {
-            const medicine = dawaMap[dawaId];
-            if (!medicine) return;
-            
-            const typeMatches = !dawaType || medicine.type === dawaType;
-            const contentMatches = !dawaContent || 
-              (medicine.content && 
-               medicine.content.toLowerCase().includes(dawaContent.toLowerCase()));
-            
-            if (typeMatches && contentMatches) {
-              hasMatchingMedicine = true;
-            }
-          });
-          
-          return hasMatchingMedicine;
-        }
-        
-        return true;
-      });
+    // Process users
+    let filteredUsers = watumiaji.map(user => ({
+      ...user,
+      clinic: clinicMap[user.clinicId] || 'Haijulikani',
+      hasUsed: activeUserIds.has(user.id),
+      totalUsage: userUsageStats[user.id]?.count || 0,
+      lastUsage: userUsageStats[user.id]?.lastDate || null
+    }));
 
-    // 5. Sort by most recent activity
-    filteredUsers.sort((a, b) => {
-      if (!a.lastUsage && !b.lastUsage) return 0;
-      if (!a.lastUsage) return 1;
-      if (!b.lastUsage) return -1;
-      return b.lastUsage - a.lastUsage;
-    });
+    // Apply filters
+    if (clinicId) {
+      filteredUsers = filteredUsers.filter(user => user.clinicId === clinicId);
+    }
 
-    // 6. Prepare response data
+    if (dawaType || dawaContent) {
+      const matchingDawa = dawa.filter(d => 
+        (!dawaType || d.type === dawaType) &&
+        (!dawaContent || (d.content && d.content.toLowerCase().includes(dawaContent.toLowerCase())))
+      .map(d => d.id);
+
+      const usersWithMatchingDawa = new Set(
+        matumizi
+          .filter(usage => matchingDawa.includes(usage.dawaId))
+          .map(usage => usage.userId)
+      );
+
+      filteredUsers = filteredUsers.filter(user => usersWithMatchingDawa.has(user.id));
+    }
+
+    // Calculate CORRECT statistics
     const totalUsers = watumiaji.length;
-    const activeUsers = Object.keys(usageStats).length;
+    const activeUsers = activeUserIds.size; // This now correctly counts unique users who have used medicine
+    const inactiveUsers = totalUsers - activeUsers;
+
+    // Get medicine types for filter dropdown
     const uniqueDawaTypes = [...new Set(dawa.map(d => d.type))].filter(Boolean);
 
     res.render('wote-watumiaji', {
@@ -759,30 +726,25 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       stats: {
         totalUsers,
         filteredUsers: filteredUsers.length,
-        activeUsers,
-        inactiveUsers: totalUsers - activeUsers
+        activeUsers, // Will now correctly show 2 if 2 users have used medicine
+        inactiveUsers // Will now correctly show 1 if 1 user hasn't used medicine
       },
       formatDate: (date) => {
         if (!date) return 'Hajatumia';
         return date.toLocaleDateString('sw-TZ', {
           day: 'numeric',
-          month: 'long', 
+          month: 'long',
           year: 'numeric'
         });
       },
-      formatCount: (count) => count?.toString() || '0' // Added formatCount
+      formatCount: (count) => count?.toString() || '0'
     });
 
   } catch (error) {
     console.error('Error in /admin/watumiaji:', error);
     next(error);
   }
-});
-    
-
-
-
-    
+});    
 
     
             
