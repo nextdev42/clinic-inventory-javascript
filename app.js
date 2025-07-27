@@ -927,9 +927,10 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       stats: {
         ...stats,
         selectedMedicine: selectedMedicineReport,
+      },
         formatCount: (count) => count?.toString() || '0',
         formatDate: (date) => date ? new Date(date).toLocaleDateString('sw-TZ') : 'N/A'
-      }
+      
     });
 
   } catch (error) {
