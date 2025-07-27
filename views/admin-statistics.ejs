@@ -26,51 +26,42 @@
     <div class="debug-title">Debug Information</div>
     <div id="debugOutput">Loading debug data...</div>
   </div>
+  <h2>Takwimu za Matumizi ya Dawa</h2>
+  <canvas id="medicineChart" width="400" height="200"></canvas>
 
   <!-- ... your charts ... -->
+<script>
+  const chartData = <%- chartData %>; // Passed from backend as JSON string
 
-  <script>
-    // Debugging output
-    const debugOutput = document.getElementById('debugOutput');
-    
-    try {
-      // 1. Verify data exists
-      const clinicStats = <%- JSON.stringify(clinicStats) %>;
-      const medicineStats = <%- JSON.stringify(medicineStats) %>;
-      const chartData = JSON.parse('<%- chartData %>');
-      
-      let debugHtml = `
-        <p><strong>Data Loaded:</strong> Yes</p>
-        <p><strong>Chart.js:</strong> ${typeof Chart !== 'undefined' ? 'Loaded' : 'NOT LOADED'}</p>
-        <p><strong>Canvas Elements:</strong> ${
-          document.getElementById('clinicChart') ? 'Found' : 'Missing'
-        }</p>
-        <details>
-          <summary>View Raw Data</summary>
-          <pre>${JSON.stringify({clinicStats, medicineStats, chartData}, null, 2)}</pre>
-        </details>
-      `;
-      
-      debugOutput.innerHTML = debugHtml;
-      
-      // 2. Initialize charts with error handling
-      try {
-        new Chart(document.getElementById('clinicChart'), {
-          // ... your chart config ...
-        });
-        console.log("Clinic chart initialized");
-      } catch (e) {
-        debugHtml += `<p class="text-red-500">Clinic Chart Error: ${e.message}</p>`;
+  const ctx = document.getElementById('medicineChart').getContext('2d');
+
+  const medicineChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: chartData.labels,
+      datasets: [{
+        label: 'Idadi ya Matumizi',
+        data: chartData.data,
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Idadi ya Watumiaji'
+          }
+        }
       }
-      
-      // Repeat for other charts...
-      
-    } catch (e) {
-      debugOutput.innerHTML = `
-        <p class="text-red-500">Critical Error: ${e.message}</p>
-        <p>Check your backend data structure</p>
-      `;
     }
-  </script>
+  });
+</script>
+
+  
 </body>
 </html>
