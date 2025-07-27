@@ -695,20 +695,24 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       filteredUsers = filteredUsers.filter(user => user.clinicId === clinicId);
     }
 
+    
     if (dawaType || dawaContent) {
-      const matchingDawa = dawa.filter(d => 
-        (!dawaType || d.type === dawaType) &&
-        (!dawaContent || (d.content && d.content.toLowerCase().includes(dawaContent.toLowerCase())))
-      .map(d => d.id);
+  const matchingDawa = dawa
+    .filter(d => 
+      (!dawaType || d.type === dawaType) &&
+      (!dawaContent || (d.content && d.content.toLowerCase().includes(dawaContent.toLowerCase())))
+    )
+    .map(d => d.id);
 
-      const usersWithMatchingDawa = new Set(
-        matumizi
-          .filter(usage => matchingDawa.includes(usage.dawaId))
-          .map(usage => usage.userId)
-      );
+  const usersWithMatchingDawa = new Set(
+    matumizi
+      .filter(usage => matchingDawa.includes(usage.dawaId))
+      .map(usage => usage.userId)
+  );
 
-      filteredUsers = filteredUsers.filter(user => usersWithMatchingDawa.has(user.id));
-    }
+  filteredUsers = filteredUsers.filter(user => usersWithMatchingDawa.has(user.id));
+}
+
 
     // Calculate CORRECT statistics
     const totalUsers = watumiaji.length;
