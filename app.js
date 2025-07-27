@@ -639,16 +639,16 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
   }
 });
 
-  app.get('/admin/watumiaji', async (req, res, next) => {
+ app.get('/admin/watumiaji', async (req, res, next) => {
   try {
-    const { clinicId, dawaType, dawaContent, minCount } = req.query;
+    const { clinicId, dawaType, dawaContent } = req.query;
 
-    // Read all data in parallel with error handling
+    // Read all data in parallel
     const [watumiaji, clinics, matumizi, dawa] = await Promise.all([
-      readSheet('WATUMIAJI').catch(() => []),
-      readSheet('CLINICS').catch(() => []),
-      readSheet('MATUMIZI').catch(() => []),
-      readSheet('DAWA').catch(() => [])
+      readSheet('WATUMIAJI'),
+      readSheet('CLINICS'),
+      readSheet('MATUMIZI'),
+      readSheet('DAWA')
     ]);
 
     // Create clinic map for quick lookup
@@ -657,109 +657,80 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
       return acc;
     }, {});
 
-    // Pre-process medicine data for faster filtering
-    const dawaMap = dawa.reduce((acc, medicine) => {
-      acc[medicine.id] = medicine;
-      return acc;
-    }, {});
-
     // Calculate usage statistics for each user
     const usageStats = {};
-    const now = new Date();
-    
     matumizi.forEach(usage => {
-      const userId = usage.userId;
-      if (!usageStats[userId]) {
-        usageStats[userId] = {
+      if (!usageStats[usage.userId]) {
+        usageStats[usage.userId] = {
           count: 0,
-          lastDate: null,
-          medicinesUsed: new Set()
+          lastDate: null
         };
       }
-      
-      usageStats[userId].count++;
-      usageStats[userId].medicinesUsed.add(usage.dawaId);
-      
+      usageStats[usage.userId].count++;
       const usageDate = new Date(usage.tarehe);
-      if (!usageStats[userId].lastDate || usageDate > usageStats[userId].lastDate) {
-        usageStats[userId].lastDate = usageDate;
+      if (!usageStats[usage.userId].lastDate || usageDate > usageStats[usage.userId].lastDate) {
+        usageStats[usage.userId].lastDate = usageDate;
       }
     });
 
     // Filter users based on criteria
-    const filteredUsers = watumiaji
-      .map(user => ({
-        ...user,
-        clinic: clinicMap[user.clinicId] || 'Haijulikani',
-        totalUsage: usageStats[user.id]?.count || 0,
-        lastUsage: usageStats[user.id]?.lastDate || null,
-        medicinesUsed: usageStats[user.id]?.medicinesUsed || new Set()
-      }))
-      .filter(user => {
-        // Clinic filter
-        if (clinicId && user.clinicId !== clinicId) return false;
-        
-        // Minimum usage count filter
-        if (minCount && user.totalUsage < parseInt(minCount)) return false;
-        
-        // Medicine type/content filter
-        if (dawaType || dawaContent) {
-          let hasMatchingMedicine = false;
-          
-          user.medicinesUsed.forEach(dawaId => {
-            const medicine = dawaMap[dawaId];
-            if (!medicine) return;
-            
-            const typeMatches = !dawaType || medicine.type === dawaType;
-            const contentMatches = !dawaContent || 
-              (medicine.content && 
-               medicine.content.toLowerCase().includes(dawaContent.toLowerCase()));
-            
-            if (typeMatches && contentMatches) {
-              hasMatchingMedicine = true;
-            }
-          });
-          
-          if (!hasMatchingMedicine) return false;
-        }
-        
-        return true;
-      });
+    let filteredUsers = watumiaji.map(user => ({
+      ...user,
+      clinic: clinicMap[user.clinicId] || 'Haijulikani',
+      hasUsed: !!usageStats[user.id],
+      totalUsage: usageStats[user.id]?.count || 0,
+      lastUsage: usageStats[user.id]?.lastDate || null
+    }));
 
-    // Sort users by most recent activity first
-    filteredUsers.sort((a, b) => {
-      if (!a.lastUsage && !b.lastUsage) return 0;
-      if (!a.lastUsage) return 1;
-      if (!b.lastUsage) return -1;
-      return b.lastUsage - a.lastUsage;
-    });
+    // Apply clinic filter
+    if (clinicId) {
+      filteredUsers = filteredUsers.filter(user => user.clinicId === clinicId);
+    }
+
+    // Apply medicine filters if specified
+    if (dawaType || dawaContent) {
+      const matchingDawa = dawa.filter(d => 
+        (!dawaType || d.type === dawaType) &&
+        (!dawaContent || (d.content && d.content.toLowerCase().includes(dawaContent.toLowerCase())))
+      ).map(d => d.id);
+
+      const usersWithMatchingDawa = new Set(
+        matumizi
+          .filter(usage => matchingDawa.includes(usage.dawaId))
+          .map(usage => usage.userId)
+      );
+
+      filteredUsers = filteredUsers.filter(user => 
+        usersWithMatchingDawa.has(user.id))
+      );
+    }
+
+    // Calculate statistics
+    const totalUsers = watumiaji.length;
+    const activeUsers = Object.keys(usageStats).length;
+    const filteredCount = filteredUsers.length;
 
     // Get unique medicine types for filter dropdown
     const uniqueDawaTypes = [...new Set(dawa.map(d => d.type))].filter(Boolean);
-
-    // Helper functions for view
-    const formatDate = (date) => {
-      if (!date) return 'Hajatumia';
-      return date.toLocaleDateString('sw-TZ', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-    };
-
-    const formatCount = (count) => count || '0';
 
     res.render('wote-watumiaji', {
       watumiaji: filteredUsers,
       clinics,
       dawaTypes: uniqueDawaTypes,
-      filters: { clinicId, dawaType, dawaContent, minCount },
-      formatDate,
-      formatCount,
+      filters: { clinicId, dawaType, dawaContent },
       stats: {
-        totalUsers: watumiaji.length,
-        filteredUsers: filteredUsers.length,
-        activeUsers: Object.keys(usageStats).length
+        totalUsers,
+        filteredUsers: filteredCount,
+        activeUsers,
+        inactiveUsers: totalUsers - activeUsers
+      },
+      formatDate: (date) => {
+        if (!date) return 'Hajatumia';
+        return date.toLocaleDateString('sw-TZ', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
       }
     });
 
@@ -767,8 +738,9 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
     console.error('Error in /admin/watumiaji:', error);
     next(error);
   }
-});  
-
+}); 
+          
+            
 
 
 
