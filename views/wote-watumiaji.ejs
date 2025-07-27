@@ -4,106 +4,236 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orodha ya Watumiaji</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #dbeafe;
+      --secondary: #f0f9ff;
+      --success: #16a34a;
+      --warning: #ea580c;
+      --danger: #dc2626;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --white: #ffffff;
+    }
+
+    * {
       margin: 0;
-      padding: 20px;
-      background-color: #f5f5f5;
+      padding: 0;
+      box-sizing: border-box;
     }
-    h1 {
-      color: #2c3e50;
-      text-align: center;
-      margin-bottom: 30px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #3498db;
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--gray-50);
+      color: var(--gray-800);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.5;
     }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* Header Styles */
+    header {
+      background-color: var(--primary);
+      color: var(--white);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      padding: 1rem 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+    }
+
+    .header-title i {
+      margin-right: 0.75rem;
+    }
+
+    /* Table Styles */
+    .table-container {
+      background-color: var(--white);
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .table-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-header h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 20px;
-      background-color: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    th, td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
+
+    thead {
+      background-color: var(--gray-50);
     }
+
     th {
-      background-color: #3498db;
-      color: white;
-      font-weight: bold;
+      padding: 0.75rem 1.5rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
-    tr:hover {
-      background-color: #f1f9ff;
+
+    tbody tr {
+      border-bottom: 1px solid var(--gray-200);
+      transition: all 0.15s ease;
     }
-    a {
-      color: #2980b9;
-      text-decoration: none;
-      transition: color 0.3s;
+
+    tbody tr:hover {
+      background-color: var(--gray-50);
+      transform: translateY(-1px);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-    a:hover {
-      color: #1a5276;
-      text-decoration: underline;
+
+    td {
+      padding: 1rem 1.5rem;
     }
+
+    /* Action Links */
     .action-link {
-      display: inline-block;
-      padding: 5px 10px;
-      background-color: #e74c3c;
-      color: white !important;
-      border-radius: 4px;
-      margin-right: 5px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0.375rem 0.75rem;
+      background-color: var(--danger);
+      color: var(--white) !important;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
     }
+
     .action-link:hover {
-      background-color: #c0392b;
+      background-color: #b91c1c;
+      transform: translateY(-1px);
       text-decoration: none;
     }
-    .return-link {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 8px 15px;
-      background-color: #2c3e50;
-      color: white;
-      border-radius: 4px;
+
+    .action-link i {
+      margin-right: 0.25rem;
     }
-    .return-link:hover {
-      background-color: #1a252f;
+
+    /* Back Link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--primary);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      margin-top: 1.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .back-link:hover {
+      color: var(--primary-hover);
+      transform: translateX(-2px);
+    }
+
+    .back-link i {
+      margin-right: 0.5rem;
     }
   </style>
 </head>
 <body>
-  <h1>Orodha ya Watumiaji</h1>
+  <div class="min-h-screen">
+    <!-- Header -->
+    <header>
+      <div class="container header-content">
+        <h1 class="header-title">
+          <i class="fas fa-users"></i> Orodha ya Watumiaji
+        </h1>
+      </div>
+    </header>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Jina</th>
-        <th>Maelezo</th>
-        <th>Kliniki</th>
-        <th>Vitendo</th>
-      </tr>
-    </thead>
-    <tbody>
-       <% watumiaji.forEach(function(mtumiaji) { %>
-    <tr>
-    <td><%= mtumiaji.jina %></td>
-    <td><%= mtumiaji.maelezo || '-' %></td>
-    <td><%= mtumiaji.clinic || '-' %></td>
-    <td>
-      <a href="/mtumiaji/futa/<%= mtumiaji.id %>" 
-         class="action-link" 
-         onclick="return confirm('Una uhakika unataka kufuta mtumiaji huyu?')">
-         🗑️ Futa
+    <!-- Main Content -->
+    <main class="container">
+      <!-- Users Table -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2>Watumiaji Wote</h2>
+        </div>
+        
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Jina</th>
+                <th>Maelezo</th>
+                <th>Kliniki</th>
+                <th>Vitendo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% watumiaji.forEach(function(mtumiaji) { %>
+                <tr>
+                  <td><%= mtumiaji.jina %></td>
+                  <td><%= mtumiaji.maelezo || '-' %></td>
+                  <td><%= mtumiaji.clinic || '-' %></td>
+                  <td>
+                    <a href="/mtumiaji/futa/<%= mtumiaji.id %>" 
+                       class="action-link" 
+                       onclick="return confirm('Una uhakika unataka kufuta mtumiaji huyu?')">
+                      <i class="fas fa-trash-alt"></i> Futa
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <a href="/" class="back-link">
+        <i class="fas fa-arrow-left"></i> Rudi kwenye dashibodi
       </a>
-    </td>
-  </tr>
-<% }) %>
-
-    </tbody>
-  </table>
-
-  <a href="/" class="return-link">⬅️ Rudi kwenye dashibodi</a>
+    </main>
+  </div>
 </body>
 </html>
