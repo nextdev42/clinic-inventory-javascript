@@ -639,7 +639,8 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
   }
 });
 
- app.get('/admin/watumiaji', async (req, res, next) => {
+ 
+app.get('/admin/watumiaji', async (req, res, next) => {
   try {
     const { clinicId, dawaType, dawaContent } = req.query;
 
@@ -689,10 +690,12 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
 
     // Apply medicine filters if specified
     if (dawaType || dawaContent) {
-      const matchingDawa = dawa.filter(d => 
-        (!dawaType || d.type === dawaType) &&
-        (!dawaContent || (d.content && d.content.toLowerCase().includes(dawaContent.toLowerCase())))
-      ).map(d => d.id);
+      const matchingDawa = dawa
+        .filter(d =>
+          (!dawaType || d.type === dawaType) &&
+          (!dawaContent || (d.content && d.content.toLowerCase().includes(dawaContent.toLowerCase())))
+        )
+        .map(d => d.id);
 
       const usersWithMatchingDawa = new Set(
         matumizi
@@ -700,11 +703,10 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
           .map(usage => usage.userId)
       );
 
-      filteredUsers = filteredUsers.filter(user => 
-      usersWithMatchingDawa.has(user.id)
-);
-
-    
+      filteredUsers = filteredUsers.filter(user =>
+        usersWithMatchingDawa.has(user.id)
+      );
+    }
 
     // Calculate statistics
     const totalUsers = watumiaji.length;
@@ -739,8 +741,10 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
     console.error('Error in /admin/watumiaji:', error);
     next(error);
   }
-}); 
-          
+});
+    
+
+    
             
 
 
