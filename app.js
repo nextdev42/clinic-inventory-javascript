@@ -639,9 +639,8 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
   }
 });
 
-  
-
-app.get('/admin/watumiaji', async (req, res, next) => {
+      
+  app.get('/admin/watumiaji', async (req, res, next) => {
   try {
     const { clinicId, dawaType, dawaContent, selectedMedicine } = req.query;
 
@@ -653,7 +652,7 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       readSheet('DAWA').catch(() => [])
     ]);
 
-    // 2. Create lookup maps with validation
+    // 2. Create lookup maps
     const clinicMap = clinics.reduce((map, clinic) => {
       if (clinic?.id) map[clinic.id] = clinic;
       return map;
@@ -664,47 +663,32 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       return map;
     }, {});
 
-    // 3. Initialize comprehensive statistics object
+    // 3. Initialize statistics with template-required structure
     const stats = {
       totalUsers: watumiaji.length,
-      usersPerClinic: {},
+      activeUsers: 0,
+      inactiveUsers: 0,
+      summary: {
+        totalConsumption: 0,
+        averageUsagePerUser: 0,
+        clinicsSummary: []
+      },
       medicineUsage: {},
       userUsage: {},
       clinicStats: {},
+      usersPerClinic: {},
       allMedicines: dawa.filter(d => d?.id).map(d => ({
         id: d.id,
         jina: d.jina || 'Unknown',
         aina: d.type || 'Unknown',
         remaining: parseInt(d.kilichobaki) || 0
       })),
-      mostConsumedMedicines: [],
-      summary: {
-        totalConsumption: 0,
-        activeUsers: 0,
-        inactiveUsers: 0,
-        averageUsagePerUser: 0,
-        clinicsSummary: []
-      }
+      mostConsumedMedicines: []
     };
 
-    // 4. Initialize clinic statistics
-    clinics.forEach(clinic => {
-      if (clinic?.id) {
-        stats.clinicStats[clinic.id] = {
-          name: clinic.jina,
-          totalUsers: 0,
-          activeUsers: 0,
-          inactiveUsers: 0,
-          medicinesUsed: {},
-          totalConsumption: 0,
-          mostUsedMedicine: null,
-          usagePercentage: 0
-        };
-        stats.usersPerClinic[clinic.jina] = 0;
-      }
-    });
-
-    // 5. Process medicine usage data with comprehensive tracking
+    // 4. Track active users and medicine usage
+    const activeUserIds = new Set();
+    
     matumizi.forEach(usage => {
       if (!usage?.dawaId || !usage?.mtumiajiId) return;
       
@@ -716,10 +700,12 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       const user = watumiaji.find(u => u.id === usage.mtumiajiId);
       const clinicId = user?.clinicId;
 
-      // Skip if user or clinic is invalid
       if (!user || !clinicId) return;
 
-      // Track per-user usage
+      // Track active users
+      activeUserIds.add(usage.mtumiajiId);
+
+      // Initialize user usage tracking
       if (!stats.userUsage[usage.mtumiajiId]) {
         stats.userUsage[usage.mtumiajiId] = {
           totalUsed: 0,
@@ -729,10 +715,11 @@ app.get('/admin/watumiaji', async (req, res, next) => {
         };
       }
 
+      // Update usage totals
       stats.userUsage[usage.mtumiajiId].totalUsed += usageAmount;
       stats.summary.totalConsumption += usageAmount;
 
-      // Track per-medicine usage for user
+      // Track medicine usage per user
       if (!stats.userUsage[usage.mtumiajiId].medicines[usage.dawaId]) {
         stats.userUsage[usage.mtumiajiId].medicines[usage.dawaId] = {
           name: medicine.jina || 'Unknown',
@@ -743,8 +730,8 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       
       const userMed = stats.userUsage[usage.mtumiajiId].medicines[usage.dawaId];
       userMed.totalUsed += usageAmount;
-      
-      // Update dates
+
+      // Update dates if available
       if (usageDate && !isNaN(usageDate.getTime())) {
         if (!stats.userUsage[usage.mtumiajiId].lastDate || 
             usageDate > stats.userUsage[usage.mtumiajiId].lastDate) {
@@ -769,43 +756,53 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       stats.medicineUsage[usage.dawaId].users.add(usage.mtumiajiId);
       stats.medicineUsage[usage.dawaId].clinics.add(clinicId);
 
-      // Track clinic-specific statistics
-      if (stats.clinicStats[clinicId]) {
-        stats.clinicStats[clinicId].totalConsumption += usageAmount;
-        
-        if (!stats.clinicStats[clinicId].medicinesUsed[usage.dawaId]) {
-          stats.clinicStats[clinicId].medicinesUsed[usage.dawaId] = {
-            name: medicine.jina || 'Unknown',
-            totalUsed: 0
-          };
-        }
-        stats.clinicStats[clinicId].medicinesUsed[usage.dawaId].totalUsed += usageAmount;
+      // Track clinic-specific usage
+      if (!stats.clinicStats[clinicId]) {
+        stats.clinicStats[clinicId] = {
+          name: clinicMap[clinicId]?.jina || 'Unknown',
+          totalUsers: 0,
+          activeUsers: 0,
+          inactiveUsers: 0,
+          medicinesUsed: {},
+          totalConsumption: 0
+        };
       }
+      stats.clinicStats[clinicId].totalConsumption += usageAmount;
+      
+      if (!stats.clinicStats[clinicId].medicinesUsed[usage.dawaId]) {
+        stats.clinicStats[clinicId].medicinesUsed[usage.dawaId] = {
+          name: medicine.jina || 'Unknown',
+          totalUsed: 0
+        };
+      }
+      stats.clinicStats[clinicId].medicinesUsed[usage.dawaId].totalUsed += usageAmount;
     });
 
-    // 6. Calculate users per clinic and activity status
+    // 5. Calculate user statistics
+    stats.activeUsers = activeUserIds.size;
+    stats.inactiveUsers = stats.totalUsers - stats.activeUsers;
+    stats.summary.averageUsagePerUser = stats.activeUsers > 0 
+      ? (stats.summary.totalConsumption / stats.activeUsers).toFixed(2)
+      : '0.00';
+
+    // 6. Calculate clinic statistics
     watumiaji.forEach(user => {
       if (!user?.clinicId) return;
       
-      const clinic = clinicMap[user.clinicId];
-      if (!clinic) return;
-
-      stats.usersPerClinic[clinic.jina] = (stats.usersPerClinic[clinic.jina] || 0) + 1;
+      const clinicName = clinicMap[user.clinicId]?.jina || 'Unknown';
+      stats.usersPerClinic[clinicName] = (stats.usersPerClinic[clinicName] || 0) + 1;
 
       if (stats.clinicStats[user.clinicId]) {
         stats.clinicStats[user.clinicId].totalUsers++;
-        
-        if (stats.userUsage[user.id]) {
+        if (activeUserIds.has(user.id)) {
           stats.clinicStats[user.clinicId].activeUsers++;
-          stats.summary.activeUsers++;
         } else {
           stats.clinicStats[user.clinicId].inactiveUsers++;
-          stats.summary.inactiveUsers++;
         }
       }
     });
 
-    // 7. Calculate most consumed medicines and clinic statistics
+    // 7. Prepare most consumed medicines
     stats.mostConsumedMedicines = Object.entries(stats.medicineUsage)
       .map(([id, data]) => ({
         id,
@@ -818,49 +815,40 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       .sort((a, b) => b.totalUsed - a.totalUsed)
       .slice(0, 5);
 
-    // Calculate clinic-specific most used medicine and percentages
-    Object.values(stats.clinicStats).forEach(clinic => {
-      if (clinic.totalConsumption > 0) {
-        clinic.mostUsedMedicine = Object.entries(clinic.medicinesUsed)
-          .sort((a, b) => b[1].totalUsed - a[1].totalUsed)[0];
-        
-        clinic.usagePercentage = (clinic.totalConsumption / stats.summary.totalConsumption * 100).toFixed(2);
-      }
+    // 8. Prepare clinic summaries
+    stats.summary.clinicsSummary = Object.values(stats.clinicStats).map(clinic => {
+      const mostUsed = Object.entries(clinic.medicinesUsed)
+        .sort((a, b) => b[1].totalUsed - a[1].totalUsed)[0];
+      
+      return {
+        name: clinic.name,
+        totalUsers: clinic.totalUsers,
+        activeUsers: clinic.activeUsers,
+        inactiveUsers: clinic.inactiveUsers,
+        totalConsumption: clinic.totalConsumption,
+        mostUsedMedicine: mostUsed ? {
+          name: mostUsed[1].name,
+          amount: mostUsed[1].totalUsed
+        } : null,
+        usagePercentage: stats.summary.totalConsumption > 0
+          ? ((clinic.totalConsumption / stats.summary.totalConsumption) * 100).toFixed(2)
+          : '0.00'
+      };
     });
 
-    // 8. Calculate summary statistics
-    stats.summary.averageUsagePerUser = stats.summary.activeUsers > 0 
-      ? (stats.summary.totalConsumption / stats.summary.activeUsers).toFixed(2)
-      : 0;
-
-    stats.summary.clinicsSummary = Object.values(stats.clinicStats).map(clinic => ({
-      name: clinic.name,
-      totalUsers: clinic.totalUsers,
-      activeUsers: clinic.activeUsers,
-      inactiveUsers: clinic.inactiveUsers,
-      totalConsumption: clinic.totalConsumption,
-      mostUsedMedicine: clinic.mostUsedMedicine ? {
-        name: clinic.mostUsedMedicine[1].name,
-        amount: clinic.mostUsedMedicine[1].totalUsed
-      } : null,
-      usagePercentage: clinic.usagePercentage
-    }));
-
     // 9. Prepare user data for display
-    let filteredUsers = watumiaji.filter(user => user?.id).map(user => {
+    let filteredUsers = watumiaji.map(user => {
       const usage = stats.userUsage[user.id] || {};
-      const medicinesUsed = Object.entries(usage.medicines || {})
-        .map(([id, m]) => `${m.name} (${m.totalUsed})`)
-        .join(', ') || 'Hajatumia';
-
       return {
         ...user,
-        clinic: clinicMap[user.clinicId]?.jina || 'Haijulikani',
+        clinic: clinicMap[user.clinicId]?.jina || 'Unknown',
         totalUsed: usage.totalUsed || 0,
-        medicinesUsed,
+        medicinesUsed: usage.medicines
+          ? Object.values(usage.medicines).map(m => `${m.name} (${m.totalUsed})`).join(', ')
+          : 'Hajatumia',
         lastUsage: usage.lastDate ? usage.lastDate.toLocaleDateString('sw-TZ') : 'Hajatumia',
-        dawaDetails: usage.medicines || {},
-        status: usage.totalUsed ? 'Active' : 'Inactive'
+        status: usage.totalUsed ? 'Active' : 'Inactive',
+        dawaDetails: usage.medicines || {}
       };
     });
 
@@ -868,7 +856,6 @@ app.get('/admin/watumiaji', async (req, res, next) => {
     if (clinicId) {
       filteredUsers = filteredUsers.filter(user => user.clinicId === clinicId);
     }
-
     if (dawaType) {
       filteredUsers = filteredUsers.filter(user => 
         Object.keys(user.dawaDetails).some(dawaId => 
@@ -876,7 +863,6 @@ app.get('/admin/watumiaji', async (req, res, next) => {
         )
       );
     }
-
     if (dawaContent) {
       const searchTerm = dawaContent.toLowerCase();
       filteredUsers = filteredUsers.filter(user => 
@@ -886,7 +872,7 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       );
     }
 
-    // 11. Prepare selected medicine report
+    // 11. Prepare selected medicine report if requested
     let selectedMedicineReport = null;
     if (selectedMedicine && stats.medicineUsage[selectedMedicine]) {
       const medicine = stats.medicineUsage[selectedMedicine];
@@ -906,7 +892,7 @@ app.get('/admin/watumiaji', async (req, res, next) => {
             amountUsed: usage.totalUsed || 0,
             lastUsed: usage.lastUsed ? usage.lastUsed.toLocaleDateString('sw-TZ') : 'N/A'
           };
-        }).filter(user => user.id),
+        }),
         clinics: Array.from(medicine.clinics).map(clinicId => {
           const clinic = clinicMap[clinicId] || {};
           const clinicUsage = stats.clinicStats[clinicId]?.medicinesUsed[selectedMedicine] || {};
@@ -919,6 +905,7 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       };
     }
 
+    // 12. Render with all required data
     res.render('wote-watumiaji', {
       watumiaji: filteredUsers,
       clinics: clinics.filter(c => c?.id),
@@ -927,23 +914,17 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       stats: {
         ...stats,
         selectedMedicine: selectedMedicineReport,
+        clinicCount: clinics.length // Added for template compatibility
       },
-        formatCount: (count) => count?.toString() || '0',
-        formatDate: (date) => date ? new Date(date).toLocaleDateString('sw-TZ') : 'N/A'
-      
+      formatCount: (count) => count?.toString() || '0',
+      formatDate: (date) => date ? new Date(date).toLocaleDateString('sw-TZ') : 'N/A'
     });
 
   } catch (error) {
     console.error('Error in /admin/watumiaji:', error);
     next(error);
   }
-});
-
-        
-
-
-
-
+});  
 
 
 app.get('/admin/maelezo-dump', async (req, res, next) => {
