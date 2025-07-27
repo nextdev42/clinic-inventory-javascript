@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Watumiaji Wote</title>
+  <title>Usimamizi wa Watumiaji</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
     :root {
@@ -75,6 +75,39 @@
       margin-right: 0.75rem;
     }
 
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .stat-card {
+      background-color: var(--white);
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      border-left: 4px solid var(--primary);
+    }
+
+    .stat-card-content p {
+      color: var(--gray-500);
+      font-size: 0.875rem;
+    }
+
+    .stat-card-content h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
     /* Filter Styles */
     .filter-section {
       background-color: var(--white);
@@ -92,7 +125,7 @@
 
     @media (min-width: 768px) {
       .filter-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
       }
     }
 
@@ -116,6 +149,12 @@
       font-size: 0.875rem;
     }
 
+    .filter-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-light);
+      outline: none;
+    }
+
     .filter-button {
       background-color: var(--primary);
       color: var(--white);
@@ -132,6 +171,7 @@
 
     .filter-button:hover {
       background-color: var(--primary-hover);
+      transform: translateY(-1px);
     }
 
     .filter-button i {
@@ -286,12 +326,34 @@
 
     <!-- Main Content -->
     <main class="container">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-content">
+            <p>Watumiaji Wote</p>
+            <h3><%= stats.totalUsers %></h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-content">
+            <p>Watumiaji Waliochujwa</p>
+            <h3><%= stats.filteredUsers %></h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-content">
+            <p>Watumiaji Waliotumia</p>
+            <h3><%= stats.activeUsers %></h3>
+          </div>
+        </div>
+      </div>
+
       <!-- Filters Section -->
       <div class="filter-section">
         <form method="get" action="/admin/watumiaji">
           <div class="filter-grid">
             <div class="filter-group">
-              <label class="filter-label" for="clinicId">Chagua Kliniki:</label>
+              <label class="filter-label" for="clinicId">Kliniki:</label>
               <select class="filter-input" name="clinicId" id="clinicId">
                 <option value="">Wote</option>
                 <% clinics.forEach(clinic => { %>
@@ -325,6 +387,19 @@
                 value="<%= filters.dawaContent || '' %>"
               >
             </div>
+
+            <div class="filter-group">
+              <label class="filter-label" for="minCount">Matumizi Yaidi:</label>
+              <input 
+                type="number" 
+                class="filter-input" 
+                name="minCount" 
+                id="minCount" 
+                min="0"
+                placeholder="Idadi ya chini..."
+                value="<%= filters.minCount || '' %>"
+              >
+            </div>
           </div>
 
           <div style="margin-top: 1rem;">
@@ -341,10 +416,10 @@
       <!-- Users Table -->
       <div class="table-container">
         <div class="table-header">
-          <h2>Watumiaji Waliochujwa</h2>
+          <h2>Orodha ya Watumiaji</h2>
           <div>
             <span style="font-size: 0.875rem; color: var(--gray-500);">
-              Jumla: <%= watumiaji.length %>
+              <%= stats.filteredUsers %> / <%= stats.totalUsers %>
             </span>
           </div>
         </div>
