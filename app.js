@@ -436,10 +436,11 @@ app.post('/mtumiaji/transfer', async (req, res, next) => {
   }
 });
 
-
+      
 app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
     const { mode, from, to, tarehe, mtumiajiId } = req.query;
+
     const [watumiaji, dawa, matumizi] = await Promise.all([
       readSheet('WATUMIAJI'),
       readSheet('DAWA'),
@@ -450,13 +451,22 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
     let startDate = null;
     let endDate = null;
 
+    // Helper for safe date conversion
+    const toDate = (str) => {
+      const d = new Date(str);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
     if (mode === 'day' && tarehe) {
-      startDate = new Date(tarehe);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(tarehe);
-      endDate.setHours(23, 59, 59, 999);
+      const t = toDate(tarehe);
+      if (t) {
+        startDate = new Date(t);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(t);
+        endDate.setHours(23, 59, 59, 999);
+      }
     } else if (mode === 'week') {
-      const day = now.getDay(); // Sunday = 0
+      const day = now.getDay();
       const diffToMonday = (day === 0 ? 6 : day - 1);
       startDate = new Date(now);
       startDate.setDate(now.getDate() - diffToMonday);
@@ -470,12 +480,17 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       endDate.setHours(23, 59, 59, 999);
     } else if (from && to) {
-      startDate = new Date(from);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(to);
-      endDate.setHours(23, 59, 59, 999);
+      const f = toDate(from);
+      const t = toDate(to);
+      if (f && t) {
+        startDate = new Date(f);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(t);
+        endDate.setHours(23, 59, 59, 999);
+      }
     }
 
+    // Filter matumizi by date and user
     const filteredMatumizi = matumizi.filter(m => {
       const t = new Date(m.tarehe);
       const inDateRange = (!startDate || t >= startDate) && (!endDate || t <= endDate);
@@ -483,31 +498,33 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       return inDateRange && matchesUser;
     });
 
-    function formatDate(dateStr) {
+    // Format date in Swahili
+    const formatDate = (dateStr) => {
       const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return 'Tarehe haijulikani';
-      return date.toLocaleDateString('sw-TZ', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'Africa/Nairobi'
-      });
-    }
+      return isNaN(date.getTime()) ? 'Tarehe haijulikani' :
+        date.toLocaleDateString('sw-TZ', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          timeZone: 'Africa/Nairobi'
+        });
+    };
 
-    function formatTime(dateStr) {
+    const formatTime = (dateStr) => {
       const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return '--:--';
-      return date.toLocaleTimeString('sw-TZ', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Africa/Nairobi'
-      });
-    }
+      return isNaN(date.getTime()) ? '--:--' :
+        date.toLocaleTimeString('sw-TZ', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Africa/Nairobi'
+        });
+    };
 
+    // Group usage per user by date
     const report = watumiaji.map(user => {
       const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
-      if (userUsages.length === 0) return null; // skip users with no usage in range
+      if (userUsages.length === 0) return null;
 
       const byDate = {};
       userUsages.forEach(usage => {
@@ -528,13 +545,13 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
         jina: user.jina,
         matumiziByDate: byDate
       };
-    }).filter(r => r !== null); // Ondoa waliokosa matumizi
+    }).filter(Boolean); // Remove nulls
 
-    // Jina la Ripoti
+    // Title for the report
     let reportTitle = 'Ripoti ya Matumizi';
     if (mode === 'day' && tarehe) {
-      const d = new Date(tarehe);
-      reportTitle = `Ripoti ya Siku: ${formatDate(d)}`;
+      const t = toDate(tarehe);
+      if (t) reportTitle = `Ripoti ya Siku: ${formatDate(t)}`;
     } else if (mode === 'week') {
       reportTitle = `Ripoti ya Wiki: ${formatDate(startDate)} - ${formatDate(endDate)}`;
     } else if (mode === 'month') {
