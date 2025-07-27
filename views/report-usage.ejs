@@ -2,381 +2,151 @@
 <html lang="sw">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ripoti ya Matumizi</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <title>Ripoti ya Matumizi ya Dawa</title>
   <style>
-    /* Root variables from the main dashboard for consistency */
-    :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --primary-light: #dbeafe;
-      --secondary: #f0f9ff;
-      --success: #16a34a;
-      --warning: #ea580c;
-      --danger: #dc2626;
-      --gray-50: #f9fafb;
-      --gray-100: #f3f4f6;
-      --gray-200: #e5e7eb;
-      --gray-300: #d1d5db;
-      --gray-400: #9ca3af;
-      --gray-500: #6b7280;
-      --gray-600: #4b5563;
-      --gray-700: #374151;
-      --gray-800: #1f2937;
-      --gray-900: #111827;
-      --white: #ffffff;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background-color: var(--gray-50);
-      color: var(--gray-800);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      line-height: 1.5;
-      min-height: 100vh;
+      font-family: sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      background: #f5f5f5;
     }
-
-    /* Re-using the container class for consistent width and padding */
-    .container {
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
     }
-
-    /* Header Styles (matching dashboard header) */
-    header {
-      background-color: var(--primary);
-      color: var(--white);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      padding: 1rem 0;
-      margin-bottom: 2rem; /* Added margin for spacing below header */
+    form {
+      background: white;
+      padding: 15px;
+      margin-bottom: 25px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
-
-    .header-content {
-      display: flex;
-      justify-content: center; /* Center the title */
-      align-items: center;
+    label {
+      display: inline-block;
+      margin: 8px 10px 4px 0;
     }
-
-    .header-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
+    select, input[type="date"] {
+      padding: 6px;
+      margin-right: 10px;
     }
-
-    .header-title i {
-      margin-right: 0.75rem;
-    }
-
-    /* Main content padding (consistent with dashboard) */
-    main {
-        padding: 1.5rem 0;
-    }
-
-    /* Filter Form (adjusted to card style) */
-    .filter-form {
-      background: var(--white);
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      gap: 1rem;
-    }
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 0;
-    }
-
-    /* Added this specific style to ensure hidden groups use flex when shown */
-    .form-group.range-input,
-    .form-group.user-input {
-        display: none; /* Initially hidden, JS will change to 'flex' */
-    }
-
-    /* If the server renders them visible, override the 'display: none' */
-    .form-group.range-input.is-visible,
-    .form-group.user-input.is-visible {
-        display: flex;
-    }
-
-
-    .form-label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--gray-700);
-      margin-bottom: 0.5rem;
-    }
-
-    .form-select,
-    .form-input-date,
-    .form-input { /* Added .form-input for consistency */
-      padding: 0.75rem;
-      border: 1px solid var(--gray-300);
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      background-color: var(--white);
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.75rem center;
-      background-size: 16px 12px;
-      min-width: 150px;
-    }
-
-    .form-input-date {
-        background-image: none;
-    }
-
-    .form-select:focus,
-    .form-input-date:focus,
-    .form-input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px var(--primary-light);
-    }
-
-    /* Button styles (matching dashboard buttons) */
-    .btn {
-      padding: 0.75rem 1.5rem;
-      background-color: var(--primary);
-      color: var(--white);
+    button {
+      padding: 6px 12px;
+      background: #007acc;
+      color: white;
       border: none;
-      border-radius: 0.375rem;
-      font-weight: 500;
+      border-radius: 4px;
       cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: auto;
     }
-
-    .btn:hover {
-      background: var(--primary-hover);
+    button:hover {
+      background: #005c99;
     }
-
-    .btn i {
-      margin-right: 0.5rem;
+    .user-block {
+      background: white;
+      padding: 15px 20px;
+      margin-bottom: 25px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
-
-    /* Horizontal Rule for separation */
-    hr {
-        border: none;
-        border-top: 1px solid var(--gray-200);
-        margin: 2rem 0;
+    .user-block h2 {
+      margin-bottom: 15px;
+      color: #007acc;
     }
-
-    /* Report Table */
-    .report-table {
-        width: 100%;
-        border-collapse: collapse;
-        background-color: var(--white);
-        border-radius: 0.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        overflow: hidden; /* Ensures rounded corners apply to content */
+    .date-group {
+      margin-bottom: 15px;
     }
-
-    .report-table thead {
-      background-color: var(--gray-50);
+    .date-group h3 {
+      background: #007acc;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      margin-bottom: 8px;
+      font-weight: normal;
     }
-
-    .report-table th {
-      padding: 0.75rem 1.5rem;
-      text-align: left;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: var(--gray-500);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    ul {
+      list-style: none;
+      padding-left: 15px;
     }
-
-    .report-table tbody tr {
-      border-bottom: 1px solid var(--gray-200);
-      transition: all 0.15s ease;
+    li {
+      padding: 4px 0;
     }
-
-    .report-table tbody tr:last-child {
-        border-bottom: none; /* No border for the last row */
+    a.back-link {
+      display: block;
+      margin: 30px auto 10px;
+      text-align: center;
+      text-decoration: none;
+      color: #007acc;
+      font-weight: bold;
     }
-
-    .report-table tbody tr:hover {
-      background-color: var(--gray-50);
-      transform: translateY(-1px);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    .no-data {
+      text-align: center;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
-
-    .report-table td {
-      padding: 1rem 1.5rem;
-      white-space: nowrap;
-      color: var(--gray-700);
+    .clinic-label {
+      font-style: italic;
+      color: #666;
+      margin-left: 8px;
     }
-
-    /* Heading for report title */
-    h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--gray-800);
-        margin-bottom: 1.5rem;
-        text-align: center;
-    }
-
-    /* No data message */
-    .no-data-message { /* Renamed to avoid conflict if you have a .no-data card somewhere */
-        text-align: center;
-        background: var(--white);
-        padding: 2rem;
-        border-radius: 0.5rem;
-        margin: 2rem auto;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        border-left: 4px solid var(--warning); /* Use warning color for info message */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        max-width: 600px; /* Constrain width for better appearance */
-    }
-
-    .no-data-message p {
-        margin: 0;
-        color: var(--gray-700);
-        font-size: 1rem;
-    }
-
-    .no-data-message i {
-        font-size: 1.5rem;
-        color: var(--warning);
-    }
-
   </style>
 </head>
 <body>
-  <div class="min-h-screen">
-    <header>
-      <div class="container header-content">
-        <h1 class="header-title">
-          <i class="fas fa-file-alt"></i> Ripoti ya Matumizi
-        </h1>
+  <h1>📋 Ripoti ya Matumizi ya Dawa kwa Watumiaji</h1>
+
+  <!-- 🔍 Filter Form -->
+  <form method="GET" action="/report-usage">
+    <label for="aina">Aina ya ripoti:</label>
+    <select name="aina" id="aina">
+      <option value="">-- Chagua --</option>
+      <option value="wiki" <%= query.aina === 'wiki' ? 'selected' : '' %>>Wiki hii</option>
+      <option value="mwezi" <%= query.aina === 'mwezi' ? 'selected' : '' %>>Mwezi huu</option>
+      <option value="range" <%= query.aina === 'range' ? 'selected' : '' %>>Tarehe Maalum</option>
+    </select>
+
+    <% if (query.aina === 'range') { %>
+      <label for="start">Tarehe ya mwanzo:</label>
+      <input type="date" name="start" id="start" value="<%= query.start || '' %>">
+
+      <label for="end">Mpaka:</label>
+      <input type="date" name="end" id="end" value="<%= query.end || '' %>">
+    <% } %>
+
+    <button type="submit">📅 Tazama Ripoti</button>
+  </form>
+
+  <% if(report.length === 0 || report.every(u => Object.keys(u.matumiziByDate).length === 0)) { %>
+    <div class="no-data">
+      <p><strong>⚠️ Hakuna taarifa za matumizi kwa kipindi ulichotaja.</strong></p>
+    </div>
+  <% } else { %>
+
+    <% report.forEach(user => { %>
+      <div class="user-block">
+        <h2>👤 <%= user.jina %></h2>
+
+        <% Object.keys(user.matumiziByDate).sort((a,b) => new Date(b) - new Date(a)).forEach(date => { %>
+          <div class="date-group">
+            <h3><%= new Date(date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></h3>
+            <ul>
+              <% user.matumiziByDate[date].forEach(item => { %>
+                <li>
+                  - <strong><%= item.dawa %></strong>: <%= item.kiasi %>
+                  <small>
+                    saa <%= item.saa || 'hakujulikana' %>
+                    <span class="clinic-label">(Kliniki: <%= item.kliniki %>)</span>
+                  </small>
+                </li>
+              <% }) %>
+            </ul>
+          </div>
+        <% }) %>
       </div>
-    </header>
+    <% }) %>
+  <% } %>
 
-    <main class="container">
-      <form method="get" action="/report/usage" class="filter-form">
-        <div class="form-group">
-          <label for="aina" class="form-label">Aina ya ripoti:</label>
-          <select name="aina" id="aina" class="form-select"> <option value="daily" <%= query.aina === 'daily' ? 'selected' : '' %>>Ya kila siku</option>
-            <option value="range" <%= query.aina === 'range' ? 'selected' : '' %>>Kwa muda maalum</option>
-            <option value="user" <%= query.aina === 'user' ? 'selected' : '' %>>Kwa mtumiaji</option>
-          </select>
-        </div>
-
-        <div class="form-group range-input <%= query.aina === 'range' ? 'is-visible' : '' %>">
-          <label for="start" class="form-label">Tarehe ya mwanzo:</label>
-          <input type="date" name="start" id="start" value="<%= query.start || '' %>" class="form-input-date">
-        </div>
-
-        <div class="form-group range-input <%= query.aina === 'range' ? 'is-visible' : '' %>">
-          <label for="end" class="form-label">Mpaka:</label>
-          <input type="date" name="end" id="end" value="<%= query.end || '' %>" class="form-input-date">
-        </div>
-
-        <div class="form-group user-input <%= query.aina === 'user' ? 'is-visible' : '' %>">
-          <label for="mtumiajiId" class="form-label">Chagua Mtumiaji:</label>
-          <select name="mtumiajiId" id="mtumiajiId" class="form-select"> <option value="">-- Chagua --</option>
-            <% watumiaji.forEach((mtumiaji) => { %>
-              <option value="<%= mtumiaji.ID %>" <%= query.mtumiajiId === mtumiaji.ID ? 'selected' : '' %>><%= mtumiaji.JINA %></option>
-            <% }) %>
-          </select>
-        </div>
-
-        <button type="submit" class="btn">
-            <i class="fas fa-search"></i> Tafuta
-        </button>
-      </form>
-
-      <hr>
-
-      <% if (report.length > 0) { %>
-        <h2><%= reportTitle %></h2>
-        <div class="table-wrapper"> <table class="report-table">
-              <thead>
-                <tr>
-                  <th>Tarehe</th>
-                  <th>Mtumiaji</th>
-                  <th>Dawa</th>
-                  <th>Kiasi</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% report.forEach(item => { %>
-                  <tr>
-                    <td><%= item.TAREHE %></td>
-                    <td><%= item.MTUMIAJI %></td>
-                    <td><%= item.DAWA %></td>
-                    <td><%= item.KIASI %></td>
-                  </tr>
-                <% }) %>
-              </tbody>
-            </table>
-        </div>
-      <% } else { %>
-        <div class="no-data-message">
-          <i class="fas fa-info-circle"></i>
-          <p>Hakuna taarifa kwa vigezo ulivyochagua.</p>
-        </div>
-      <% } %>
-    </main>
-  </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const ainaSelect = document.getElementById("aina");
-      const rangeInputGroups = document.querySelectorAll(".range-input"); // Select the form-group divs
-      const userInputGroup = document.querySelector(".user-input"); // Select the form-group div
-
-      function toggleInputsVisibility() {
-        const selected = ainaSelect.value;
-
-        // Hide all conditional inputs first
-        rangeInputGroups.forEach(group => {
-          group.classList.remove('is-visible');
-        });
-        userInputGroup.classList.remove('is-visible');
-
-        // Then show the relevant ones
-        if (selected === "range") {
-          rangeInputGroups.forEach(group => {
-            group.classList.add('is-visible');
-          });
-        } else if (selected === "user") {
-          userInputGroup.classList.add('is-visible');
-        }
-      }
-
-      // Initial call to set visibility based on current `query.aina`
-      toggleInputsVisibility();
-
-      // Listen for changes on the 'aina' select dropdown
-      ainaSelect.addEventListener("change", function () {
-        toggleInputsVisibility(); // Update UI immediately
-        this.form.submit(); // Automatically submit the form
-      });
-    });
-  </script>
+  <a href="/" class="back-link">⬅️ Rudi kwenye Dashibodi</a>
 </body>
 </html>
