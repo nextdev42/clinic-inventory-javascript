@@ -332,40 +332,33 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
     let startDate = null;
     let endDate = null;
 
-    const now = new Date();
-
+    // Tumia tarehe kulingana na mode au range
     if (mode === 'day' && tarehe) {
       startDate = new Date(tarehe);
       startDate.setHours(0, 0, 0, 0);
       endDate = new Date(tarehe);
       endDate.setHours(23, 59, 59, 999);
-    } else if (mode === 'week') {
-      const day = now.getDay(); // 0 = Sunday
-      const diffToMonday = day === 0 ? 6 : day - 1;
-      startDate = new Date(now);
-      startDate.setDate(now.getDate() - diffToMonday);
+    } else if ((mode === 'week' || mode === 'month') && from && to) {
+      startDate = new Date(from);
       startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6);
-      endDate.setHours(23, 59, 59, 999);
-    } else if (mode === 'month') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      endDate = new Date(to);
       endDate.setHours(23, 59, 59, 999);
     } else if (from && to) {
       startDate = new Date(from);
+      startDate.setHours(0, 0, 0, 0);
       endDate = new Date(to);
       endDate.setHours(23, 59, 59, 999);
     }
 
+    // Chuja matumizi kulingana na tarehe
     const filteredMatumizi = startDate
       ? matumizi.filter(m => {
           const t = new Date(m.tarehe);
-          return t >= startDate && (!endDate || t <= endDate);
+          return t >= startDate && t <= endDate;
         })
       : matumizi;
 
+    // Format tarehe
     function formatDate(dateStr) {
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return 'Tarehe haijulikani';
@@ -378,6 +371,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       });
     }
 
+    // Format saa
     function formatTime(dateStr) {
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return '--:--';
@@ -388,6 +382,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       });
     }
 
+    // Andaa ripoti ya kila mtumiaji
     const report = watumiaji.map(user => {
       const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
       const byDate = {};
@@ -412,6 +407,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       };
     });
 
+    // Tuma kwenda kwenye view
     res.render('report-usage', {
       report,
       mode,
@@ -420,10 +416,12 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       tarehe,
       query: { aina: mode, start: from, end: to }
     });
+
   } catch (error) {
     next(error);
   }
 });
+
 
 
 
