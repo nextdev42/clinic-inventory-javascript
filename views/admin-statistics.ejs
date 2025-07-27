@@ -30,15 +30,7 @@
   <canvas id="medicineChart" width="400" height="200"></canvas>
 
   <!-- ... your charts ... -->
-const chartData = {
-  labels: medicineStats.map(stat => stat.dawa),     // e.g., ['Paracetamol', 'Amoxicillin']
-  data: medicineStats.map(stat => stat.count)        // e.g., [10, 7]
-};
 
-res.render('admin-statistics', {
-  ...otherData,
-  chartData: JSON.stringify(chartData)
-});
 
 
 <script>
