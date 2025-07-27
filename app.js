@@ -640,30 +640,109 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
 });
 
 app.get('/admin/watumiaji', async (req, res, next) => {
-  try {
-    const [watumiaji, clinics] = await Promise.all([
-  readSheet('WATUMIAJI'),
-  readSheet('CLINICS')
-]);
+  try {
+    const { clinicId, dawaType, dawaContent } = req.query;
 
-// Tengeneza ramani ya clinicId -> jina
-const clinicMap = {};
-clinics.forEach(clinic => {
-  clinicMap[clinic.id] = clinic.jina;
-});
+    // Read all required data in parallel
+    const [watumiaji, clinics, matumizi, dawa] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('CLINICS'),
+      readSheet('MATUMIZI'),
+      readSheet('DAWA')
+    ]);
 
-// Ongeza jina la kliniki kwenye kila mtumiaji
-const watumiajiWithClinic = watumiaji.map(mtumiaji => ({
-  ...mtumiaji,
-  clinic: clinicMap[mtumiaji.clinicId] || 'Haijulikani'
-}));
+    // Create clinic map for quick lookup
+    const clinicMap = clinics.reduce((acc, clinic) => {
+      acc[clinic.id] = clinic.jina;
+      return acc;
+    }, {});
 
-res.render('wote-watumiaji', {
-  watumiaji: watumiajiWithClinic
-});
-  } catch (error) {
-    next(error);
-  }
+    // Enhance users with clinic names and initialize usage data
+    let filteredUsers = watumiaji.map(user => ({
+      ...user,
+      clinic: clinicMap[user.clinicId] || 'Haijulikani',
+      lastUsage: null,
+      totalUsage: 0
+    }));
+
+    // Calculate usage statistics for each user
+    const userUsageStats = matumizi.reduce((acc, usage) => {
+      if (!acc[usage.userId]) {
+        acc[usage.userId] = {
+          count: 0,
+          lastDate: null
+        };
+      }
+      acc[usage.userId].count++;
+      const usageDate = new Date(usage.tarehe);
+      if (!acc[usage.userId].lastDate || usageDate > acc[usage.userId].lastDate) {
+        acc[usage.userId].lastDate = usageDate;
+      }
+      return acc;
+    }, {});
+
+    // Apply clinic filter if specified
+    if (clinicId) {
+      filteredUsers = filteredUsers.filter(user => user.clinicId === clinicId);
+    }
+
+    // Apply medicine filters if specified
+    if (dawaType || dawaContent) {
+      const medicineFilter = (medicine) => {
+        return (
+          (!dawaType || medicine.type === dawaType) &&
+          (!dawaContent || 
+           (medicine.content && 
+            medicine.content.toLowerCase().includes(dawaContent.toLowerCase())))
+        );
+      };
+
+      const usersWithMatchingMedicine = new Set(
+        matumizi
+          .filter(usage => {
+            const med = dawa.find(d => d.id === usage.dawaId);
+            return med && medicineFilter(med);
+          })
+          .map(usage => usage.userId)
+      );
+
+      filteredUsers = filteredUsers.filter(user => 
+        usersWithMatchingMedicine.has(user.id)
+      );
+    }
+
+    // Add usage statistics to filtered users
+    filteredUsers = filteredUsers.map(user => ({
+      ...user,
+      totalUsage: userUsageStats[user.id]?.count || 0,
+      lastUsage: userUsageStats[user.id]?.lastDate || null
+    }));
+
+    // Get unique dawa types for filter dropdown
+    const uniqueDawaTypes = [...new Set(dawa.map(d => d.type))].filter(Boolean);
+
+    res.render('wote-watumiaji', {
+      watumiaji: filteredUsers,
+      clinics,
+      dawaTypes: uniqueDawaTypes,
+      filters: { clinicId, dawaType, dawaContent },
+      formatDate: (date) => {
+        if (!date) return 'Hajatumia';
+        return date.toLocaleDateString('sw-TZ', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+      },
+      formatCount: (count) => {
+        return count || '0';
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in /admin/watumiaji:', error);
+    next(error);
+  }
 });
 
 
