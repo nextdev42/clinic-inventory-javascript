@@ -447,15 +447,18 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       readSheet('MATUMIZI')
     ]);
 
-    const now = new Date();
     let startDate = null;
     let endDate = null;
 
     // Helper for safe date conversion
     const toDate = (str) => {
+      if (!str) return null;
       const d = new Date(str);
       return isNaN(d.getTime()) ? null : d;
     };
+
+    // Get current date in Tanzania timezone
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Africa/Dar_es_Salaam' }));
 
     if (mode === 'day' && tarehe) {
       const t = toDate(tarehe);
@@ -466,17 +469,23 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
         endDate.setHours(23, 59, 59, 999);
       }
     } else if (mode === 'week') {
+      // Get start of current week (Monday)
       const day = now.getDay();
-      const diffToMonday = (day === 0 ? 6 : day - 1);
+      const diffToMonday = (day === 0 ? 6 : day - 1); // Sunday is 0 in JS
       startDate = new Date(now);
       startDate.setDate(now.getDate() - diffToMonday);
       startDate.setHours(0, 0, 0, 0);
+      
+      // Get end of week (Sunday)
       endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 6);
       endDate.setHours(23, 59, 59, 999);
     } else if (mode === 'month') {
+      // Get start of current month
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       startDate.setHours(0, 0, 0, 0);
+      
+      // Get end of current month
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       endDate.setHours(23, 59, 59, 999);
     } else if (from && to) {
@@ -492,9 +501,17 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
 
     // Filter matumizi by date and user
     const filteredMatumizi = matumizi.filter(m => {
-      const t = new Date(m.tarehe);
-      const inDateRange = (!startDate || t >= startDate) && (!endDate || t <= endDate);
+      if (!m.tarehe) return false;
+      
+      // Convert to Date object with Tanzania timezone
+      const usageDate = new Date(new Date(m.tarehe).toLocaleString('en-US', { 
+        timeZone: 'Africa/Dar_es_Salaam' 
+      }));
+      
+      const inDateRange = (!startDate || usageDate >= startDate) && 
+                         (!endDate || usageDate <= endDate);
       const matchesUser = mtumiajiId ? m.mtumiajiId === mtumiajiId : true;
+      
       return inDateRange && matchesUser;
     });
 
@@ -507,17 +524,26 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
           day: 'numeric',
           month: 'long',
           year: 'numeric',
-          timeZone: 'Africa/Nairobi'
+          timeZone: 'Africa/Dar_es_Salaam'
         });
     };
 
-    const formatTime = (dateStr) => {
-      const date = new Date(dateStr);
+    const formatTime = (timeStr) => {
+      if (!timeStr) return '--:--';
+      
+      // Handle both ISO strings and time-only strings
+      let date;
+      if (timeStr.includes('T')) {
+        date = new Date(timeStr);
+      } else {
+        date = new Date(`1970-01-01T${timeStr}`);
+      }
+      
       return isNaN(date.getTime()) ? '--:--' :
         date.toLocaleTimeString('sw-TZ', {
           hour: '2-digit',
           minute: '2-digit',
-          timeZone: 'Africa/Nairobi'
+          timeZone: 'Africa/Dar_es_Salaam'
         });
     };
 
@@ -532,7 +558,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
         if (!byDate[day]) byDate[day] = [];
 
         const medicine = dawa.find(d => d.id === usage.dawaId);
-        const formattedTime = formatTime(usage.tarehe);
+        const formattedTime = formatTime(usage.saa || usage.tarehe);
 
         byDate[day].push({
           dawa: medicine ? medicine.jina : 'Haijulikani',
@@ -555,7 +581,11 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
     } else if (mode === 'week') {
       reportTitle = `Ripoti ya Wiki: ${formatDate(startDate)} - ${formatDate(endDate)}`;
     } else if (mode === 'month') {
-      const mwezi = startDate.toLocaleDateString('sw-TZ', { month: 'long', year: 'numeric' });
+      const mwezi = startDate.toLocaleDateString('sw-TZ', { 
+        month: 'long', 
+        year: 'numeric',
+        timeZone: 'Africa/Dar_es_Salaam'
+      });
       reportTitle = `Ripoti ya Mwezi: ${mwezi}`;
     } else if (from && to) {
       reportTitle = `Ripoti ya Kuanzia ${formatDate(from)} hadi ${formatDate(to)}`;
@@ -579,6 +609,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
     next(error);
   }
 });
+
 
 
     
