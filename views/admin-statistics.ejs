@@ -2,38 +2,54 @@
 <html lang="sw">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ripoti ya Matumizi ya Dawa na Watumiaji</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      font-family: sans-serif;
-      padding: 20px;
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+      background: #f9fafb;
     }
     h1 {
-      text-align: center;
-      margin-bottom: 30px;
+      color: #1e3a8a;
     }
-    .chart-container {
+    canvas {
       max-width: 100%;
-      margin-bottom: 40px;
+      margin-top: 2rem;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <h1>Ripoti ya Matumizi ya Dawa na Watumiaji</h1>
 
-  <div class="chart-container">
-    <canvas id="clinicChart" width="400" height="200"></canvas>
-  </div>
-
-  <div class="chart-container">
-    <canvas id="medicineChart" width="400" height="200"></canvas>
-  </div>
+  <canvas id="clinicChart" width="400" height="200"></canvas>
+  <canvas id="medicineChart" width="400" height="200"></canvas>
 
   <script>
-    // Hakikisha hii sehemu unatumia <%- chartData %> na sio <%= chartData %>
-    const chartData = <%- chartData %>;
+    // Hardcoded chart data
+    const chartData = {
+      clinics: {
+        labels: ['Kisiwani', 'Mikwambe', 'Kibada', 'Jirambe'],
+        datasets: [
+          {
+            label: 'Watumiaji Wote',
+            data: [3, 0, 0, 0],
+            backgroundColor: 'rgba(37, 99, 235, 0.7)'
+          },
+          {
+            label: 'Watumiaji Waliotumia',
+            data: [0, 0, 0, 0],
+            backgroundColor: 'rgba(22, 163, 74, 0.7)'
+          }
+        ]
+      },
+      medicines: {
+        labels: ['Paracetamol', 'Amoxicillin'],
+        data: [5, 2],
+        backgroundColor: 'rgba(220, 38, 38, 0.7)'
+      }
+    };
 
     const ctx1 = document.getElementById('clinicChart').getContext('2d');
     new Chart(ctx1, {
@@ -45,10 +61,9 @@
       options: {
         responsive: true,
         plugins: {
-          legend: { position: 'top' },
           title: {
             display: true,
-            text: 'Watumiaji kwa Kliniki'
+            text: 'Watumiaji kwa Kituo'
           }
         }
       }
@@ -60,7 +75,7 @@
       data: {
         labels: chartData.medicines.labels,
         datasets: [{
-          label: 'Matumizi ya Dawa',
+          label: 'Idadi ya Matumizi ya Dawa',
           data: chartData.medicines.data,
           backgroundColor: chartData.medicines.backgroundColor
         }]
@@ -68,7 +83,6 @@
       options: {
         responsive: true,
         plugins: {
-          legend: { display: false },
           title: {
             display: true,
             text: 'Matumizi ya Dawa'
