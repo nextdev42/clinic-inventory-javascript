@@ -10,11 +10,6 @@ import session from 'express-session';
 
 const app = express();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-app.use(express.static(path.join(__dirname, 'public')));
-
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
@@ -123,6 +118,7 @@ async function startApp() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   app.use(express.static(path.join(__dirname, 'public')));
+
 
   app.get('/', async (req, res, next) => {
     try {
