@@ -1,15 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="sw">
 <head>
-  <title>Statistics</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ripoti ya Matumizi</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .chart-container {
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
+      margin-bottom: 2rem;
+    }
+  </style>
 </head>
 <body>
-  <canvas id="clinicChart" width="400" height="200"></canvas>
-  <canvas id="medicineChart" width="400" height="200"></canvas>
+  <h2>Ripoti ya Matumizi ya Dawa na Watumiaji</h2>
 
+  <div class="chart-container">
+    <canvas id="clinicChart" width="400" height="300"></canvas>
+  </div>
 
-<pre><%= chartData %></pre>
+  <div class="chart-container">
+    <canvas id="medicineChart" width="400" height="300"></canvas>
+  </div>
 
   <script>
     const chartData = <%- chartData %>;
@@ -25,7 +47,10 @@
         responsive: true,
         plugins: {
           legend: { position: 'top' },
-          title: { display: true, text: 'Watumiaji Hai vs Wafu kwa Kliniki' }
+          title: {
+            display: true,
+            text: 'Watumiaji Wote vs Waliotumia kwa Kliniki'
+          }
         }
       }
     });
@@ -36,7 +61,7 @@
       data: {
         labels: chartData.medicines.labels,
         datasets: [{
-          label: 'Matumizi',
+          label: 'Matumizi ya Dawa',
           data: chartData.medicines.data,
           backgroundColor: chartData.medicines.backgroundColor
         }]
@@ -45,7 +70,10 @@
         responsive: true,
         plugins: {
           legend: { display: false },
-          title: { display: true, text: 'Matumizi ya Dawa' }
+          title: {
+            display: true,
+            text: 'Idadi ya Matumizi ya Dawa'
+          }
         }
       }
     });
