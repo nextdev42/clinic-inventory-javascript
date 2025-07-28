@@ -1,38 +1,42 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ripoti ya Matumizi ya Dawa na Watumiaji</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    canvas {
-      max-width: 100%;
-      margin-bottom: 40px;
+    body {
+      font-family: sans-serif;
+      padding: 20px;
     }
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .chart-container {
+      max-width: 100%;
+      margin-bottom: 40px;
     }
   </style>
 </head>
 <body>
   <h1>Ripoti ya Matumizi ya Dawa na Watumiaji</h1>
 
-  <div>
+  <div class="chart-container">
     <canvas id="clinicChart" width="400" height="200"></canvas>
   </div>
 
-  <div>
+  <div class="chart-container">
     <canvas id="medicineChart" width="400" height="200"></canvas>
   </div>
 
-  <!-- Hii script ndiyo muhimu -->
   <script>
+    // Hakikisha hii sehemu unatumia <%- chartData %> na sio <%= chartData %>
     const chartData = <%- chartData %>;
 
-    const ctxClinic = document.getElementById('clinicChart').getContext('2d');
-    new Chart(ctxClinic, {
+    const ctx1 = document.getElementById('clinicChart').getContext('2d');
+    new Chart(ctx1, {
       type: 'bar',
       data: {
         labels: chartData.clinics.labels,
@@ -42,13 +46,16 @@
         responsive: true,
         plugins: {
           legend: { position: 'top' },
-          title: { display: true, text: 'Watumiaji Hai vs Waliotumia kwa Kliniki' }
+          title: {
+            display: true,
+            text: 'Watumiaji kwa Kliniki'
+          }
         }
       }
     });
 
-    const ctxMedicine = document.getElementById('medicineChart').getContext('2d');
-    new Chart(ctxMedicine, {
+    const ctx2 = document.getElementById('medicineChart').getContext('2d');
+    new Chart(ctx2, {
       type: 'bar',
       data: {
         labels: chartData.medicines.labels,
@@ -62,7 +69,10 @@
         responsive: true,
         plugins: {
           legend: { display: false },
-          title: { display: true, text: 'Matumizi ya Dawa' }
+          title: {
+            display: true,
+            text: 'Matumizi ya Dawa'
+          }
         }
       }
     });
