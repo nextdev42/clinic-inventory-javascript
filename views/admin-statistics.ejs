@@ -1,38 +1,33 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ripoti ya Matumizi</title>
+  <title>Ripoti ya Matumizi ya Dawa na Watumiaji</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 1rem;
+    canvas {
+      max-width: 100%;
+      margin-bottom: 40px;
     }
-    h2 {
+    h1 {
       text-align: center;
-      margin-bottom: 2rem;
-    }
-    .chart-container {
-      width: 100%;
-      max-width: 600px;
-      margin: auto;
-      margin-bottom: 2rem;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
-  <h2>Ripoti ya Matumizi ya Dawa na Watumiaji</h2>
+  <h1>Ripoti ya Matumizi ya Dawa na Watumiaji</h1>
 
-  <div class="chart-container">
-    <canvas id="clinicChart" width="400" height="300"></canvas>
+  <div>
+    <canvas id="clinicChart" width="400" height="200"></canvas>
   </div>
 
-  <div class="chart-container">
-    <canvas id="medicineChart" width="400" height="300"></canvas>
+  <div>
+    <canvas id="medicineChart" width="400" height="200"></canvas>
   </div>
 
+  <!-- Hii script ndiyo muhimu -->
   <script>
     const chartData = <%- chartData %>;
 
@@ -47,10 +42,7 @@
         responsive: true,
         plugins: {
           legend: { position: 'top' },
-          title: {
-            display: true,
-            text: 'Watumiaji Wote vs Waliotumia kwa Kliniki'
-          }
+          title: { display: true, text: 'Watumiaji Hai vs Waliotumia kwa Kliniki' }
         }
       }
     });
@@ -70,10 +62,7 @@
         responsive: true,
         plugins: {
           legend: { display: false },
-          title: {
-            display: true,
-            text: 'Idadi ya Matumizi ya Dawa'
-          }
+          title: { display: true, text: 'Matumizi ya Dawa' }
         }
       }
     });
