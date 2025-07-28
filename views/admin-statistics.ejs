@@ -1,67 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="sw">
 <head>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- ... your head content ... -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ripoti za Takwimu</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    .debug-panel {
-      background: #f3f4f6;
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 0.5rem;
-      font-family: monospace;
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f9fafb;
+      color: #111827;
     }
-    .debug-title {
-      font-weight: bold;
-      margin-bottom: 0.5rem;
+    h1 {
+      margin-bottom: 1rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background-color: white;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .chart-container {
+      margin-bottom: 2rem;
+    }
+    canvas {
+      max-width: 100%;
     }
   </style>
 </head>
 <body>
-  <!-- ... your header ... -->
 
-  <!-- Debug Panel -->
-  <div class="debug-panel">
-    <div class="debug-title">Debug Information</div>
-    <div id="debugOutput">Loading debug data...</div>
+  <h1>Ripoti za Takwimu</h1>
+
+  <div class="stats-grid">
+    <div class="card">
+      <h3>Watumiaji Wote</h3>
+      <p><%= helpers.formatCount(clinicStats.totalUsers) %></p>
+    </div>
+    <div class="card">
+      <h3>Watumiaji Waliotumia</h3>
+      <p><%= helpers.formatCount(clinicStats.activeUsers) %></p>
+    </div>
+    <div class="card">
+      <h3>Watumiaji Wasiotumia</h3>
+      <p><%= helpers.formatCount(clinicStats.inactiveUsers) %></p>
+    </div>
+    <div class="card">
+      <h3>Jumla ya Matumizi ya Dawa</h3>
+      <p><%= helpers.formatCount(medicineStats.totalUsage) %></p>
+    </div>
   </div>
-  <h2>Takwimu za Matumizi ya Dawa</h2>
-  <canvas id="medicineChart" width="400" height="200"></canvas>
 
-  <!-- ... your charts ... -->
+  <div class="chart-container">
+    <h2>Matumizi kwa Kliniki</h2>
+    <canvas id="clinicChart"></canvas>
+  </div>
 
+  <div class="chart-container">
+    <h2>Matumizi ya Dawa</h2>
+    <canvas id="medicineChart"></canvas>
+  </div>
 
+  <div class="card">
+    <h3>Dawa Zinazotumika Zaidi</h3>
+    <ul>
+      <% medicineStats.mostUsed.forEach(item => { %>
+        <li><strong><%= item.name %></strong>: <%= item.totalUsed %> matumizi, <%= item.remaining %> zimebaki</li>
+      <% }); %>
+    </ul>
+  </div>
 
-<script>
-  const chartData = <%- chartData %>;  // This line injects server-side JSON
+  <script>
+    const chartData = <%- chartData %>;
 
-  const ctx = document.getElementById('medicineChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: chartData.labels,
-      datasets: [{
-        label: 'Idadi ya Watumiaji wa Dawa',
-        data: chartData.data,
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            stepSize: 1
-          }
+    const ctxClinic = document.getElementById('clinicChart').getContext('2d');
+    new Chart(ctxClinic, {
+      type: 'bar',
+      data: {
+        labels: chartData.clinics.labels,
+        datasets: chartData.clinics.datasets
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: true, text: 'Matumizi ya Watumiaji kwa Kliniki' }
         }
       }
-    }
-  });
-</script>
+    });
 
-  
+    const ctxMedicine = document.getElementById('medicineChart').getContext('2d');
+    new Chart(ctxMedicine, {
+      type: 'bar',
+      data: {
+        labels: chartData.medicines.labels,
+        datasets: [{
+          label: 'Matumizi ya Dawa',
+          data: chartData.medicines.data,
+          backgroundColor: chartData.medicines.backgroundColor
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          title: { display: true, text: 'Matumizi ya Dawa Jumla' }
+        }
+      }
+    });
+  </script>
+
 </body>
 </html>
