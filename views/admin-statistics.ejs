@@ -1,87 +1,16 @@
 <!DOCTYPE html>
-<html lang="sw">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ripoti za Takwimu</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <title>Statistics</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      background-color: #f9fafb;
-      color: #111827;
-    }
-    h1 {
-      margin-bottom: 1rem;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-    .card {
-      background-color: white;
-      padding: 1rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .chart-container {
-      margin-bottom: 2rem;
-    }
-    canvas {
-      max-width: 100%;
-    }
-  </style>
 </head>
 <body>
+  <canvas id="clinicChart" width="400" height="200"></canvas>
+  <canvas id="medicineChart" width="400" height="200"></canvas>
 
-  <h1>Ripoti za Takwimu</h1>
-
-  <div class="stats-grid">
-    <div class="card">
-      <h3>Watumiaji Wote</h3>
-      <p><%= helpers.formatCount(clinicStats.totalUsers) %></p>
-    </div>
-    <div class="card">
-      <h3>Watumiaji Waliotumia</h3>
-      <p><%= helpers.formatCount(clinicStats.activeUsers) %></p>
-    </div>
-    <div class="card">
-      <h3>Watumiaji Wasiotumia</h3>
-      <p><%= helpers.formatCount(clinicStats.inactiveUsers) %></p>
-    </div>
-    <div class="card">
-      <h3>Jumla ya Matumizi ya Dawa</h3>
-      <p><%= helpers.formatCount(medicineStats.totalUsage) %></p>
-    </div>
-  </div>
-
-  <div class="chart-container">
-    <h2>Matumizi kwa Kliniki</h2>
-    <canvas id="clinicChart"></canvas>
-  </div>
-
-  <div class="chart-container">
-    <h2>Matumizi ya Dawa</h2>
-    <canvas id="medicineChart"></canvas>
-  </div>
-
-  <div class="card">
-    <h3>Dawa Zinazotumika Zaidi</h3>
-    <ul>
-      <% medicineStats.mostUsed.forEach(item => { %>
-        <li><strong><%= item.name %></strong>: <%= item.totalUsed %> matumizi, <%= item.remaining %> zimebaki</li>
-      <% }); %>
-    </ul>
-  </div>
 
 <pre><%= chartData %></pre>
 
-
- 
   <script>
     const chartData = <%- chartData %>;
 
@@ -96,7 +25,7 @@
         responsive: true,
         plugins: {
           legend: { position: 'top' },
-          title: { display: true, text: 'Matumizi ya Watumiaji kwa Kliniki' }
+          title: { display: true, text: 'Watumiaji Hai vs Wafu kwa Kliniki' }
         }
       }
     });
@@ -107,7 +36,7 @@
       data: {
         labels: chartData.medicines.labels,
         datasets: [{
-          label: 'Matumizi ya Dawa',
+          label: 'Matumizi',
           data: chartData.medicines.data,
           backgroundColor: chartData.medicines.backgroundColor
         }]
@@ -116,11 +45,10 @@
         responsive: true,
         plugins: {
           legend: { display: false },
-          title: { display: true, text: 'Matumizi ya Dawa Jumla' }
+          title: { display: true, text: 'Matumizi ya Dawa' }
         }
       }
     });
   </script>
-
 </body>
 </html>
