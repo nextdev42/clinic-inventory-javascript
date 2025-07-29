@@ -8,17 +8,13 @@
     body {
       font-family: Arial, sans-serif;
       padding: 1rem;
-      background: #f9fafb;
-    }
-    h1 {
-      color: #1e3a8a;
+      background: #f0f4f8;
     }
     canvas {
       max-width: 100%;
       margin-top: 2rem;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <h1>Ripoti ya Matumizi ya Dawa na Watumiaji</h1>
@@ -26,8 +22,8 @@
   <canvas id="clinicChart" width="400" height="200"></canvas>
   <canvas id="medicineChart" width="400" height="200"></canvas>
 
+  <script src="/js/Chart.min.js"></script>
   <script>
-    // Hardcoded chart data
     const chartData = {
       clinics: {
         labels: ['Kisiwani', 'Mikwambe', 'Kibada', 'Jirambe'],
@@ -75,7 +71,7 @@
       data: {
         labels: chartData.medicines.labels,
         datasets: [{
-          label: 'Idadi ya Matumizi ya Dawa',
+          label: 'Matumizi ya Dawa',
           data: chartData.medicines.data,
           backgroundColor: chartData.medicines.backgroundColor
         }]
@@ -85,7 +81,7 @@
         plugins: {
           title: {
             display: true,
-            text: 'Matumizi ya Dawa'
+            text: 'Ripoti ya Dawa'
           }
         }
       }
