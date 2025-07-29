@@ -91,7 +91,16 @@ async function readSheet(sheetKey) {
 async function writeSheet(sheetKey, data) {
   try {
     const config = SHEETS[sheetKey];
-    const workbook = xlsx.readFile(excelPath);
+
+    // Check if the file exists
+    let workbook;
+    if (fs.existsSync(excelPath)) {
+      workbook = xlsx.readFile(excelPath);
+    } else {
+      workbook = xlsx.utils.book_new();
+    }
+
+    // Convert data to worksheet
     const worksheet = xlsx.utils.json_to_sheet(
       data.map(item => ({
         ...item,
@@ -99,14 +108,27 @@ async function writeSheet(sheetKey, data) {
       })),
       { header: config.headers }
     );
-    workbook.Sheets[config.name] = worksheet;
-    await xlsx.writeFile(workbook, excelPath);
+
+    // Replace the sheet safely
+    if (workbook.SheetNames.includes(config.name)) {
+      // Remove old sheet first
+      const index = workbook.SheetNames.indexOf(config.name);
+      workbook.SheetNames.splice(index, 1);
+    }
+
+    // Add the updated sheet
+    xlsx.utils.book_append_sheet(workbook, worksheet, config.name);
+
+    // Save the workbook
+    xlsx.writeFile(workbook, excelPath);
+
     return true;
   } catch (error) {
     console.error(`❌ Error writing ${sheetKey}:`, error);
     return false;
   }
 }
+
 
 async function startApp() {
   await initializeDatabase();
