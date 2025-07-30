@@ -23,13 +23,14 @@
   <canvas id="medicineChart" width="400" height="200"></canvas>
 
   <script src="/js/Chart.min.js"></script>
-  <script>
-  const chartData = JSON.parse('<%- JSON.stringify(chartData) %>');
-  console.log("📊 Chart Data:", chartData);
+<script>
+  const chartData = <%- chartData %>;
 
-  // Clinic Chart
-  const clinicCtx = document.getElementById('clinicChart').getContext('2d');
-  new Chart(clinicCtx, {
+  console.log('Chart data:', chartData); // For debugging
+
+  // Clinic Users Bar Chart
+  const ctx1 = document.getElementById('clinicChart').getContext('2d');
+  new Chart(ctx1, {
     type: 'bar',
     data: {
       labels: chartData.clinics.labels,
@@ -46,14 +47,14 @@
     }
   });
 
-  // Medicine Chart
-  const medicineCtx = document.getElementById('medicineChart').getContext('2d');
-  new Chart(medicineCtx, {
-    type: 'bar',
+  // Medicine Usage Pie Chart
+  const ctx2 = document.getElementById('medicineChart').getContext('2d');
+  new Chart(ctx2, {
+    type: 'pie',
     data: {
       labels: chartData.medicines.labels,
       datasets: [{
-        label: 'Idadi ya Matumizi',
+        label: 'Matumizi ya Dawa',
         data: chartData.medicines.data,
         backgroundColor: chartData.medicines.backgroundColor
       }]
