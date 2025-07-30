@@ -24,68 +24,51 @@
 
   <script src="/js/Chart.min.js"></script>
   <script>
-    const chartData = {
-      clinics: {
-        labels: ['Kisiwani', 'Mikwambe', 'Kibada', 'Jirambe'],
-        datasets: [
-          {
-            label: 'Watumiaji Wote',
-            data: [3, 0, 0, 0],
-            backgroundColor: 'rgba(37, 99, 235, 0.7)'
-          },
-          {
-            label: 'Watumiaji Waliotumia',
-            data: [0, 0, 0, 0],
-            backgroundColor: 'rgba(22, 163, 74, 0.7)'
-          }
-        ]
-      },
-      medicines: {
-        labels: ['Paracetamol', 'Amoxicillin'],
-        data: [5, 2],
-        backgroundColor: 'rgba(220, 38, 38, 0.7)'
-      }
-    };
+  const chartData = JSON.parse('<%- JSON.stringify(chartData) %>');
+  console.log("📊 Chart Data:", chartData);
 
-    const ctx1 = document.getElementById('clinicChart').getContext('2d');
-    new Chart(ctx1, {
-      type: 'bar',
-      data: {
-        labels: chartData.clinics.labels,
-        datasets: chartData.clinics.datasets
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Watumiaji kwa Kituo'
-          }
+  // Clinic Chart
+  const clinicCtx = document.getElementById('clinicChart').getContext('2d');
+  new Chart(clinicCtx, {
+    type: 'bar',
+    data: {
+      labels: chartData.clinics.labels,
+      datasets: chartData.clinics.datasets
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Watumiaji kwa Kliniki'
         }
       }
-    });
+    }
+  });
 
-    const ctx2 = document.getElementById('medicineChart').getContext('2d');
-    new Chart(ctx2, {
-      type: 'bar',
-      data: {
-        labels: chartData.medicines.labels,
-        datasets: [{
-          label: 'Matumizi ya Dawa',
-          data: chartData.medicines.data,
-          backgroundColor: chartData.medicines.backgroundColor
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Ripoti ya Dawa'
-          }
+  // Medicine Chart
+  const medicineCtx = document.getElementById('medicineChart').getContext('2d');
+  new Chart(medicineCtx, {
+    type: 'bar',
+    data: {
+      labels: chartData.medicines.labels,
+      datasets: [{
+        label: 'Idadi ya Matumizi',
+        data: chartData.medicines.data,
+        backgroundColor: chartData.medicines.backgroundColor
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Matumizi ya Dawa'
         }
       }
-    });
-  </script>
+    }
+  });
+</script>
+
 </body>
 </html>
