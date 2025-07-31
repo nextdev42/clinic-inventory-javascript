@@ -628,36 +628,40 @@ app.get('/admin/statistics', async (req, res, next) => {
     });
 
     // 5. Process medicine usage
-    const activeUsers = new Set();
-    matumizi.forEach(usage => {
-      const medicine = dawaMap[usage.dawaId];
-      if (!medicine) return;
+const activeUsers = new Set();
+const clinicUserMap = {}; // { 'Clinic Name': Set() }
 
-      const clinicName = clinicMap[usage.clinicId] || 'Unknown';
-      const kiasi = parseInt(usage.kiasi) || 0;
-      
-      // Update medicine stats
-      medicineStats.byMedicine[medicine.jina].totalUsed += kiasi;
-      medicineStats.totalUsage += kiasi;
-      
-      // Track active users
-      activeUsers.add(usage.mtumiajiId);
-      
-      // Update clinic stats for active users
-      if (clinicStats.byClinic[clinicName]) {
-        clinicStats.byClinic[clinicName].activeUsers++;
-      }
-    });
+matumizi.forEach(usage => {
+  const medicine = dawaMap[usage.dawaId];
+  if (!medicine) return;
 
-    // 6. Calculate inactive users
-    clinicStats.activeUsers = activeUsers.size;
-    clinicStats.inactiveUsers = clinicStats.totalUsers - clinicStats.activeUsers;
-    
-    Object.keys(clinicStats.byClinic).forEach(clinicName => {
-      clinicStats.byClinic[clinicName].inactiveUsers = 
-        clinicStats.byClinic[clinicName].totalUsers - 
-        clinicStats.byClinic[clinicName].activeUsers;
-    });
+  const clinicName = clinicMap[usage.clinicId] || 'Unknown';
+  const kiasi = parseInt(usage.kiasi) || 0;
+  const mtumiajiId = usage.mtumiajiId;
+
+  // Update medicine stats
+  medicineStats.byMedicine[medicine.jina].totalUsed += kiasi;
+  medicineStats.totalUsage += kiasi;
+
+  // Track global active users
+  activeUsers.add(mtumiajiId);
+
+  // Track unique users per clinic
+  if (!clinicUserMap[clinicName]) {
+    clinicUserMap[clinicName] = new Set();
+  }
+  clinicUserMap[clinicName].add(mtumiajiId);
+});
+
+// 6. Calculate active/inactive users per clinic
+clinicStats.activeUsers = activeUsers.size;
+clinicStats.inactiveUsers = clinicStats.totalUsers - clinicStats.activeUsers;
+
+Object.entries(clinicUserMap).forEach(([clinicName, userSet]) => {
+  clinicStats.byClinic[clinicName].activeUsers = userSet.size;
+  clinicStats.byClinic[clinicName].inactiveUsers = 
+    clinicStats.byClinic[clinicName].totalUsers - userSet.size;
+});
 
     // 7. Prepare most used medicines
     medicineStats.mostUsed = Object.entries(medicineStats.byMedicine)
