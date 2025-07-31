@@ -1,75 +1,644 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ripoti ya Matumizi ya Dawa na Watumiaji</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 1rem;
-      background: #f0f4f8;
+  <title>Statistik za Watumiaji</title>
+  <script src="/js/Chart.min.js"></script>
+  <link href="/fontawesome/css/all.min.css" rel="stylesheet">
+
+<style>
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --primary-light: #dbeafe;
+      --secondary: #f0f9ff;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #06b6d4;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --white: #ffffff;
     }
-    canvas {
-      max-width: 100%;
-      margin-top: 2rem;
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--gray-50);
+      color: var(--gray-800);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    /* Header Styles */
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: var(--white);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 1.25rem 0;
+      margin-bottom: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: "";
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 200px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      bottom: -80px;
+      left: -80px;
+      width: 300px;
+      height: 300px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 50%;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .header-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      letter-spacing: -0.025em;
+    }
+
+    .header-title i {
+      margin-right: 0.75rem;
+      font-size: 1.5rem;
+    }
+
+    /* Dashboard Layout */
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+      .dashboard {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (min-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Stat Cards */
+    .stat-card {
+      background-color: var(--white);
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 1.75rem;
+      height: 100%;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-left: 4px solid var(--primary);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .stat-card-title i {
+      margin-right: 0.75rem;
+      color: var(--primary);
+    }
+
+    .chart-container {
+      position: relative;
+      height: 350px;
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    /* Summary Cards */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (min-width: 640px) {
+      .summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .summary-cards {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .summary-card {
+      background-color: var(--white);
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 1.5rem;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .summary-card.total-users {
+      border-top: 4px solid var(--primary);
+    }
+
+    .summary-card.active-users {
+      border-top: 4px solid var(--success);
+    }
+
+    .summary-card.inactive-users {
+      border-top: 4px solid var(--warning);
+    }
+
+    .summary-card.medicine-usage {
+      border-top: 4px solid var(--danger);
+    }
+
+    .summary-card-value {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin: 0.5rem 0;
+      color: var(--gray-800);
+    }
+
+    .summary-card-label {
+      font-size: 0.875rem;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Home Button */
+    .home-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--primary);
+      color: var(--white);
+      padding: 0.875rem 1.75rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      margin: 2rem auto 0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .home-button:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .home-button i {
+      margin-right: 0.5rem;
+    }
+
+    /* Tooltip Styles */
+    .chart-tooltip {
+      background-color: var(--gray-800) !important;
+      padding: 0.5rem 1rem !important;
+      border-radius: 0.375rem !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    }
+
+    .chart-tooltip .tooltip-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: var(--white);
+    }
+
+    .chart-tooltip .tooltip-value {
+      font-weight: 500;
+      color: var(--gray-200);
     }
   </style>
+    
+  
 </head>
 <body>
-  <h1>Ripoti ya Matumizi ya Dawa na Watumiaji</h1>
+  <header>
+    <div class="header-content">
+      <h1 class="header-title">
+        <i class="fas fa-chart-pie"></i> Dashibodi ya Takwimu
+      </h1>
+      <div class="header-meta">
+        <span class="last-updated"><i class="fas fa-clock"></i> <%= new Date().toLocaleDateString('sw-TZ') %></span>
+      </div>
+    </div>
+  </header>
 
-  <canvas id="clinicChart" width="400" height="200"></canvas>
-  <canvas id="medicineChart" width="400" height="200"></canvas>
+  <main class="container">
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="summary-card total-users">
+        <div class="summary-card-label">Watumiaji Wote</div>
+        <div class="summary-card-value"><%= clinicStats.totalUsers %></div>
+        <div class="summary-card-meta"><i class="fas fa-hospital"></i> <%= Object.keys(clinicStats.byClinic).length %> Kliniki</div>
+      </div>
+      
+      <div class="summary-card active-users">
+        <div class="summary-card-label">Watumiaji Waliotumia</div>
+        <div class="summary-card-value"><%= clinicStats.activeUsers %></div>
+        <div class="summary-card-meta"><%= clinicStats.totalUsers > 0 ? Math.round((clinicStats.activeUsers / clinicStats.totalUsers) * 100) : 0 %>% ya watumiaji</div>
+      </div>
+      
+      <div class="summary-card inactive-users">
+        <div class="summary-card-label">Watumiaji Hawajatumia</div>
+        <div class="summary-card-value"><%= clinicStats.inactiveUsers %></div>
+        <div class="summary-card-meta"><%= clinicStats.totalUsers > 0 ? Math.round((clinicStats.inactiveUsers / clinicStats.totalUsers) * 100) : 0 %>% ya watumiaji</div>
+      </div>
+      
+      <div class="summary-card medicine-usage">
+        <div class="summary-card-label">Jumla Matumizi ya Dawa</div>
+        <div class="summary-card-value"><%= medicineStats.totalUsage %></div>
+        <div class="summary-card-meta"><i class="fas fa-pills"></i> <%= Object.keys(medicineStats.byMedicine).length %> Aina</div>
+      </div>
+    </div>
 
-  <script src="/js/Chart.min.js"></script>
-<script>
-  const chartData = <%- chartData %>;
+    <!-- Main Charts -->
+    <div class="stats-grid">
+      <!-- Watumiaji Kwa Kliniki -->
+      <div class="stat-card">
+        <h2 class="stat-card-title"><i class="fas fa-hospital-user"></i> Watumiaji kwa Kliniki</h2>
+        <div class="chart-container">
+          <canvas id="clinicChart"></canvas>
+        </div>
+      </div>
 
-  console.log('Chart data:', chartData); // For debugging
+      <!-- Matumizi ya Dawa -->
+      <div class="stat-card">
+        <h2 class="stat-card-title"><i class="fas fa-pills"></i> Matumizi ya Dawa</h2>
+        <div class="chart-container">
+          <canvas id="medicineChart"></canvas>
+        </div>
+      </div>
+    </div>
 
-  // Clinic Users Bar Chart
-  const ctx1 = document.getElementById('clinicChart').getContext('2d');
-  new Chart(ctx1, {
-    type: 'bar',
-    data: {
-      labels: chartData.clinics.labels,
-      datasets: chartData.clinics.datasets
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        title: {
-          display: true,
-          text: 'Watumiaji kwa Kliniki'
+    <!-- Additional Charts Row -->
+    <div class="stats-grid">
+      <!-- Most Used Medicines -->
+      <div class="stat-card">
+        <h2 class="stat-card-title"><i class="fas fa-star"></i> Dawa Zinazotumika Zaidi</h2>
+        <div class="chart-container">
+          <canvas id="topMedicinesChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Clinic Activity -->
+      <div class="stat-card">
+        <h2 class="stat-card-title"><i class="fas fa-procedures"></i> Shughuli za Kliniki</h2>
+        <div class="chart-container">
+          <canvas id="clinicActivityChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <a href="/" class="home-button">
+      <i class="fas fa-home"></i> Rudi Nyumbani
+    </a>
+  </main>
+
+  <script>
+    // Parse the chart data passed from the server
+    const chartData = JSON.parse('<%- chartData %>');
+    const clinicStats = <%- JSON.stringify(clinicStats) %>;
+    const medicineStats = <%- JSON.stringify(medicineStats) %>;
+
+    // Prepare data for charts
+    const clinicLabels = chartData.clinics.labels;
+    const clinicTotalUsers = chartData.clinics.datasets[0].data;
+    const clinicActiveUsers = chartData.clinics.datasets[1].data;
+    const clinicInactiveUsers = clinicTotalUsers.map((total, index) => total - clinicActiveUsers[index]);
+
+    const medicineLabels = chartData.medicines.labels;
+    const medicineUsage = chartData.medicines.data;
+
+    // Prepare top medicines data
+    const topMedicines = medicineStats.mostUsed;
+    const topMedicineLabels = topMedicines.map(m => m.name);
+    const topMedicineUsage = topMedicines.map(m => m.totalUsed);
+    const topMedicineRemaining = topMedicines.map(m => m.remaining);
+
+    // Initialize charts when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // 1. Clinic Chart - Stacked Bar Chart
+      new Chart(document.getElementById('clinicChart'), {
+        type: 'bar',
+        data: {
+          labels: clinicLabels,
+          datasets: [
+            {
+              label: 'Watumiaji Waliotumia',
+              data: clinicActiveUsers,
+              backgroundColor: 'rgba(16, 185, 129, 0.8)',
+              borderColor: 'rgba(16, 185, 129, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Watumiaji Hawajatumia',
+              data: clinicInactiveUsers,
+              backgroundColor: 'rgba(245, 158, 11, 0.8)',
+              borderColor: 'rgba(245, 158, 11, 1)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              stacked: true,
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                padding: 20,
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(31, 41, 55, 0.95)',
+              titleColor: '#ffffff',
+              bodyColor: '#e5e7eb',
+              borderColor: 'rgba(0, 0, 0, 0.1)',
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                label: function(context) {
+                  const label = context.dataset.label || '';
+                  const value = context.raw || 0;
+                  const total = clinicTotalUsers[context.dataIndex];
+                  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          }
         }
-      }
-    }
-  });
+      });
 
-  // Medicine Usage Pie Chart
-  const ctx2 = document.getElementById('medicineChart').getContext('2d');
-  new Chart(ctx2, {
-    type: 'pie',
-    data: {
-      labels: chartData.medicines.labels,
-      datasets: [{
-        label: 'Matumizi ya Dawa',
-        data: chartData.medicines.data,
-        backgroundColor: chartData.medicines.backgroundColor
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        title: {
-          display: true,
-          text: 'Matumizi ya Dawa'
+      // 2. Medicine Chart - Horizontal Bar Chart
+      new Chart(document.getElementById('medicineChart'), {
+        type: 'bar',
+        data: {
+          labels: medicineLabels,
+          datasets: [{
+            label: 'Matumizi ya Dawa',
+            data: medicineUsage,
+            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+            borderColor: 'rgba(59, 130, 246, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            y: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(31, 41, 55, 0.95)',
+              titleColor: '#ffffff',
+              bodyColor: '#e5e7eb',
+              borderColor: 'rgba(0, 0, 0, 0.1)',
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                afterLabel: function(context) {
+                  const index = context.dataIndex;
+                  const medicine = medicineStats.byMedicine[medicineLabels[index]];
+                  return `Kilichobaki: ${medicine ? medicine.remaining : 0}`;
+                }
+              }
+            }
+          }
         }
-      }
-    }
-  });
-</script>
+      });
 
+      // 3. Top Medicines Chart - Doughnut
+      new Chart(document.getElementById('topMedicinesChart'), {
+        type: 'doughnut',
+        data: {
+          labels: topMedicineLabels,
+          datasets: [{
+            data: topMedicineUsage,
+            backgroundColor: [
+              'rgba(59, 130, 246, 0.8)',
+              'rgba(16, 185, 129, 0.8)',
+              'rgba(245, 158, 11, 0.8)',
+              'rgba(239, 68, 68, 0.8)',
+              'rgba(139, 92, 246, 0.8)'
+            ],
+            borderColor: [
+              'rgba(59, 130, 246, 1)',
+              'rgba(16, 185, 129, 1)',
+              'rgba(245, 158, 11, 1)',
+              'rgba(239, 68, 68, 1)',
+              'rgba(139, 92, 246, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                boxWidth: 12,
+                padding: 20,
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(31, 41, 55, 0.95)',
+              titleColor: '#ffffff',
+              bodyColor: '#e5e7eb',
+              borderColor: 'rgba(0, 0, 0, 0.1)',
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                afterLabel: function(context) {
+                  const index = context.dataIndex;
+                  return `Kilichobaki: ${topMedicineRemaining[index] || 0}`;
+                }
+              }
+            }
+          },
+          cutout: '65%'
+        }
+      });
+
+      // 4. Clinic Activity Chart - Line Chart
+      new Chart(document.getElementById('clinicActivityChart'), {
+        type: 'line',
+        data: {
+          labels: clinicLabels,
+          datasets: [{
+            label: 'Watumiaji Waliotumia',
+            data: clinicActiveUsers,
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderColor: 'rgba(16, 185, 129, 1)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                padding: 20,
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(31, 41, 55, 0.95)',
+              titleColor: '#ffffff',
+              bodyColor: '#e5e7eb',
+              borderColor: 'rgba(0, 0, 0, 0.1)',
+              borderWidth: 1,
+              padding: 12
+            }
+          }
+        }
+      });
+    });
+  </script>
 </body>
 </html>
