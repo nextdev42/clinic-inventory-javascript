@@ -1052,7 +1052,7 @@ app.post('/dawa/ongeza-stock', async (req, res) => {
 
     await writeSheet('DAWA', dawa);
 
-    res.redirect('/dawa/ongeza-stock');
+    res.redirect('/dawa/ongeza-stock?success=1');
   } catch (error) {
     console.error('Hitilafu wakati wa kuongeza stock:', error);
     res.status(500).send('Hitilafu ya ndani ya seva.');
