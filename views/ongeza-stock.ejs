@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <title>Ongeza Kiasi cha Dawa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #2c3e50;
+    }
+
+    form {
+      margin-bottom: 30px;
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      max-width: 400px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    select, input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #219150;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    td {
+      background-color: #fff;
+    }
+
+    .low-stock {
+      background-color: #ffcccc;
+    }
+
+    #searchInput {
+      max-width: 300px;
+      margin-bottom: 15px;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="/">⬅️ Rudi Nyumbani</a>
+
+  <h2>Ongeza Kiasi cha Dawa</h2>
+
+  <form method="POST" action="/dawa/ongeza-stock">
+    <label for="jina">Chagua Dawa:</label>
+    <select name="jina" id="jina" required>
+      <% dawaList.forEach(d => { %>
+        <option value="<%= d.JINA %>"><%= d.JINA %></option>
+      <% }) %>
+    </select>
+
+    <label for="kiasi">Kiasi cha Kuongeza:</label>
+    <input type="number" name="kiasi" id="kiasi" min="1" required>
+
+    <button type="submit">Ongeza Stock</button>
+  </form>
+
+  <h2>Orodha ya Dawa</h2>
+
+  <input type="text" id="searchInput" placeholder="Tafuta dawa kwa jina...">
+
+  <table id="dawaTable">
+    <thead>
+      <tr>
+        <th>Jina</th>
+        <th>Kiasi</th>
+        <th>Ilisasishwa</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% dawaList.forEach(d => { %>
+        <tr class="<%= Number(d.KIASI) <= 5 ? 'low-stock' : '' %>">
+          <td><%= d.JINA %></td>
+          <td><%= d.KIASI %></td>
+          <td><%= d.UPDATED_AT || '—' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <script>
+    // Tafuta dawa kwa jina
+    document.getElementById('searchInput').addEventListener('keyup', function () {
+      const filter = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#dawaTable tbody tr');
+
+      rows.forEach(row => {
+        const jina = row.children[0].textContent.toLowerCase();
+        row.style.display = jina.includes(filter) ? '' : 'none';
+      });
+    });
+  </script>
+
+</body>
+</html>
