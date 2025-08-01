@@ -1029,28 +1029,29 @@ app.post('/dawa/ongeza-stock', async (req, res) => {
   try {
     const { jina, kiasi } = req.body;
 
-    if (!jina || isNaN(kiasi) || Number(kiasi) <= 0) {
-      return res.status(400).send('Jina la dawa na kiasi sahihi vinahitajika.');
+    const dawa = await readSheet('DAWA');
+
+    const dawaIndex = dawa.findIndex(d =>
+      (d.jina || '').trim().toLowerCase() === jina.trim().toLowerCase()
+    );
+
+    if (dawaIndex === -1) {
+      return res.status(400).send('Dawa haikupatikana.');
     }
 
-    const dawaList = await readSheet('DAWA');
-    const index = dawaList.findIndex(d => d.JINA === jina);
+    const kiasiMpya = Number(d.kiasi || 0) + Number(kiasi);
+    dawa[dawaIndex].kiasi = kiasiMpya;
+    dawa[dawaIndex].UPDATED_AT = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD
 
-    if (index === -1) {
-      return res.status(404).send('Dawa haikupatikana.');
-    }
+    await writeSheet('DAWA', dawa);
 
-    // Add stock and update timestamp
-    dawaList[index].KIASI = Number(dawaList[index].KIASI) + Number(kiasi);
-    dawaList[index].UPDATED_AT = moment().format('YYYY-MM-DD HH:mm:ss');
-
-    await writeSheet('DAWA', dawaList);
-    res.redirect('/dawa');
+    res.redirect('/dawa/ongeza-stock');
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Hitilafu ya mfumo.');
+    console.error('Hitilafu wakati wa kuongeza stock:', error);
+    res.status(500).send('Hitilafu ya ndani ya seva.');
   }
 });
+
 
   
 app.get('/dawa/ongeza-stock', async (req, res, next) => {
