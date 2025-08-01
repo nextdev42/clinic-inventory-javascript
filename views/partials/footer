@@ -1,0 +1,103 @@
+<!-- views/partials/footer.ejs -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Mfumo wa Udhibiti wa Dawa</h3>
+                <p>Kilwa Kisiwani, Kilwa Masoko</p>
+                <p>Mkoa: Lindi</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Mawasiliano</h3>
+                <p>Simu: +255 123 456 789</p>
+                <p>Barua Pepe: dawa@kilwaclinic.go.tz</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Viungo Muhimu</h3>
+                <ul>
+                    <li><a href="/">Dashibodi</a></li>
+                    <li><a href="/dawa/ongeza">Ongeza Dawa</a></li>
+                    <li><a href="/ripoti/matumizi">Ripoti Matumizi</a></li>
+                    <li><a href="/admin/watumiaji">Watumiaji</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; <%= new Date().getFullYear() %> Mfumo wa Udhibiti wa Dawa - Kilwa. Haki zote zimehifadhiwa.</p>
+            <p>Toleo la Mfumu: v1.0.0 | <%= process.env.NODE_ENV === 'production' ? 'Toleo Halisi' : 'Toleo la Majaribio' %></p>
+        </div>
+    </div>
+</footer>
+
+<style>
+    .footer {
+        background-color: #2c3e50;
+        color: #ecf0f1;
+        padding: 30px 0 10px;
+        margin-top: 40px;
+        border-top: 4px solid #3498db;
+    }
+    
+    .footer-content {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    
+    .footer-section {
+        flex: 1;
+        min-width: 250px;
+        margin-bottom: 20px;
+        padding: 0 15px;
+    }
+    
+    .footer-section h3 {
+        color: #3498db;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .footer-section p, .footer-section li {
+        margin-bottom: 8px;
+        line-height: 1.6;
+    }
+    
+    .footer-section a {
+        color: #ecf0f1;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    
+    .footer-section a:hover {
+        color: #3498db;
+        text-decoration: underline;
+    }
+    
+    .footer-section ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .footer-bottom {
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px solid #34495e;
+        font-size: 0.9em;
+        color: #bdc3c7;
+    }
+    
+    @media (max-width: 768px) {
+        .footer-content {
+            flex-direction: column;
+        }
+        
+        .footer-section {
+            margin-bottom: 30px;
+        }
+    }
+</style>
