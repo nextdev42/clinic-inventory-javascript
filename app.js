@@ -38,6 +38,7 @@ function filterKisiwaniUsers(users) {
 }
 
 
+
 async function initializeDatabase() {
   try {
     await fs.mkdir(dataDir, { recursive: true });
@@ -73,23 +74,31 @@ async function initializeDatabase() {
       workbook.Sheets[SHEETS.CLINICS.name] = ws;
     }
 
-    // Fix: Only add UPDATED_AT to existing medicines, don't create empty medicine
+    // FIX: Only process medicines if they exist and are valid
     const dawaSheet = workbook.Sheets[SHEETS.DAWA.name];
     if (dawaSheet) {
-      const dawaData = xlsx.utils.sheet_to_json(dawaSheet, { header: SHEETS.DAWA.headers });
-      
-      // Filter out any empty rows or header rows
-      const validDawaData = dawaData.filter(medicine => 
-        medicine.id && medicine.jina && medicine.aina
-      );
-      
-      const updatedDawa = validDawaData.map(medicine => ({
-        ...medicine,
-        UPDATED_AT: medicine.UPDATED_AT || new Date().toISOString()
-      }));
-      
-      const ws = xlsx.utils.json_to_sheet(updatedDawa, { header: SHEETS.DAWA.headers });
-      workbook.Sheets[SHEETS.DAWA.name] = ws;
+      try {
+        // Read data without assuming header format
+        const dawaData = xlsx.utils.sheet_to_json(dawaSheet);
+        
+        // Filter out invalid/empty medicines
+        const validDawaData = dawaData.filter(medicine => 
+          medicine.id && medicine.jina && medicine.jina.trim() !== "" && medicine.aina
+        );
+        
+        // Only update if we have valid medicines
+        if (validDawaData.length > 0) {
+          const updatedDawa = validDawaData.map(medicine => ({
+            ...medicine,
+            UPDATED_AT: medicine.UPDATED_AT || new Date().toISOString()
+          }));
+          
+          const ws = xlsx.utils.json_to_sheet(updatedDawa, { header: SHEETS.DAWA.headers });
+          workbook.Sheets[SHEETS.DAWA.name] = ws;
+        }
+      } catch (e) {
+        console.error('❌ Error processing medicines:', e);
+      }
     }
 
     await xlsx.writeFile(workbook, excelPath);
@@ -195,7 +204,8 @@ async function startApp() {
     res.render('add-medicine', { error: null, formData: {} });
   });
 
-  app.post('/dawa/ongeza', async (req, res, next) => {
+  
+   app.post('/dawa/ongeza', async (req, res, next) => {
   try {
     const { jina, aina, kiasi } = req.body;
     
@@ -211,6 +221,14 @@ async function startApp() {
     const cleanJina = jina.trim();
     const cleanAina = aina.trim();
     const cleanKiasi = Number(kiasi);
+
+    // Prevent creating medicine with name "aina"
+    if (cleanJina.toLowerCase() === "aina") {
+      return res.status(400).render('add-medicine', {
+        error: 'Jina "aina" haliruhusiwi. Tafadhali tumia jina lingine.',
+        formData: req.body
+      });
+    }
 
     const dawa = await readSheet('DAWA');
     const normalizedJina = cleanJina.toLowerCase();
@@ -239,8 +257,9 @@ async function startApp() {
   } catch (error) {
     next(error);
   }
-});
+}); 
 
+    
       
 
   // Restock routes
