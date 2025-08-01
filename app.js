@@ -155,10 +155,15 @@ async function startApp() {
         const totalUsed = matumizi
           .filter(usage => usage.dawaId === medicine.id)
           .reduce((sum, usage) => sum + (Number(usage.kiasi) || 0), 0);
+        const remainingStock = (Number(medicine.kiasi) || 0) - totalUsed;
+        
         return {
           ...medicine,
           jumlaMatumizi: totalUsed,
-          kilichobaki: (Number(medicine.kiasi) || 0) - totalUsed
+          kilichobaki: remainingStock,
+          // Add status indicator
+          status: remainingStock <= 0 ? 'Zilizoisha' : 
+                 (remainingStock < 10 ? 'Kidogo' : 'Inatosha')
         };
       });
 
@@ -173,44 +178,43 @@ async function startApp() {
   
   // Medicine routes
   app.get('/dawa/ongeza', (req, res) => {
-    res.render('add-medicine');
+    res.render('add-medicine', { error: null, formData: {} });
   });
 
   app.post('/dawa/ongeza', async (req, res, next) => {
     try {
       const { jina, aina, kiasi } = req.body;
       if (!jina || !aina || isNaN(kiasi) || Number(kiasi) <= 0) {
-        return res.status(400).render('error', {
-          message: 'Tafadhali jaza taarifa zote sahihi'
+        return res.status(400).render('add-medicine', {
+          error: 'Tafadhali jaza taarifa zote sahihi',
+          formData: req.body
         });
       }
 
       const dawa = await readSheet('DAWA');
+      const normalizedJina = jina.toLowerCase().trim();
       const existingIndex = dawa.findIndex(d => 
-        d.jina?.toLowerCase() === jina.toLowerCase()
+        d.jina?.toLowerCase() === normalizedJina
       );
 
       if (existingIndex !== -1) {
-        // Update existing medicine stock
-        const updatedKiasi = Number(dawa[existingIndex].kiasi) + Number(kiasi);
-        dawa[existingIndex].kiasi = updatedKiasi;
-        dawa[existingIndex].UPDATED_AT = new Date().toISOString();
-        
-        await writeSheet('DAWA', dawa);
-        return res.redirect('/?restock=success');
-      } else {
-        // Add new medicine
-        const newMedicine = {
-          id: nanoid(),
-          jina,
-          aina,
-          kiasi: Number(kiasi),
-          UPDATED_AT: new Date().toISOString()
-        };
-
-        await writeSheet('DAWA', [...dawa, newMedicine]);
-        return res.redirect('/?add=success');
+        return res.status(400).render('add-medicine', {
+          error: `Dawa yenye jina "${jina}" tayari ipo kwenye mfumo.`,
+          formData: req.body
+        });
       }
+
+      // Add new medicine
+      const newMedicine = {
+        id: nanoid(),
+        jina,
+        aina,
+        kiasi: Number(kiasi),
+        UPDATED_AT: new Date().toISOString()
+      };
+
+      await writeSheet('DAWA', [...dawa, newMedicine]);
+      return res.redirect('/?add=success');
     } catch (error) {
       next(error);
     }
@@ -289,7 +293,8 @@ async function startApp() {
       }
 
       const watumiaji = await readSheet('WATUMIAJI');
-      if (watumiaji.some(w => w.jina.toLowerCase() === jina.trim().toLowerCase())) {
+      const normalizedJina = jina.toLowerCase().trim();
+      if (watumiaji.some(w => w.jina.toLowerCase() === normalizedJina)) {
         return res.render('add-user', {
           clinics,
           error: 'Tayari kuna mtumiaji mwenye jina hili.',
@@ -431,6 +436,8 @@ async function startApp() {
       }
 
       const userClinicId = mtumiaji.clinicId || 'unknown';
+      const now = new Date();
+      const formattedDate = now.toISOString().split('T')[0]; // YYYY-MM-DD format
 
       const newMatumizi = validUsages.map(d => ({
         id: nanoid(),
@@ -439,7 +446,7 @@ async function startApp() {
         maelezo: mtumiaji.maelezo || '',
         dawaId: d.id,
         kiasi: d.kiasi,
-        tarehe: d.tarehe || new Date().toISOString(),
+        tarehe: d.tarehe || formattedDate, // Standardized date format
         clinicId: userClinicId
       }));
 
@@ -489,6 +496,36 @@ async function startApp() {
     }
   });
 
+  // Admin users management
+  app.get('/admin/watumiaji', async (req, res, next) => {
+    try {
+      const [watumiaji, clinics] = await Promise.all([
+        readSheet('WATUMIAJI'),
+        readSheet('CLINICS')
+      ]);
+      
+      // Create clinic map for name lookup
+      const clinicMap = clinics.reduce((acc, clinic) => {
+        acc[clinic.id] = clinic.jina;
+        return acc;
+      }, {});
+      
+      // Add clinic name to each user
+      const usersWithClinic = watumiaji.map(user => ({
+        ...user,
+        clinicName: clinicMap[user.clinicId] || 'Haijulikani'
+      }));
+
+      res.render('admin-users', {
+        watumiaji: usersWithClinic,
+        clinics,
+        error: null
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Usage report route
   app.get('/ripoti/matumizi', async (req, res, next) => {
     try {
@@ -532,25 +569,33 @@ async function startApp() {
         : matumizi;
 
       function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return 'Tarehe haijulikani';
-        return date.toLocaleDateString('sw-TZ', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-          timeZone: 'Africa/Nairobi'
-        });
+        try {
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) return 'Tarehe haijulikani';
+          return date.toLocaleDateString('sw-TZ', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            timeZone: 'Africa/Nairobi'
+          });
+        } catch (e) {
+          return 'Tarehe batili';
+        }
       }
 
       function formatTime(dateStr) {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return '--:--';
-        return date.toLocaleTimeString('sw-TZ', {
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: 'Africa/Nairobi'
-        });
+        try {
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) return '--:--';
+          return date.toLocaleTimeString('sw-TZ', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Africa/Nairobi'
+          });
+        } catch (e) {
+          return '--:--';
+        }
       }
 
       const clinicMap = clinics.reduce((acc, c) => {
