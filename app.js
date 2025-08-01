@@ -166,34 +166,48 @@ async function startApp() {
   });
 
 
-  app.get('/matumizi/sajili', async (req, res, next) => {
+  
+app.get('/matumizi/sajili', async (req, res, next) => {
   try {
+    const clinicId = 'C001'; // Au req.session.clinicId, au req.query.clinicId kama unatumia
+
+    console.log('Clinic ID:', clinicId);
+
     const [dawa, watumiaji] = await Promise.all([
       readSheet('DAWA'),
       readSheet('WATUMIAJI')
     ]);
 
-    const clinicId = req.session.clinicId;
+    console.log('WATUMIAJI raw:', watumiaji);
 
-    // Log kwa debug
-    console.log("Clinic ID:", clinicId);
-    console.log("WATUMIAJI:", watumiaji);
+    const filteredUsers = clinicId
+      ? watumiaji.filter(u => (u.clinicId || '') === clinicId)
+      : watumiaji;
 
-    const filteredUsers = watumiaji.filter(w => w.clinicId === clinicId);
+    console.log('Filtered:', filteredUsers);
 
-    console.log("Filtered:", filteredUsers); // Hii ndiyo inapaswa kuonyesha majina ya watumiaji wa hiyo clinic
+    const correctedUsers = filteredUsers.map(u => ({
+      id: u.id,
+      jina: u.jina,
+      maelezo: u.maelezo || u.aina || '',
+      clinicId: u.clinicId || '',
+    }));
+
+    console.log('Corrected:', correctedUsers);
 
     res.render('log-usage', {
       dawa,
-      watumiaji: filteredUsers,
+      watumiaji: correctedUsers,
       error: null,
       mtumiajiId: null
     });
 
   } catch (error) {
+    console.error('Tatizo wakati wa GET /matumizi/sajili:', error);
     next(error);
   }
 });
+
 
 
 
