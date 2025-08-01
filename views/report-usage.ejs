@@ -362,6 +362,7 @@
             <div class="summary-value"><%= report.length %></div>
             <div class="summary-label">Watumiaji</div>
           </div>
+          
           <div class="summary-item">
             <div class="summary-value">
               <% 
@@ -373,11 +374,12 @@
                     });
                   });
                 });
-                print(totalUsage);
               %>
+              <%= totalUsage %>
             </div>
             <div class="summary-label">Jumla ya Matumizi</div>
           </div>
+          
           <div class="summary-item">
             <div class="summary-value">
               <% 
@@ -387,8 +389,8 @@
                     uniqueDates.add(date);
                   });
                 });
-                print(uniqueDates.size);
               %>
+              <%= uniqueDates.size %>
             </div>
             <div class="summary-label">Siku Zilizotumika</div>
           </div>
