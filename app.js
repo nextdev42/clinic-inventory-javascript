@@ -165,16 +165,18 @@ async function startApp() {
     res.render('add-user');
   });
 
+
   app.get('/matumizi/sajili', async (req, res, next) => {
   try {
-    const clinicId = 'C001'; // au chukua kutoka kwa session ya user ikiwa una login system
-
+    const clinicId = 'C001';
     const [dawa, watumiaji] = await Promise.all([
       readSheet('DAWA'),
       readSheet('WATUMIAJI')
     ]);
 
+    console.log('WATUMIAJI:', watumiaji); // ← ANGALIA HAPA
     const filteredWatumiaji = watumiaji.filter(u => u.clinicId === clinicId);
+    console.log('Filtered:', filteredWatumiaji); // ← NA HAPA
 
     res.render('log-usage', {
       dawa,
