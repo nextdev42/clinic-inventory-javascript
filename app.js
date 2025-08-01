@@ -1050,6 +1050,17 @@ app.post('/dawa/ongeza-stock', async (req, res) => {
   }
 });
 
+  
+app.get('/dawa/ongeza-stock', async (req, res) => {
+  try {
+    const dawaList = await readSheet('DAWA'); // Soma dawa kutoka kwenye Excel
+    res.render('ongeza-stock', { dawaList }); // Hakikisha jina la view ni sahihi
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Hitilafu ya kufungua ukurasa wa kuongeza stock.');
+  }
+});
+
 
 app.get('/admin/maelezo-dump', async (req, res, next) => {
   try {
