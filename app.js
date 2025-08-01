@@ -168,26 +168,33 @@ async function startApp() {
 
   app.get('/matumizi/sajili', async (req, res, next) => {
   try {
-    const clinicId = 'C001';
     const [dawa, watumiaji] = await Promise.all([
       readSheet('DAWA'),
       readSheet('WATUMIAJI')
     ]);
 
-    console.log('WATUMIAJI:', watumiaji); // ← ANGALIA HAPA
-    const filteredWatumiaji = watumiaji.filter(u => u.clinicId === clinicId);
-    console.log('Filtered:', filteredWatumiaji); // ← NA HAPA
+    const clinicId = req.session.clinicId;
+
+    // Log kwa debug
+    console.log("Clinic ID:", clinicId);
+    console.log("WATUMIAJI:", watumiaji);
+
+    const filteredUsers = watumiaji.filter(w => w.clinicId === clinicId);
+
+    console.log("Filtered:", filteredUsers); // Hii ndiyo inapaswa kuonyesha majina ya watumiaji wa hiyo clinic
 
     res.render('log-usage', {
       dawa,
-      watumiaji: filteredWatumiaji,
+      watumiaji: filteredUsers,
       error: null,
       mtumiajiId: null
     });
+
   } catch (error) {
     next(error);
   }
 });
+
 
 
 
