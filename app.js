@@ -32,6 +32,11 @@ const SHEETS = {
   CLINICS: { name: 'Clinics', headers: ['id', 'jina'] }
 };
 
+// Helper function to filter Kisiwani users
+function filterKisiwaniUsers(users) {
+  return users.filter(user => user.clinicId === 'C001');
+}
+
 async function initializeDatabase() {
   try {
     await fs.mkdir(dataDir, { recursive: true });
@@ -161,7 +166,6 @@ async function startApp() {
           ...medicine,
           jumlaMatumizi: totalUsed,
           kilichobaki: remainingStock,
-          // Add status indicator
           status: remainingStock <= 0 ? 'Zilizoisha' : 
                  (remainingStock < 10 ? 'Kidogo' : 'Inatosha')
         };
@@ -319,11 +323,20 @@ async function startApp() {
   // Usage logging routes
   app.get('/matumizi/sajili', async (req, res, next) => {
     try {
-      const [dawa, watumiaji] = await Promise.all([
+      const [dawa, allWatumiaji] = await Promise.all([
         readSheet('DAWA'),
         readSheet('WATUMIAJI')
       ]);
-      res.render('log-usage', { dawa, watumiaji, error: null, mtumiajiId: null });
+      
+      // Only show Kisiwani users (clinicId 'C001')
+      const watumiaji = filterKisiwaniUsers(allWatumiaji);
+      
+      res.render('log-usage', { 
+        dawa, 
+        watumiaji, 
+        error: null, 
+        mtumiajiId: null 
+      });
     } catch (error) {
       next(error);
     }
@@ -379,10 +392,14 @@ async function startApp() {
       }
 
       if (confirmedDawa.length === 0) {
-        const [dawa, watumiaji] = await Promise.all([
+        const [dawa, allWatumiaji] = await Promise.all([
           readSheet('DAWA'),
           readSheet('WATUMIAJI')
         ]);
+        
+        // Only show Kisiwani users in the form
+        const watumiaji = filterKisiwaniUsers(allWatumiaji);
+        
         return res.render('log-usage', {
           dawa,
           watumiaji,
@@ -391,7 +408,7 @@ async function startApp() {
         });
       }
 
-      const [allDawa, watumiaji, existingMatumizi] = await Promise.all([
+      const [allDawa, allWatumiaji, existingMatumizi] = await Promise.all([
         readSheet('DAWA'),
         readSheet('WATUMIAJI'),
         readSheet('MATUMIZI')
@@ -428,10 +445,17 @@ async function startApp() {
         });
       }
 
-      const mtumiaji = watumiaji.find(w => w.id === mtumiajiId);
+      const mtumiaji = allWatumiaji.find(w => w.id === mtumiajiId);
       if (!mtumiaji) {
         return res.status(400).render('error', {
           message: 'Mtumiaji aliyechaguliwa hayupo kwenye mfumo'
+        });
+      }
+      
+      // Validate user is from Kisiwani
+      if (mtumiaji.clinicId !== 'C001') {
+        return res.status(400).render('error', {
+          message: 'Samahani, mtumiaji huyu sio wa Kisiwani'
         });
       }
 
