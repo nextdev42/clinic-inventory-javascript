@@ -260,7 +260,7 @@ async function startApp() {
   app.get('/mtumiaji/ongeza', async (req, res, next) => {
     try {
       const clinics = await readSheet('CLINICS');
-      res.render('add-user', { clinics });
+      res.render('add-user', { clinics, error: null, formData: {} });
     } catch (error) {
       next(error);
     }
@@ -269,16 +269,31 @@ async function startApp() {
   app.post('/mtumiaji/ongeza', async (req, res, next) => {
     try {
       const { jina, description, clinicId } = req.body;
-      if (!jina || jina.trim().length < 2 || !clinicId) {
-        return res.status(400).render('error', {
-          message: 'Jina la mtumiaji na kliniki yanahitajika'
+      const clinics = await readSheet('CLINICS');
+      
+      // Validate inputs
+      if (!jina || jina.trim().length < 2) {
+        return res.render('add-user', {
+          clinics,
+          error: 'Jina la mtumiaji linahitajika',
+          formData: req.body
+        });
+      }
+      
+      if (!clinicId) {
+        return res.render('add-user', {
+          clinics,
+          error: 'Tafadhali chagua kliniki',
+          formData: req.body
         });
       }
 
       const watumiaji = await readSheet('WATUMIAJI');
       if (watumiaji.some(w => w.jina.toLowerCase() === jina.trim().toLowerCase())) {
-        return res.status(400).render('error', {
-          message: 'Tayari kuna mtumiaji mwenye jina hili.'
+        return res.render('add-user', {
+          clinics,
+          error: 'Tayari kuna mtumiaji mwenye jina hili.',
+          formData: req.body
         });
       }
 
