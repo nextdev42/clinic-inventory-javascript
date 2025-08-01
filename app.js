@@ -37,6 +37,7 @@ function filterKisiwaniUsers(users) {
   return users.filter(user => user.clinicId === 'C001');
 }
 
+
 async function initializeDatabase() {
   try {
     await fs.mkdir(dataDir, { recursive: true });
@@ -72,14 +73,21 @@ async function initializeDatabase() {
       workbook.Sheets[SHEETS.CLINICS.name] = ws;
     }
 
-    // Add UPDATED_AT to existing medicines
+    // Fix: Only add UPDATED_AT to existing medicines, don't create empty medicine
     const dawaSheet = workbook.Sheets[SHEETS.DAWA.name];
     if (dawaSheet) {
       const dawaData = xlsx.utils.sheet_to_json(dawaSheet, { header: SHEETS.DAWA.headers });
-      const updatedDawa = dawaData.map(medicine => ({
+      
+      // Filter out any empty rows or header rows
+      const validDawaData = dawaData.filter(medicine => 
+        medicine.id && medicine.jina && medicine.aina
+      );
+      
+      const updatedDawa = validDawaData.map(medicine => ({
         ...medicine,
         UPDATED_AT: medicine.UPDATED_AT || new Date().toISOString()
       }));
+      
       const ws = xlsx.utils.json_to_sheet(updatedDawa, { header: SHEETS.DAWA.headers });
       workbook.Sheets[SHEETS.DAWA.name] = ws;
     }
@@ -90,6 +98,8 @@ async function initializeDatabase() {
     throw error;
   }
 }
+
+    
 
 async function readSheet(sheetKey) {
   try {
@@ -186,43 +196,52 @@ async function startApp() {
   });
 
   app.post('/dawa/ongeza', async (req, res, next) => {
-    try {
-      const { jina, aina, kiasi } = req.body;
-      if (!jina || !aina || isNaN(kiasi) || Number(kiasi) <= 0) {
-        return res.status(400).render('add-medicine', {
-          error: 'Tafadhali jaza taarifa zote sahihi',
-          formData: req.body
-        });
-      }
-
-      const dawa = await readSheet('DAWA');
-      const normalizedJina = jina.toLowerCase().trim();
-      const existingIndex = dawa.findIndex(d => 
-        d.jina?.toLowerCase() === normalizedJina
-      );
-
-      if (existingIndex !== -1) {
-        return res.status(400).render('add-medicine', {
-          error: `Dawa yenye jina "${jina}" tayari ipo kwenye mfumo.`,
-          formData: req.body
-        });
-      }
-
-      // Add new medicine
-      const newMedicine = {
-        id: nanoid(),
-        jina,
-        aina,
-        kiasi: Number(kiasi),
-        UPDATED_AT: new Date().toISOString()
-      };
-
-      await writeSheet('DAWA', [...dawa, newMedicine]);
-      return res.redirect('/?add=success');
-    } catch (error) {
-      next(error);
+  try {
+    const { jina, aina, kiasi } = req.body;
+    
+    // Validate inputs more strictly
+    if (!jina || !jina.trim() || !aina || !aina.trim() || 
+        isNaN(kiasi) || Number(kiasi) <= 0) {
+      return res.status(400).render('add-medicine', {
+        error: 'Tafadhali jaza taarifa zote sahihi',
+        formData: req.body
+      });
     }
-  });
+
+    const cleanJina = jina.trim();
+    const cleanAina = aina.trim();
+    const cleanKiasi = Number(kiasi);
+
+    const dawa = await readSheet('DAWA');
+    const normalizedJina = cleanJina.toLowerCase();
+    const existingIndex = dawa.findIndex(d => 
+      d.jina?.toLowerCase() === normalizedJina
+    );
+
+    if (existingIndex !== -1) {
+      return res.status(400).render('add-medicine', {
+        error: `Dawa yenye jina "${cleanJina}" tayari ipo kwenye mfumo.`,
+        formData: req.body
+      });
+    }
+
+    // Add new medicine
+    const newMedicine = {
+      id: nanoid(),
+      jina: cleanJina,
+      aina: cleanAina,
+      kiasi: cleanKiasi,
+      UPDATED_AT: new Date().toISOString()
+    };
+
+    await writeSheet('DAWA', [...dawa, newMedicine]);
+    return res.redirect('/?add=success');
+  } catch (error) {
+    next(error);
+  }
+});
+
+      
 
   // Restock routes
   app.get('/dawa/ongeza-stock', async (req, res, next) => {
