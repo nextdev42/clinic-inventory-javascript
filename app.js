@@ -1071,24 +1071,6 @@ app.get('/dawa/ongeza-stock', async (req, res, next) => {
       UPDATED_AT: d.UPDATED_AT || d.tarehe || ''
     }));
 
-    res.render('ongeza-stock', { dawa, success });
-  } catch (error) {
-    console.error('Hitilafu wakati wa kusoma dawa:', error);
-    res.status(500).send('Hitilafu katika kusoma taarifa za dawa.');
-  }
-});
-
-
-app.get('/dawa/ongeza-stock', async (req, res, next) => {
-  try {
-    const dawa = await readSheet('DAWA');
-
-    const dawaList = dawa.map(d => ({
-      JINA: (d.jina || '').trim(),
-      KIASI: Number(d.kiasi) || 0,
-      UPDATED_AT: d.UPDATED_AT || d.tarehe || ''
-    }));
-
     const success = req.query.success === '1'; // ✅ ongeza hii
 
     res.render('ongeza-stock', { dawa, success }); // ✅ sasa success ipo
