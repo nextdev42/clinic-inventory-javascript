@@ -356,14 +356,15 @@
       <form method="POST" action="/matumizi/sajili">
         <div class="form-group">
           <label for="mtumiaji">Chagua Mtumiaji:</label>
-          <select name="mtumiajiId" id="mtumiaji" required>
-            <option value="">-- Chagua mtumiaji --</option>
-            <% watumiaji.forEach(m => { %>
-              <option value="<%= m.id %>" <%= m.id == mtumiajiId ? 'selected' : '' %>>
-                <%= m.jina %> - <%= m.maelezo || '' %>
-              </option>
-            <% }) %>
-          </select>
+          <select name="mtumiajiId" id="mtumiajiId" required>
+  <option value="">-- Chagua Mtumiaji --</option>
+  <% watumiaji.forEach(user => { %>
+    <option value="<%= user.id %>">
+      <%= user.jina %><% if (user.maelezo) { %> - <%= user.maelezo %><% } %>
+    </option>
+  <% }) %>
+</select>
+
         </div>
 
         <h3>Chagua Dawa na Kiasi</h3>
