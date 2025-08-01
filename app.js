@@ -27,7 +27,7 @@ const dataDir = path.join(__dirname, 'data');
 const excelPath = path.join(dataDir, 'database.xlsx');
 
 const SHEETS = {
-  DAWA: { name: 'Dawa', headers: ['id', 'jina', 'aina', 'kiasi'] },
+  DAWA: { name: 'Dawa', headers: ['id', 'jina', 'aina', 'kiasi', 'tarehe', 'UPDATED_AT'] },
   WATUMIAJI: { name: 'Watumiaji', headers: ['id', 'jina',  'maelezo', 'clinicId'] }, // *** clinicId added ***
   MATUMIZI: { name: 'Matumizi', headers: ['id', 'dawaId', 'mtumiajiId', 'mtumiajiJina', 'maelezo', 'kiasi', 'tarehe', 'clinicId'] }, // *** clinicId added ***
   CLINICS: { name: 'Clinics', headers: ['id', 'jina'] } // *** new Clinics sheet ***
@@ -96,7 +96,8 @@ async function writeSheet(sheetKey, data) {
     const worksheet = xlsx.utils.json_to_sheet(
       data.map(item => ({
         ...item,
-        tarehe: item.tarehe ? new Date(item.tarehe).toISOString() : ''
+        tarehe: item.tarehe ? new Date(item.tarehe).toISOString() : '',
+        UPDATED_AT: item.UPDATED_AT ? item.UPDATED_AT : new Date().toISOString()
       })),
       { header: config.headers }
     );
@@ -108,6 +109,7 @@ async function writeSheet(sheetKey, data) {
     return false;
   }
 }
+
 
 async function startApp() {
   await initializeDatabase();
