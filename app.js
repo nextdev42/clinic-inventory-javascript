@@ -167,16 +167,14 @@ async function startApp() {
 
   app.get('/matumizi/sajili', async (req, res, next) => {
   try {
-    const clinicId = 'C001';
+    const clinicId = 'C001'; // au chukua kutoka kwa session ya user ikiwa una login system
+
     const [dawa, watumiaji] = await Promise.all([
       readSheet('DAWA'),
       readSheet('WATUMIAJI')
     ]);
 
-    console.log('WATUMIAJI:', watumiaji);
-
     const filteredWatumiaji = watumiaji.filter(u => u.clinicId === clinicId);
-    console.log('Filtered:', filteredWatumiaji);
 
     res.render('log-usage', {
       dawa,
@@ -188,6 +186,7 @@ async function startApp() {
     next(error);
   }
 });
+
 
 
   app.post('/dawa/ongeza', async (req, res, next) => {
