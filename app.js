@@ -1046,7 +1046,7 @@ app.post('/dawa/ongeza-stock', async (req, res) => {
       return res.status(400).send('Dawa haikupatikana.');
     }
 
-    const kiasiMpya = Number(d.kiasi || 0) + Number(kiasi);
+    const kiasiMpya = Number(dawa[dawaIndex].kiasi || 0) + Number(kiasi);
     dawa[dawaIndex].kiasi = kiasiMpya;
     dawa[dawaIndex].UPDATED_AT = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD
 
