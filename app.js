@@ -1071,7 +1071,7 @@ app.get('/dawa/ongeza-stock', async (req, res, next) => {
       UPDATED_AT: d.UPDATED_AT || d.tarehe || ''
     }));
 
-    res.render('ongeza-stock', { dawaList });
+    res.render('ongeza-stock', { dawa, success });
   } catch (error) {
     console.error('Hitilafu wakati wa kusoma dawa:', error);
     res.status(500).send('Hitilafu katika kusoma taarifa za dawa.');
@@ -1079,20 +1079,25 @@ app.get('/dawa/ongeza-stock', async (req, res, next) => {
 });
 
 
-app.get('/admin/maelezo-dump', async (req, res, next) => {
+app.get('/dawa/ongeza-stock', async (req, res, next) => {
   try {
-    const watumiaji = await readSheet('WATUMIAJI');
-    const dump = watumiaji.map(u => ({
-      jina: u.jina,
-      maelezo: u.maelezo || '[hakuna]',
-      length: (u.maelezo || '').length
+    const dawa = await readSheet('DAWA');
+
+    const dawaList = dawa.map(d => ({
+      JINA: (d.jina || '').trim(),
+      KIASI: Number(d.kiasi) || 0,
+      UPDATED_AT: d.UPDATED_AT || d.tarehe || ''
     }));
 
-    res.render('maelezo-dump', { dump });
+    const success = req.query.success === '1'; // ✅ ongeza hii
+
+    res.render('ongeza-stock', { dawa, success }); // ✅ sasa success ipo
   } catch (error) {
-    next(error);
+    console.error('Hitilafu wakati wa kusoma dawa:', error);
+    res.status(500).send('Hitilafu katika kusoma taarifa za dawa.');
   }
 });
+
 
   app.get('/test-read', async (req, res) => {
   const data = await readSheet('WATUMIAJI');
