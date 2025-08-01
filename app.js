@@ -590,6 +590,9 @@ async function startApp() {
 
   // Usage report route
   
+
+    
+// Update the /ripoti/matumizi route
 app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
     const { mode, from, to } = req.query;
@@ -603,41 +606,66 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
     // Filter users: only show Kisiwani users (clinicId 'C001')
     const watumiaji = allWatumiaji.filter(user => user.clinicId === 'C001');
 
-    const now = new Date();
     let startDate = null;
     let endDate = null;
+    const now = new Date();
 
+    // Handle different report modes
     if (mode === 'week') {
-      const day = now.getDay();
+      // Get start of week (Sunday)
       startDate = new Date(now);
-      startDate.setDate(now.getDate() - day);
+      startDate.setDate(now.getDate() - now.getDay());
       startDate.setHours(0, 0, 0, 0);
+      
+      // Get end of week (Saturday)
       endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 6);
       endDate.setHours(23, 59, 59, 999);
-    } else if (mode === 'month') {
+    } 
+    else if (mode === 'month') {
+      // Start of month
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       startDate.setHours(0, 0, 0, 0);
+      
+      // End of month
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       endDate.setHours(23, 59, 59, 999);
-    } else if (from && to) {
+    } 
+    else if (mode === 'day') {
+      // Today only
+      startDate = new Date(now);
+      startDate.setHours(0, 0, 0, 0);
+      
+      endDate = new Date(now);
+      endDate.setHours(23, 59, 59, 999);
+    } 
+    else if (from && to) {
+      // Custom date range
       startDate = new Date(from);
       startDate.setHours(0, 0, 0, 0);
+      
       endDate = new Date(to);
       endDate.setHours(23, 59, 59, 999);
     }
 
+    // Filter usage records based on date range
     const filteredMatumizi = startDate
       ? matumizi.filter(m => {
-          const t = new Date(m.tarehe);
-          return t >= startDate && t <= endDate;
+          try {
+            const usageDate = new Date(m.tarehe);
+            return usageDate >= startDate && usageDate <= endDate;
+          } catch (e) {
+            return false;
+          }
         })
       : matumizi;
 
+    // Format date to Swahili string
     function formatDate(dateStr) {
       try {
         const date = new Date(dateStr);
         if (isNaN(date.getTime())) return 'Tarehe haijulikani';
+        
         return date.toLocaleDateString('sw-TZ', {
           weekday: 'long',
           day: 'numeric',
@@ -650,10 +678,12 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       }
     }
 
+    // Format time to Swahili string
     function formatTime(dateStr) {
       try {
         const date = new Date(dateStr);
         if (isNaN(date.getTime())) return '--:--';
+        
         return date.toLocaleTimeString('sw-TZ', {
           hour: '2-digit',
           minute: '2-digit',
@@ -669,7 +699,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
       return acc;
     }, {});
 
-    // Only process Kisiwani users
+    // Generate report data
     const report = watumiaji.map(user => {
       const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
       const byDate = {};
@@ -711,6 +741,9 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
     next(error);
   }
 });
+      
+
+      
       
 
       
