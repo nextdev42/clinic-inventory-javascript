@@ -1073,7 +1073,7 @@ app.get('/dawa/ongeza-stock', async (req, res, next) => {
 
     const success = req.query.success === '1'; // ✅ ongeza hii
 
-    res.render('ongeza-stock', { dawa, success }); // ✅ sasa success ipo
+    res.render('ongeza-stock', { dawaList, success }); // ✅ sasa success ipo
   } catch (error) {
     console.error('Hitilafu wakati wa kusoma dawa:', error);
     res.status(500).send('Hitilafu katika kusoma taarifa za dawa.');
