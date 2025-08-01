@@ -93,14 +93,20 @@ async function writeSheet(sheetKey, data) {
   try {
     const config = SHEETS[sheetKey];
     const workbook = xlsx.readFile(excelPath);
+
     const worksheet = xlsx.utils.json_to_sheet(
       data.map(item => ({
-        ...item,
+        // force lowercase keys
+        id: item.id || '',
+        jina: item.jina || item.JINA || '',
+        aina: item.aina || item.AINA || '',
+        kiasi: item.kiasi || item.KIASI || '',
         tarehe: item.tarehe ? new Date(item.tarehe).toISOString() : '',
-        UPDATED_AT: item.UPDATED_AT ? item.UPDATED_AT : new Date().toISOString()
+        UPDATED_AT: item.UPDATED_AT || new Date().toISOString()
       })),
       { header: config.headers }
     );
+
     workbook.Sheets[config.name] = worksheet;
     await xlsx.writeFile(workbook, excelPath);
     return true;
@@ -109,6 +115,7 @@ async function writeSheet(sheetKey, data) {
     return false;
   }
 }
+
 
 
 async function startApp() {
