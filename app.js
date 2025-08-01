@@ -7,6 +7,7 @@ import xlsx from 'xlsx';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import session from 'express-session';
+import moment from 'moment';
 
 const app = express();
 
@@ -1019,6 +1020,35 @@ app.get('/mtumiaji/futa/:id', async (req, res, next) => {
     next(error);
   }
 });  
+
+
+
+app.post('/dawa/ongeza-stock', async (req, res) => {
+  try {
+    const { jina, kiasi } = req.body;
+
+    if (!jina || isNaN(kiasi) || Number(kiasi) <= 0) {
+      return res.status(400).send('Jina la dawa na kiasi sahihi vinahitajika.');
+    }
+
+    const dawaList = await readSheet('DAWA');
+    const index = dawaList.findIndex(d => d.JINA === jina);
+
+    if (index === -1) {
+      return res.status(404).send('Dawa haikupatikana.');
+    }
+
+    // Add stock and update timestamp
+    dawaList[index].KIASI = Number(dawaList[index].KIASI) + Number(kiasi);
+    dawaList[index].UPDATED_AT = moment().format('YYYY-MM-DD HH:mm:ss');
+
+    await writeSheet('DAWA', dawaList);
+    res.redirect('/dawa');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Hitilafu ya mfumo.');
+  }
+});
 
 
 app.get('/admin/maelezo-dump', async (req, res, next) => {
