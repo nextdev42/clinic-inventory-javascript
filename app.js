@@ -551,123 +551,131 @@ async function startApp() {
   });
 
   // Usage report route
-  app.get('/ripoti/matumizi', async (req, res, next) => {
-    try {
-      const { mode, from, to } = req.query;
-      const [watumiaji, dawa, matumizi, clinics] = await Promise.all([
-        readSheet('WATUMIAJI'),
-        readSheet('DAWA'),
-        readSheet('MATUMIZI'),
-        readSheet('CLINICS')
-      ]);
+  
+app.get('/ripoti/matumizi', async (req, res, next) => {
+  try {
+    const { mode, from, to } = req.query;
+    const [allWatumiaji, dawa, matumizi, clinics] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('DAWA'),
+      readSheet('MATUMIZI'),
+      readSheet('CLINICS')
+    ]);
 
-      const now = new Date();
-      let startDate = null;
-      let endDate = null;
+    // Filter users: only show Kisiwani users (clinicId 'C001')
+    const watumiaji = allWatumiaji.filter(user => user.clinicId === 'C001');
 
-      if (mode === 'week') {
-        const day = now.getDay();
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - day);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 6);
-        endDate.setHours(23, 59, 59, 999);
-      } else if (mode === 'month') {
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        endDate.setHours(23, 59, 59, 999);
-      } else if (from && to) {
-        startDate = new Date(from);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(to);
-        endDate.setHours(23, 59, 59, 999);
-      }
+    const now = new Date();
+    let startDate = null;
+    let endDate = null;
 
-      const filteredMatumizi = startDate
-        ? matumizi.filter(m => {
-            const t = new Date(m.tarehe);
-            return t >= startDate && t <= endDate;
-          })
-        : matumizi;
-
-      function formatDate(dateStr) {
-        try {
-          const date = new Date(dateStr);
-          if (isNaN(date.getTime())) return 'Tarehe haijulikani';
-          return date.toLocaleDateString('sw-TZ', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            timeZone: 'Africa/Nairobi'
-          });
-        } catch (e) {
-          return 'Tarehe batili';
-        }
-      }
-
-      function formatTime(dateStr) {
-        try {
-          const date = new Date(dateStr);
-          if (isNaN(date.getTime())) return '--:--';
-          return date.toLocaleTimeString('sw-TZ', {
-            hour: '2-digit',
-            minute: '2-digit',
-            timeZone: 'Africa/Nairobi'
-          });
-        } catch (e) {
-          return '--:--';
-        }
-      }
-
-      const clinicMap = clinics.reduce((acc, c) => {
-        acc[c.id] = c.jina;
-        return acc;
-      }, {});
-
-      const report = watumiaji.map(user => {
-        const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
-        const byDate = {};
-
-        userUsages.forEach(usage => {
-          const day = formatDate(usage.tarehe);
-          if (!byDate[day]) byDate[day] = [];
-
-          const medicine = dawa.find(d => d.id === usage.dawaId);
-          const formattedTime = formatTime(usage.tarehe);
-          const clinicName = clinicMap[usage.clinicId] || 'Haijulikani';
-
-          byDate[day].push({
-            dawa: medicine ? medicine.jina : 'Haijulikani',
-            kiasi: usage.kiasi,
-            saa: formattedTime,
-            kliniki: clinicName
-          });
-        });
-
-        return {
-          jina: user.jina,
-          matumiziByDate: byDate
-        };
-      });
-
-      res.render('report-usage', {
-        report,
-        mode,
-        from,
-        to,
-        query: {
-          aina: mode,
-          start: from,
-          end: to
-        }
-      });
-    } catch (error) {
-      next(error);
+    if (mode === 'week') {
+      const day = now.getDay();
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - day);
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      endDate.setHours(23, 59, 59, 999);
+    } else if (mode === 'month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      endDate.setHours(23, 59, 59, 999);
+    } else if (from && to) {
+      startDate = new Date(from);
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(to);
+      endDate.setHours(23, 59, 59, 999);
     }
-  });
+
+    const filteredMatumizi = startDate
+      ? matumizi.filter(m => {
+          const t = new Date(m.tarehe);
+          return t >= startDate && t <= endDate;
+        })
+      : matumizi;
+
+    function formatDate(dateStr) {
+      try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return 'Tarehe haijulikani';
+        return date.toLocaleDateString('sw-TZ', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          timeZone: 'Africa/Nairobi'
+        });
+      } catch (e) {
+        return 'Tarehe batili';
+      }
+    }
+
+    function formatTime(dateStr) {
+      try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return '--:--';
+        return date.toLocaleTimeString('sw-TZ', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Africa/Nairobi'
+        });
+      } catch (e) {
+        return '--:--';
+      }
+    }
+
+    const clinicMap = clinics.reduce((acc, c) => {
+      acc[c.id] = c.jina;
+      return acc;
+    }, {});
+
+    // Only process Kisiwani users
+    const report = watumiaji.map(user => {
+      const userUsages = filteredMatumizi.filter(m => m.mtumiajiId === user.id);
+      const byDate = {};
+
+      userUsages.forEach(usage => {
+        const day = formatDate(usage.tarehe);
+        if (!byDate[day]) byDate[day] = [];
+
+        const medicine = dawa.find(d => d.id === usage.dawaId);
+        const formattedTime = formatTime(usage.tarehe);
+        const clinicName = clinicMap[usage.clinicId] || 'Haijulikani';
+
+        byDate[day].push({
+          dawa: medicine ? medicine.jina : 'Haijulikani',
+          kiasi: usage.kiasi,
+          saa: formattedTime,
+          kliniki: clinicName
+        });
+      });
+
+      return {
+        jina: user.jina,
+        matumiziByDate: byDate
+      };
+    });
+
+    res.render('report-usage', {
+      report,
+      mode,
+      from,
+      to,
+      query: {
+        aina: mode,
+        start: from,
+        end: to
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+      
+
+      
 
   // Description dump route
   app.get('/admin/maelezo-dump', async (req, res, next) => {
