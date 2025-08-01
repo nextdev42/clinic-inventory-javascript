@@ -166,19 +166,29 @@ async function startApp() {
   });
 
   app.get('/matumizi/sajili', async (req, res, next) => {
-    try {
-      const clinicId = 'C001'; 
-      const [dawa, watumiaji] = await Promise.all([
-        readSheet('DAWA'),
-        readSheet('WATUMIAJI')
-      ]);
-      const filteredWatumiaji = watumiaji.filter(u => u.clinicId === clinicId);
-      res.render('log-usage', { dawa, watumiaji: filteredWatumiaji, error: null, mtumiajiId: null });
+  try {
+    const clinicId = 'C001';
+    const [dawa, watumiaji] = await Promise.all([
+      readSheet('DAWA'),
+      readSheet('WATUMIAJI')
+    ]);
 
-    } catch (error) {
-      next(error);
-    }
-  });
+    console.log('WATUMIAJI:', watumiaji);
+
+    const filteredWatumiaji = watumiaji.filter(u => u.clinicId === clinicId);
+    console.log('Filtered:', filteredWatumiaji);
+
+    res.render('log-usage', {
+      dawa,
+      watumiaji: filteredWatumiaji,
+      error: null,
+      mtumiajiId: null
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 
   app.post('/dawa/ongeza', async (req, res, next) => {
     try {
