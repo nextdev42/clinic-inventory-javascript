@@ -1,0 +1,92 @@
+<!-- views/partials/header.ejs -->
+<header>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <span class="logo-icon">💊</span>
+                <span class="logo-text">Udhibiti wa Dawa</span>
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="/">Dashibodi</a></li>
+                <li><a href="/dawa/ongeza">Dawa</a></li>
+                <li><a href="/mtumiaji/ongeza">Watumiaji</a></li>
+                <li><a href="/matumizi/sajili">Matumizi</a></li>
+                <li><a href="/ripoti/matumizi">Ripoti</a></li>
+                <li><a href="/admin/watumiaji">Msimamizi</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<style>
+    .navbar {
+        background-color: #3498db;
+        padding: 15px 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    .logo {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: white;
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+    
+    .logo-icon {
+        margin-right: 10px;
+        font-size: 1.2em;
+    }
+    
+    .nav-links {
+        display: flex;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .nav-links li {
+        margin-left: 20px;
+    }
+    
+    .nav-links a {
+        color: rgba(255,255,255,0.9);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 5px 10px;
+        border-radius: 4px;
+        transition: all 0.3s;
+    }
+    
+    .nav-links a:hover {
+        color: white;
+        background-color: rgba(255,255,255,0.1);
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            flex-direction: column;
+        }
+        
+        .nav-links {
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .nav-links li {
+            margin: 5px 10px;
+        }
+    }
+</style>
