@@ -83,7 +83,13 @@
   <a href="/">⬅️ Rudi Nyumbani</a>
 
   <h2>Ongeza Kiasi cha Dawa</h2>
-  <pre><%= JSON.stringify(dawaList, null, 2) %></pre>
+
+<% if (success) { %>
+  <div class="alert alert-success">
+    ✅ Stock imeongezwa kwa mafanikio!
+  </div>
+<% } %>
+
 
 
 <form action="/dawa/ongeza-stock" method="POST">
