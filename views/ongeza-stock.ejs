@@ -86,19 +86,21 @@
   <pre><%= JSON.stringify(dawaList, null, 2) %></pre>
 
 
-  <form method="POST" action="/dawa/ongeza-stock">
-    <label for="jina">Chagua Dawa:</label>
-    <select name="jina" id="jina" required>
-      <% dawaList.forEach(d => { %>
-        <option value="<%= d.JINA %>"><%= d.JINA %></option>
-      <% }) %>
-    </select>
+<form action="/dawa/ongeza-stock" method="POST">
+  <label for="jina">Chagua Dawa:</label>
+  <select name="jina" id="jina" required>
+    <option value="">--Chagua--</option>
+    <% dawaList.forEach(d => { %>
+      <option value="<%= d.JINA %>"><%= d.JINA %></option>
+    <% }) %>
+  </select>
 
-    <label for="kiasi">Kiasi cha Kuongeza:</label>
-    <input type="number" name="kiasi" id="kiasi" min="1" required>
+  <label for="kiasi">Kiasi cha kuongeza:</label>
+  <input type="number" name="kiasi" id="kiasi" required min="1">
 
-    <button type="submit">Ongeza Stock</button>
-  </form>
+  <button type="submit">Ongeza</button>
+</form>
+
 
   <h2>Orodha ya Dawa</h2>
 
