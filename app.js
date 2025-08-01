@@ -1053,11 +1053,12 @@ app.post('/dawa/ongeza-stock', async (req, res) => {
   
 app.get('/dawa/ongeza-stock', async (req, res) => {
   try {
-    const dawaList = await readSheet('DAWA'); // Soma dawa kutoka kwenye Excel
-    res.render('ongeza-stock', { dawaList }); // Hakikisha jina la view ni sahihi
+    const dawaList = await readSheet('DAWA'); // Soma kutoka Excel
+    console.log('✅ Dawa zilizopatikana:', dawaList); // Angalia terminal
+    res.render('ongeza-stock', { dawaList });
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Hitilafu ya kufungua ukurasa wa kuongeza stock.');
+    console.error('❌ Hitilafu:', error);
+    res.status(500).send('Hitilafu ya kusoma dawa.');
   }
 });
 
