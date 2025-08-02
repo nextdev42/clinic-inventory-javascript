@@ -561,7 +561,8 @@ async function startApp() {
   // Admin users management
   
 
-  app.get('/admin/watumiaji', async (req, res, next) => {
+  
+app.get('/admin/watumiaji', async (req, res, next) => {
   try {
     const [watumiaji, clinics, matumizi] = await Promise.all([
       readSheet('WATUMIAJI'),
@@ -604,6 +605,26 @@ async function startApp() {
     const activeUserCount = activeUsers || 1; // Prevent division by zero
     const averageUsagePerUser = totalConsumption / activeUserCount;
 
+    // Calculate clinic summary statistics
+    const clinicsSummary = clinics.map(clinic => {
+      const clinicUsers = usersWithClinic.filter(user => user.clinicId === clinic.id);
+      const clinicActiveUsers = clinicUsers.filter(user => user.status === 'active').length;
+      
+      let clinicTotalConsumption = 0;
+      clinicUsers.forEach(user => {
+        clinicTotalConsumption += userConsumption[user.id] || 0;
+      });
+      
+      return {
+        id: clinic.id,
+        name: clinic.jina,
+        totalUsers: clinicUsers.length,
+        activeUsers: clinicActiveUsers,
+        inactiveUsers: clinicUsers.length - clinicActiveUsers,
+        totalConsumption: clinicTotalConsumption
+      };
+    });
+
     // Prepare stats object
     const stats = {
       totalUsers,
@@ -611,7 +632,8 @@ async function startApp() {
       inactiveUsers,
       summary: {
         totalConsumption,
-        averageUsagePerUser
+        averageUsagePerUser,
+        clinicsSummary  // Add this to fix the error
       }
     };
 
@@ -620,13 +642,15 @@ async function startApp() {
       clinics,
       stats,
       error: null,
-      // Helper function for formatting numbers
       formatCount: (num) => typeof num === 'number' ? num.toLocaleString('en-US') : num
     });
   } catch (error) {
     next(error);
   }
 });
+    
+
+    
   
 
     
