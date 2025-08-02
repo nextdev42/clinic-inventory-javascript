@@ -560,33 +560,41 @@ async function startApp() {
 
   // Admin users management
   app.get('/admin/watumiaji', async (req, res, next) => {
-    try {
-      const [watumiaji, clinics] = await Promise.all([
-        readSheet('WATUMIAJI'),
-        readSheet('CLINICS')
-      ]);
-      
-      // Create clinic map for name lookup
-      const clinicMap = clinics.reduce((acc, clinic) => {
-        acc[clinic.id] = clinic.jina;
-        return acc;
-      }, {});
-      
-      // Add clinic name to each user
-      const usersWithClinic = watumiaji.map(user => ({
-        ...user,
-        clinicName: clinicMap[user.clinicId] || 'Haijulikani'
-      }));
+  try {
+    const [watumiaji, clinics] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('CLINICS')
+    ]);
+    
+    // Create clinic map for name lookup
+    const clinicMap = clinics.reduce((acc, clinic) => {
+      acc[clinic.id] = clinic.jina;
+      return acc;
+    }, {});
+    
+    // Add clinic name to each user
+    const usersWithClinic = watumiaji.map(user => ({
+      ...user,
+      clinicName: clinicMap[user.clinicId] || 'Haijulikani'
+    }));
 
-      res.render('admin-users', {
-        watumiaji: usersWithClinic,
-        clinics,
-        error: null
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
+    // Calculate statistics
+    const stats = {
+      totalUsers: usersWithClinic.length,
+      activeUsers: usersWithClinic.filter(user => user.status === 'active').length,
+      inactiveUsers: usersWithClinic.filter(user => user.status !== 'active').length
+    };
+
+    res.render('admin-users', {
+      watumiaji: usersWithClinic,
+      clinics,
+      stats, // Add stats to the template data
+      error: null
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
   // Usage report route
   
