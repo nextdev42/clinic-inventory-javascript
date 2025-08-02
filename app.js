@@ -573,7 +573,8 @@ async function startApp() {
     // Extract query parameters for filtering
     const filters = {
       clinicId: req.query.clinicId || '',
-      status: req.query.status || ''
+      status: req.query.status || '',
+      selectedMedicine: req.query.selectedMedicine || '' // Add medicine filter
     };
 
     // Create clinic map for name lookup
@@ -678,7 +679,8 @@ async function startApp() {
         averageUsagePerUser,
         clinicsSummary
       },
-      mostConsumedMedicines
+      mostConsumedMedicines,
+      allMedicines: dawa // Add this to fix the error
     };
 
     res.render('admin-users', {
