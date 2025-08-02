@@ -559,50 +559,80 @@ async function startApp() {
   });
 
   // Admin users management
+  
+
   app.get('/admin/watumiaji', async (req, res, next) => {
   try {
-    const [watumiaji, clinics] = await Promise.all([
+    const [watumiaji, clinics, matumizi] = await Promise.all([
       readSheet('WATUMIAJI'),
-      readSheet('CLINICS')
+      readSheet('CLINICS'),
+      readSheet('MATUMIZI')
     ]);
-    
+
     // Create clinic map for name lookup
     const clinicMap = clinics.reduce((acc, clinic) => {
       acc[clinic.id] = clinic.jina;
       return acc;
     }, {});
-    
+
     // Add clinic name to each user
     const usersWithClinic = watumiaji.map(user => ({
       ...user,
       clinicName: clinicMap[user.clinicId] || 'Haijulikani'
     }));
 
-    // Calculate statistics
+    // Calculate user statistics
+    const totalUsers = usersWithClinic.length;
+    const activeUsers = usersWithClinic.filter(user => user.status === 'active').length;
+    const inactiveUsers = totalUsers - activeUsers;
+
+    // Calculate consumption statistics
+    let totalConsumption = 0;
+    const userConsumption = {};
+    
+    matumizi.forEach(record => {
+      const amount = parseInt(record.kiasi) || 0;
+      totalConsumption += amount;
+      
+      if (!userConsumption[record.userId]) {
+        userConsumption[record.userId] = 0;
+      }
+      userConsumption[record.userId] += amount;
+    });
+
+    // Calculate average usage
+    const activeUserCount = activeUsers || 1; // Prevent division by zero
+    const averageUsagePerUser = totalConsumption / activeUserCount;
+
+    // Prepare stats object
     const stats = {
-      totalUsers: usersWithClinic.length,
-      activeUsers: usersWithClinic.filter(user => user.status === 'active').length,
-      inactiveUsers: usersWithClinic.filter(user => user.status !== 'active').length
+      totalUsers,
+      activeUsers,
+      inactiveUsers,
+      summary: {
+        totalConsumption,
+        averageUsagePerUser
+      }
     };
 
     res.render('admin-users', {
       watumiaji: usersWithClinic,
       clinics,
-      stats, // Add stats to the template data
-      error: null
+      stats,
+      error: null,
+      // Helper function for formatting numbers
+      formatCount: (num) => typeof num === 'number' ? num.toLocaleString('en-US') : num
     });
   } catch (error) {
     next(error);
   }
 });
-
-  // Usage report route
   
 
     
 // Update the /ripoti/matumizi route
 
-      app.get('/ripoti/matumizi', async (req, res, next) => {
+  app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
     const { mode, from, to } = req.query;
     const [allWatumiaji, dawa, matumizi, clinics] = await Promise.all([
