@@ -320,40 +320,36 @@
     </header>
 
     <!-- Main Content -->
-    <main class="container">
-      <!-- Filter Form -->
-      <form action="/ripoti/matumizi" method="get">
-        <!-- In the form section of report-usage.ejs -->
-  <div class="form-grid">
-  <div>
-    <label for="mode">Aina ya Ripoti:</label>
-    <select name="mode" id="mode" required>
-      <option value="">Chagua aina ya ripoti</option>
-      <option value="day" <%= mode === 'day' ? 'selected' : '' %>>Ripoti ya Siku</option>
-      <option value="week" <%= mode === 'week' ? 'selected' : '' %>>Ripoti ya Wiki</option>
-      <option value="month" <%= mode === 'month' ? 'selected' : '' %>>Ripoti ya Mwezi</option>
-      <option value="custom" <%= mode === 'custom' ? 'selected' : '' %>>Kipindi Maalum</option>
-    </select>
-  </div>
+<main class="container">
+  <!-- Filter Form -->
+  <form action="/ripoti/matumizi" method="get">
+    <div class="form-grid">
+      <div>
+        <label for="mode">Aina ya Ripoti:</label>
+        <select name="mode" id="mode" required>
+          <option value="">Chagua aina ya ripoti</option>
+          <option value="day" <%= mode === 'day' ? 'selected' : '' %>>Ripoti ya Siku</option>
+          <option value="week" <%= mode === 'week' ? 'selected' : '' %>>Ripoti ya Wiki</option>
+          <option value="month" <%= mode === 'month' ? 'selected' : '' %>>Ripoti ya Mwezi</option>
+          <option value="custom" <%= mode === 'custom' ? 'selected' : '' %>>Kipindi Maalum</option>
+        </select>
+      </div>
 
-  <% if (mode === 'custom') { %>
-    <div>
-      <label for="from">Kutoka Tarehe:</label>
-      <input type="date" name="from" id="from" value="<%= from || '' %>" />
+      <div>
+        <label for="from">Kutoka Tarehe:</label>
+        <input type="date" name="from" id="from" value="<%= from || '' %>" />
+      </div>
+
+      <div>
+        <label for="to">Mpaka Tarehe:</label>
+        <input type="date" name="to" id="to" value="<%= to || '' %>" />
+      </div>
     </div>
 
-    <div>
-      <label for="to">Mpaka Tarehe:</label>
-      <input type="date" name="to" id="to" value="<%= to || '' %>" />
-    </div>
-  <% } %>
-</div>
-
-        <button type="submit">
-          <i class="fas fa-calendar-alt"></i> Angalia Ripoti
-        </button>
-      </form>
-
+    <button type="submit">
+      <i class="fas fa-calendar-alt"></i> Angalia Ripoti
+    </button>
+  </form>
       <% if(report.length === 0 || report.every(u => Object.keys(u.matumiziByDate).length === 0)) { %>
         <div class="no-data">
           <i class="fas fa-exclamation-circle"></i>
@@ -436,26 +432,57 @@
     </main>
   </div>
 
-  <script>
-    // Set today as default end date
-    document.addEventListener('DOMContentLoaded', function() {
-      const today = new Date().toISOString().split('T')[0];
-      const urlParams = new URLSearchParams(window.location.search);
+  
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const modeSelect = document.getElementById('mode');
+    const fromInput = document.getElementById('from');
+    const toInput = document.getElementById('to');
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Set default dates
+    if (!fromInput.value) fromInput.value = today;
+    if (!toInput.value) toInput.value = today;
+    
+    // Set mode to 'week' by default if not specified
+    if (!modeSelect.value) {
+      modeSelect.value = 'week';
+    }
+    
+    // Update date fields based on mode selection
+    function updateDates() {
+      const now = new Date();
       
-      // Set default dates if not provided
-      if (!document.getElementById('from').value && !urlParams.has('from')) {
-        document.getElementById('from').value = today;
+      if (modeSelect.value === 'day') {
+        fromInput.value = today;
+        toInput.value = today;
+      } 
+      else if (modeSelect.value === 'week') {
+        const day = now.getDay();
+        const startDate = new Date(now);
+        startDate.setDate(now.getDate() - day);
+        
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+        
+        fromInput.value = startDate.toISOString().split('T')[0];
+        toInput.value = endDate.toISOString().split('T')[0];
       }
-      
-      if (!document.getElementById('to').value && !urlParams.has('to')) {
-        document.getElementById('to').value = today;
+      else if (modeSelect.value === 'month') {
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        
+        fromInput.value = startDate.toISOString().split('T')[0];
+        toInput.value = endDate.toISOString().split('T')[0];
       }
-      
-      // Set mode to 'week' by default if not specified
-      if (!urlParams.get('mode')) {
-        document.getElementById('mode').value = 'week';
-      }
-    });
-  </script>
+    }
+    
+    // Set initial dates
+    updateDates();
+    
+    // Update dates when mode changes
+    modeSelect.addEventListener('change', updateDates);
+  });
+</script>
 </body>
 </html>
