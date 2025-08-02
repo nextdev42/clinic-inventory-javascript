@@ -323,27 +323,31 @@
     <main class="container">
       <!-- Filter Form -->
       <form action="/ripoti/matumizi" method="get">
-        <div class="form-grid">
-          <div>
-            <label for="mode">Aina ya Ripoti:</label>
-            <select name="mode" id="mode">
-              <option value="">Chagua aina ya ripoti</option>
-              <option value="week" <%= mode === 'week' ? 'selected' : '' %>>Ripoti ya Wiki</option>
-              <option value="month" <%= mode === 'month' ? 'selected' : '' %>>Ripoti ya Mwezi</option>
-              <option value="custom" <%= mode === 'custom' ? 'selected' : '' %>>Kipindi Maalum</option>
-            </select>
-          </div>
+        <!-- In the form section of report-usage.ejs -->
+  <div class="form-grid">
+  <div>
+    <label for="mode">Aina ya Ripoti:</label>
+    <select name="mode" id="mode" required>
+      <option value="">Chagua aina ya ripoti</option>
+      <option value="day" <%= mode === 'day' ? 'selected' : '' %>>Ripoti ya Siku</option>
+      <option value="week" <%= mode === 'week' ? 'selected' : '' %>>Ripoti ya Wiki</option>
+      <option value="month" <%= mode === 'month' ? 'selected' : '' %>>Ripoti ya Mwezi</option>
+      <option value="custom" <%= mode === 'custom' ? 'selected' : '' %>>Kipindi Maalum</option>
+    </select>
+  </div>
 
-          <div>
-            <label for="from">Kutoka Tarehe:</label>
-            <input type="date" name="from" id="from" value="<%= from || '' %>" />
-          </div>
+  <% if (mode === 'custom') { %>
+    <div>
+      <label for="from">Kutoka Tarehe:</label>
+      <input type="date" name="from" id="from" value="<%= from || '' %>" />
+    </div>
 
-          <div>
-            <label for="to">Mpaka Tarehe:</label>
-            <input type="date" name="to" id="to" value="<%= to || '' %>" />
-          </div>
-        </div>
+    <div>
+      <label for="to">Mpaka Tarehe:</label>
+      <input type="date" name="to" id="to" value="<%= to || '' %>" />
+    </div>
+  <% } %>
+</div>
 
         <button type="submit">
           <i class="fas fa-calendar-alt"></i> Angalia Ripoti
