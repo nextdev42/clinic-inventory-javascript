@@ -567,8 +567,14 @@ async function startApp() {
       readSheet('WATUMIAJI'),
       readSheet('CLINICS'),
       readSheet('MATUMIZI'),
-      readSheet('DAWA')  // Add medicines data
+      readSheet('DAWA')
     ]);
+
+    // Extract query parameters for filtering
+    const filters = {
+      clinicId: req.query.clinicId || '',
+      status: req.query.status || ''
+    };
 
     // Create clinic map for name lookup
     const clinicMap = clinics.reduce((acc, clinic) => {
@@ -586,10 +592,19 @@ async function startApp() {
     }, {});
 
     // Add clinic name to each user
-    const usersWithClinic = watumiaji.map(user => ({
+    let usersWithClinic = watumiaji.map(user => ({
       ...user,
       clinicName: clinicMap[user.clinicId] || 'Haijulikani'
     }));
+
+    // Apply filters if provided
+    if (filters.clinicId) {
+      usersWithClinic = usersWithClinic.filter(user => user.clinicId === filters.clinicId);
+    }
+    
+    if (filters.status) {
+      usersWithClinic = usersWithClinic.filter(user => user.status === filters.status);
+    }
 
     // Calculate user statistics
     const totalUsers = usersWithClinic.length;
@@ -599,7 +614,7 @@ async function startApp() {
     // Calculate consumption statistics
     let totalConsumption = 0;
     const userConsumption = {};
-    const medicineConsumption = {}; // Track medicine consumption
+    const medicineConsumption = {};
     
     matumizi.forEach(record => {
       const amount = parseInt(record.kiasi) || 0;
@@ -651,7 +666,7 @@ async function startApp() {
         totalConsumption: total
       }))
       .sort((a, b) => b.totalConsumption - a.totalConsumption)
-      .slice(0, 5); // Top 5 most consumed
+      .slice(0, 5);
 
     // Prepare stats object
     const stats = {
@@ -663,13 +678,14 @@ async function startApp() {
         averageUsagePerUser,
         clinicsSummary
       },
-      mostConsumedMedicines  // Add this to fix the error
+      mostConsumedMedicines
     };
 
     res.render('admin-users', {
       watumiaji: usersWithClinic,
       clinics,
       stats,
+      filters, // Add filters to template data
       error: null,
       formatCount: (num) => typeof num === 'number' ? num.toLocaleString('en-US') : num
     });
@@ -678,6 +694,7 @@ async function startApp() {
   }
 });
 
+    
 
     
     
