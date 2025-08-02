@@ -704,9 +704,11 @@ async function startApp() {
     // 5. Calculate user statistics
     stats.activeUsers = activeUserIds.size;
     stats.inactiveUsers = stats.totalUsers - stats.activeUsers;
+    
+    // FIX: Keep as number, not string
     stats.summary.averageUsagePerUser = stats.activeUsers > 0 
-      ? (stats.summary.totalConsumption / stats.activeUsers).toFixed(2)
-      : '0.00';
+      ? (stats.summary.totalConsumption / stats.activeUsers)
+      : 0;
 
     // 6. Calculate clinic statistics
     watumiaji.forEach(user => {
@@ -828,6 +830,12 @@ async function startApp() {
       };
     }
 
+        // Helper functions
+    const formatCount = (count) => count?.toString() || '0';
+    const formatDecimal = (num) => {
+      if (typeof num !== 'number') return '0.00';
+      return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    };
     // 12. Render with all required data
     res.render('wote-watumiaji', {
       watumiaji: filteredUsers,
@@ -840,6 +848,7 @@ async function startApp() {
         clinicCount: clinics.length // Added for template compatibility
       },
       formatCount: (count) => count?.toString() || '0',
+      formatDecimal,  
       formatDate: (date) => date ? new Date(date).toLocaleDateString('sw-TZ') : 'N/A'
     });
 
