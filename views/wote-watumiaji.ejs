@@ -329,27 +329,27 @@
     <main class="container">
       <!-- Stats Cards -->
       <div class="stats-grid">
-        <div class="stat-card">
-          <p>Watumiaji Wote</p>
-          <h3><%= formatCount(stats.totalUsers) %></h3>
-          <div class="stat-meta">Kliniki zote: <%= clinics.length %></div>
-        </div>
-        <div class="stat-card success">
-          <p>Watumiaji Waliotumia</p>
-          <h3><%= formatCount(stats.activeUsers) %></h3>
-          <div class="stat-meta"><%= ((stats.activeUsers / stats.totalUsers) * 100 || 0).toFixed(1) %>% ya watumiaji</div>
-        </div>
-        <div class="stat-card danger">
-          <p>Watumiaji Hawajatumia</p>
-          <h3><%= formatCount(stats.inactiveUsers) %></h3>
-          <div class="stat-meta"><%= ((stats.inactiveUsers / stats.totalUsers) * 100 || 0).toFixed(1) %>% ya watumiaji</div>
-        </div>
-        <div class="stat-card warning">
-          <p>Jumla Matumizi</p>
-          <h3><%= formatCount(stats.summary.totalConsumption) %></h3>
-          <div class="stat-meta">Wastani: <%= stats.summary.averageUsagePerUser %> kwa mtumiaji</div>
-        </div>
-      </div>
+  <div class="stat-card">
+    <p>Watumiaji Wote</p>
+    <h3><%= formatCount(stats.totalUsers) %></h3>
+    <div class="stat-meta">Kliniki zote: <%= clinics.length %></div>
+  </div>
+  <div class="stat-card success">
+    <p>Watumiaji Waliotumia</p>
+    <h3><%= formatCount(stats.activeUsers) %></h3>
+    <div class="stat-meta"><%= ((stats.activeUsers / stats.totalUsers) * 100 || 0).toFixed(1) %>% ya watumiaji</div>
+  </div>
+  <div class="stat-card danger">
+    <p>Watumiaji Hawajatumia</p>
+    <h3><%= formatCount(stats.inactiveUsers) %></h3>
+    <div class="stat-meta"><%= ((stats.inactiveUsers / stats.totalUsers) * 100 || 0).toFixed(1) %>% ya watumiaji</div>
+  </div>
+  <div class="stat-card warning">
+    <p>Jumla Matumizi</p>
+    <h3><%= formatCount(stats.summary.totalConsumption) %></h3>
+    <div class="stat-meta">Wastani: <%= formatCount(stats.summary.averageUsagePerUser.toFixed(2)) %> kwa mtumiaji</div>
+  </div>
+</div>
 
       <!-- Selected Medicine Report -->
       <% if (stats.selectedMedicine) { %>
