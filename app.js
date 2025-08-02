@@ -562,12 +562,11 @@ async function startApp() {
   
 
   
-    
   app.get('/admin/watumiaji', async (req, res, next) => {
   try {
     const { clinicId, dawaType, dawaContent, selectedMedicine } = req.query;
 
-    // 1. Read all data with error handling
+    // 1. Read all data sources
     const [watumiaji, clinics, matumizi, dawa] = await Promise.all([
       readSheet('WATUMIAJI').catch(() => []),
       readSheet('CLINICS').catch(() => []),
@@ -586,7 +585,7 @@ async function startApp() {
       return map;
     }, {});
 
-    // 3. Initialize statistics with template-required structure
+    // 3. Initialize statistics
     const stats = {
       totalUsers: watumiaji.length,
       activeUsers: 0,
@@ -609,7 +608,7 @@ async function startApp() {
       mostConsumedMedicines: []
     };
 
-    // 4. Track active users and medicine usage
+    // 4. Process medicine usage
     const activeUserIds = new Set();
     
     matumizi.forEach(usage => {
@@ -654,7 +653,7 @@ async function startApp() {
       const userMed = stats.userUsage[usage.mtumiajiId].medicines[usage.dawaId];
       userMed.totalUsed += usageAmount;
 
-      // Update dates if available
+      // Update dates
       if (usageDate && !isNaN(usageDate.getTime())) {
         if (!stats.userUsage[usage.mtumiajiId].lastDate || 
             usageDate > stats.userUsage[usage.mtumiajiId].lastDate) {
@@ -665,16 +664,19 @@ async function startApp() {
         }
       }
 
-      // Track global medicine usage
+      // Track global medicine usage (REMAINING STOCK FIX)
       if (!stats.medicineUsage[usage.dawaId]) {
         stats.medicineUsage[usage.dawaId] = {
           name: medicine.jina || 'Unknown',
           totalUsed: 0,
-          remaining: parseInt(medicine.kilichobaki) || 0,
+          remaining: parseInt(dawaMap[usage.dawaId]?.kilichobaki) || 0, // Direct from source
           users: new Set(),
           clinics: new Set()
         };
       }
+      
+      // Always update remaining from current source
+      stats.medicineUsage[usage.dawaId].remaining = parseInt(dawaMap[usage.dawaId]?.kilichobaki) || 0;
       stats.medicineUsage[usage.dawaId].totalUsed += usageAmount;
       stats.medicineUsage[usage.dawaId].users.add(usage.mtumiajiId);
       stats.medicineUsage[usage.dawaId].clinics.add(clinicId);
@@ -701,16 +703,15 @@ async function startApp() {
       stats.clinicStats[clinicId].medicinesUsed[usage.dawaId].totalUsed += usageAmount;
     });
 
-    // 5. Calculate user statistics
+    // 5. Calculate user stats
     stats.activeUsers = activeUserIds.size;
     stats.inactiveUsers = stats.totalUsers - stats.activeUsers;
     
-    // FIX: Keep as number, not string
     stats.summary.averageUsagePerUser = stats.activeUsers > 0 
       ? (stats.summary.totalConsumption / stats.activeUsers)
       : 0;
 
-    // 6. Calculate clinic statistics
+    // 6. Calculate clinic stats
     watumiaji.forEach(user => {
       if (!user?.clinicId) return;
       
@@ -733,7 +734,7 @@ async function startApp() {
         id,
         name: data.name,
         totalUsed: data.totalUsed,
-        remaining: data.remaining,
+        remaining: data.remaining, // Now accurate
         userCount: data.users.size,
         clinicCount: data.clinics.size
       }))
@@ -761,7 +762,7 @@ async function startApp() {
       };
     });
 
-    // 9. Prepare user data for display
+    // 9. Prepare user data
     let filteredUsers = watumiaji.map(user => {
       const usage = stats.userUsage[user.id] || {};
       return {
@@ -797,46 +798,48 @@ async function startApp() {
       );
     }
 
-    // 11. Prepare selected medicine report if requested
+    // 11. Prepare medicine report (with remaining stock fix)
     let selectedMedicineReport = null;
-    if (selectedMedicine && stats.medicineUsage[selectedMedicine]) {
-      const medicine = stats.medicineUsage[selectedMedicine];
-      selectedMedicineReport = {
-        name: medicine.name,
-        totalUsed: medicine.totalUsed,
-        remaining: medicine.remaining,
-        userCount: medicine.users.size,
-        clinicCount: medicine.clinics.size,
-        users: Array.from(medicine.users).map(userId => {
-          const user = watumiaji.find(u => u.id === userId) || {};
-          const usage = stats.userUsage[userId]?.medicines[selectedMedicine] || {};
-          return {
-            id: userId,
-            name: user.jina || 'Unknown',
-            clinic: clinicMap[user.clinicId]?.jina || 'Unknown',
-            amountUsed: usage.totalUsed || 0,
-            lastUsed: usage.lastUsed ? usage.lastUsed.toLocaleDateString('sw-TZ') : 'N/A'
-          };
-        }),
-        clinics: Array.from(medicine.clinics).map(clinicId => {
-          const clinic = clinicMap[clinicId] || {};
-          const clinicUsage = stats.clinicStats[clinicId]?.medicinesUsed[selectedMedicine] || {};
-          return {
-            id: clinicId,
-            name: clinic.jina || 'Unknown',
-            amountUsed: clinicUsage.totalUsed || 0
-          };
-        })
-      };
+    if (selectedMedicine) {
+      const medicineData = dawaMap[selectedMedicine];
+      if (medicineData) {
+        const medicineUsage = stats.medicineUsage[selectedMedicine] || {
+          totalUsed: 0,
+          users: new Set(),
+          clinics: new Set()
+        };
+
+        selectedMedicineReport = {
+          name: medicineData.jina || 'Unknown',
+          totalUsed: medicineUsage.totalUsed,
+          remaining: parseInt(medicineData.kilichobaki) || 0, // Direct from source
+          userCount: medicineUsage.users.size,
+          clinicCount: medicineUsage.clinics.size,
+          users: Array.from(medicineUsage.users).map(userId => {
+            const user = watumiaji.find(u => u.id === userId) || {};
+            const usage = stats.userUsage[userId]?.medicines[selectedMedicine] || {};
+            return {
+              id: userId,
+              name: user.jina || 'Unknown',
+              clinic: clinicMap[user.clinicId]?.jina || 'Unknown',
+              amountUsed: usage.totalUsed || 0,
+              lastUsed: usage.lastUsed ? usage.lastUsed.toLocaleDateString('sw-TZ') : 'N/A'
+            };
+          }),
+          clinics: Array.from(medicineUsage.clinics).map(clinicId => {
+            const clinic = clinicMap[clinicId] || {};
+            const clinicUsage = stats.clinicStats[clinicId]?.medicinesUsed[selectedMedicine] || {};
+            return {
+              id: clinicId,
+              name: clinic.jina || 'Unknown',
+              amountUsed: clinicUsage.totalUsed || 0
+            };
+          })
+        };
+      }
     }
 
-        // Helper functions
-    const formatCount = (count) => count?.toString() || '0';
-    const formatDecimal = (num) => {
-      if (typeof num !== 'number') return '0.00';
-      return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    };
-    // 12. Render with all required data
+    // 12. Render with all data
     res.render('wote-watumiaji', {
       watumiaji: filteredUsers,
       clinics: clinics.filter(c => c?.id),
@@ -845,10 +848,10 @@ async function startApp() {
       stats: {
         ...stats,
         selectedMedicine: selectedMedicineReport,
-        clinicCount: clinics.length // Added for template compatibility
+        clinicCount: clinics.length
       },
       formatCount: (count) => count?.toString() || '0',
-      formatDecimal,  
+      formatDecimal: (num) => typeof num === 'number' ? num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '0.00',
       formatDate: (date) => date ? new Date(date).toLocaleDateString('sw-TZ') : 'N/A'
     });
 
@@ -856,13 +859,9 @@ async function startApp() {
     console.error('Error in /admin/watumiaji:', error);
     next(error);
   }
-});     
-
-    
-    
-
-    
-    
+});  
+  
+  
     
 
     
