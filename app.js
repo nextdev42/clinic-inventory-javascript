@@ -593,7 +593,8 @@ async function startApp() {
 
     
 // Update the /ripoti/matumizi route
-app.get('/ripoti/matumizi', async (req, res, next) => {
+
+      app.get('/ripoti/matumizi', async (req, res, next) => {
   try {
     const { mode, from, to } = req.query;
     const [allWatumiaji, dawa, matumizi, clinics] = await Promise.all([
@@ -611,39 +612,27 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
     const now = new Date();
 
     // Handle different report modes
-    if (mode === 'week') {
-      // Get start of week (Sunday)
-      startDate = new Date(now);
-      startDate.setDate(now.getDate() - now.getDay());
+    if (mode === 'day' && from) {
+      startDate = new Date(from);
       startDate.setHours(0, 0, 0, 0);
-      
-      // Get end of week (Saturday)
-      endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6);
+      endDate = new Date(from);
       endDate.setHours(23, 59, 59, 999);
     } 
-    else if (mode === 'month') {
-      // Start of month
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    else if (mode === 'week' && from && to) {
+      startDate = new Date(from);
       startDate.setHours(0, 0, 0, 0);
-      
-      // End of month
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      endDate = new Date(to);
       endDate.setHours(23, 59, 59, 999);
     } 
-    else if (mode === 'day') {
-      // Today only
-      startDate = new Date(now);
+    else if (mode === 'month' && from && to) {
+      startDate = new Date(from);
       startDate.setHours(0, 0, 0, 0);
-      
-      endDate = new Date(now);
+      endDate = new Date(to);
       endDate.setHours(23, 59, 59, 999);
     } 
     else if (from && to) {
-      // Custom date range
       startDate = new Date(from);
       startDate.setHours(0, 0, 0, 0);
-      
       endDate = new Date(to);
       endDate.setHours(23, 59, 59, 999);
     }
@@ -660,6 +649,7 @@ app.get('/ripoti/matumizi', async (req, res, next) => {
         })
       : matumizi;
 
+    // ... rest of the report generation code ...
     // Format date to Swahili string
     function formatDate(dateStr) {
       try {
