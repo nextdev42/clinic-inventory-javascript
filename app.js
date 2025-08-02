@@ -561,18 +561,27 @@ async function startApp() {
   // Admin users management
   
 
-  
-app.get('/admin/watumiaji', async (req, res, next) => {
+  app.get('/admin/watumiaji', async (req, res, next) => {
   try {
-    const [watumiaji, clinics, matumizi] = await Promise.all([
+    const [watumiaji, clinics, matumizi, dawa] = await Promise.all([
       readSheet('WATUMIAJI'),
       readSheet('CLINICS'),
-      readSheet('MATUMIZI')
+      readSheet('MATUMIZI'),
+      readSheet('DAWA')  // Add medicines data
     ]);
 
     // Create clinic map for name lookup
     const clinicMap = clinics.reduce((acc, clinic) => {
       acc[clinic.id] = clinic.jina;
+      return acc;
+    }, {});
+
+    // Create medicine map for name lookup
+    const medicineMap = dawa.reduce((acc, medicine) => {
+      acc[medicine.id] = {
+        name: medicine.jina,
+        type: medicine.aina
+      };
       return acc;
     }, {});
 
@@ -590,15 +599,23 @@ app.get('/admin/watumiaji', async (req, res, next) => {
     // Calculate consumption statistics
     let totalConsumption = 0;
     const userConsumption = {};
+    const medicineConsumption = {}; // Track medicine consumption
     
     matumizi.forEach(record => {
       const amount = parseInt(record.kiasi) || 0;
       totalConsumption += amount;
       
+      // User consumption
       if (!userConsumption[record.userId]) {
         userConsumption[record.userId] = 0;
       }
       userConsumption[record.userId] += amount;
+      
+      // Medicine consumption
+      if (!medicineConsumption[record.dawaId]) {
+        medicineConsumption[record.dawaId] = 0;
+      }
+      medicineConsumption[record.dawaId] += amount;
     });
 
     // Calculate average usage
@@ -625,6 +642,17 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       };
     });
 
+    // Calculate most consumed medicines
+    const mostConsumedMedicines = Object.entries(medicineConsumption)
+      .map(([medicineId, total]) => ({
+        id: medicineId,
+        name: medicineMap[medicineId]?.name || 'Dawa Isiyojulikana',
+        aina: medicineMap[medicineId]?.type || 'Haijulikani',
+        totalConsumption: total
+      }))
+      .sort((a, b) => b.totalConsumption - a.totalConsumption)
+      .slice(0, 5); // Top 5 most consumed
+
     // Prepare stats object
     const stats = {
       totalUsers,
@@ -633,8 +661,9 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       summary: {
         totalConsumption,
         averageUsagePerUser,
-        clinicsSummary  // Add this to fix the error
-      }
+        clinicsSummary
+      },
+      mostConsumedMedicines  // Add this to fix the error
     };
 
     res.render('admin-users', {
@@ -648,6 +677,10 @@ app.get('/admin/watumiaji', async (req, res, next) => {
     next(error);
   }
 });
+
+
+    
+    
     
 
     
