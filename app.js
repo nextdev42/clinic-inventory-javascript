@@ -168,36 +168,61 @@ async function startApp() {
   app.use(express.static(path.join(__dirname, 'public')));
 
   // Dashboard route
-  app.get('/', async (req, res, next) => {
-    try {
-      const [dawa, matumizi] = await Promise.all([
-        readSheet('DAWA'),
-        readSheet('MATUMIZI')
-      ]);
+  
+app.get('/', async (req, res, next) => {
+  try {
+    // Read all necessary data
+    const [dawa, matumizi, watumiaji, clinics] = await Promise.all([
+      readSheet('DAWA'),
+      readSheet('MATUMIZI'),
+      readSheet('WATUMIAJI'),
+      readSheet('CLINICS')
+    ]);
 
-      const ripoti = dawa.map(medicine => {
-        const totalUsed = matumizi
-          .filter(usage => usage.dawaId === medicine.id)
-          .reduce((sum, usage) => sum + (Number(usage.kiasi) || 0), 0);
-        const remainingStock = (Number(medicine.kiasi) || 0) - totalUsed;
-        
-        return {
-          ...medicine,
-          jumlaMatumizi: totalUsed,
-          kilichobaki: remainingStock,
-          status: remainingStock <= 0 ? 'Zilizoisha' : 
-                 (remainingStock < 10 ? 'Kidogo' : 'Inatosha')
-        };
-      });
+    // Calculate medicine usage and stock
+    const ripoti = dawa.map(medicine => {
+      const totalUsed = matumizi
+        .filter(usage => usage.dawaId === medicine.id)
+        .reduce((sum, usage) => sum + (Number(usage.kiasi) || 0), 0);
+      const remainingStock = (Number(medicine.kiasi) || 0) - totalUsed;
+      
+      return {
+        ...medicine,
+        jumlaMatumizi: totalUsed,
+        kilichobaki: remainingStock,
+        status: remainingStock <= 0 ? 'Zilizoisha' : 
+               (remainingStock < 10 ? 'Kidogo' : 'Inatosha')
+      };
+    });
 
-      res.render('dashboard', {
-        dawa: ripoti,
-        error: ripoti.length === 0 ? 'Hakuna data ya dawa kupatikana' : null
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
+    // Calculate users per clinic
+    const watumiajiPerClinic = {};
+    watumiaji.forEach(user => {
+      const clinicId = user.clinicId;
+      if (clinicId) {
+        if (!watumiajiPerClinic[clinicId]) {
+          watumiajiPerClinic[clinicId] = 0;
+        }
+        watumiajiPerClinic[clinicId]++;
+      }
+    });
+
+    // Prepare clinic data with user counts
+    const vituoData = clinics.map(clinic => ({
+      ...clinic,
+      idadiWatumiaji: watumiajiPerClinic[clinic.id] || 0
+    }));
+
+    res.render('dashboard', {
+      dawa: ripoti,
+      vituo: vituoData,  // Send clinic data to the view
+      error: ripoti.length === 0 ? 'Hakuna data ya dawa kupatikana' : null
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+      
   
   // Medicine routes
   app.get('/dawa/ongeza', (req, res) => {
