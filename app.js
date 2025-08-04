@@ -585,11 +585,10 @@ app.get('/', async (req, res, next) => {
 
   // Admin users management
   
-
-  
-  app.get('/admin/watumiaji', async (req, res, next) => {
+app.get('/admin/watumiaji', async (req, res, next) => {
   try {
-    const { clinicId, dawaType, dawaContent, selectedMedicine } = req.query;
+    // Extract query parameters including the new username filter
+    const { clinicId, dawaType, dawaContent, selectedMedicine, username } = req.query;
 
     // 1. Read all data sources
     const [watumiaji, clinics, matumizi, dawa] = await Promise.all([
@@ -803,7 +802,7 @@ app.get('/', async (req, res, next) => {
       };
     });
 
-    // 10. Apply filters
+    // 10. Apply filters - UPDATED WITH USERNAME SEARCH
     if (clinicId) {
       filteredUsers = filteredUsers.filter(user => user.clinicId === clinicId);
     }
@@ -820,6 +819,13 @@ app.get('/', async (req, res, next) => {
         Object.values(user.dawaDetails).some(m => 
           m.name.toLowerCase().includes(searchTerm)
         )
+      );
+    }
+    // NEW: Username search filter
+    if (username) {
+      const searchTerm = username.toLowerCase();
+      filteredUsers = filteredUsers.filter(user => 
+        user.jina && user.jina.toLowerCase().includes(searchTerm)
       );
     }
 
@@ -864,12 +870,12 @@ app.get('/', async (req, res, next) => {
       }
     }
 
-    // 12. Render with all data
+    // 12. Render with all data including username filter
     res.render('wote-watumiaji', {
       watumiaji: filteredUsers,
       clinics: clinics.filter(c => c?.id),
       allMedicines: stats.allMedicines,
-      filters: { clinicId, dawaType, dawaContent, selectedMedicine },
+      filters: { clinicId, dawaType, dawaContent, selectedMedicine, username }, // Added username
       stats: {
         ...stats,
         selectedMedicine: selectedMedicineReport,
@@ -884,7 +890,21 @@ app.get('/', async (req, res, next) => {
     console.error('Error in /admin/watumiaji:', error);
     next(error);
   }
-});  
+});
+  
+  
+    
+      
+      
+
+    
+
+
+
+    
+          
+
+
   
   
     
