@@ -377,52 +377,42 @@
       <% } %>
 
       <div class="form-card">
-        <form method="POST" action="/mtumiaji/transfer">
-          <div class="form-group">
-            <label for="mtumiajiId">Chagua Mtumiaji</label>
-            <select name="mtumiajiId" id="mtumiajiId" required>
-              <option value="">Chagua mtumiaji...</option>
-              <% watumiaji.forEach(user => { %>
-                <option value="<%= user.id %>"><%= user.jina %> (<%= user.id %>)</option>
-              <% }); %>
-            </select>
-          </div>
+      
+        
+<form method="POST" action="/mtumiaji/transfer">
+  <div class="form-group">
+    <label for="userId">Chagua Mtumiaji:</label>
+    <select name="userId" id="userId" required>
+      <% watumiaji.forEach(user => { %>
+   <% 
+       var currentClinic = null;
+       for (var i = 0; i < clinics.length; i++) {
+      if (clinics[i].id === user.clinicId) {
+      currentClinic = clinics[i];
+      break;
+    }
+  }
+%>
+<option value="<%= user.id %>">
+  <%= user.jina %> (Current: <%= currentClinic ? currentClinic.jina : 'Unknown' %>)
+</option>
 
-          <div class="form-group">
-            <label for="newClinicId">Chagua Kliniki Mpya</label>
-            <select name="newClinicId" id="newClinicId" required>
-              <option value="">Chagua kliniki...</option>
-              <% clinics.forEach(clinic => { %>
-                <option value="<%= clinic.id %>"><%= clinic.jina %></option>
-              <% }); %>
-            </select>
-          </div>
 
-          <!-- Preview Section -->
-          <div class="user-preview" id="userPreview" style="display: none;">
-            <div class="user-avatar">
-              <i class="fas fa-user"></i>
-            </div>
-            <div class="user-info">
-              <h3 id="userName">-</h3>
-              <p><i class="fas fa-hospital"></i> <span id="currentClinic">-</span></p>
-            </div>
-          </div>
+      <% }) %>
+    </select>
+  </div>
 
-          <!-- Clinic Cards -->
-          <div class="clinic-cards" id="clinicCards">
-            <% clinics.forEach(clinic => { %>
-              <div class="clinic-card" data-id="<%= clinic.id %>">
-                <h4><%= clinic.jina %></h4>
-                <p><i class="fas fa-map-marker-alt"></i> <%= clinic.mahali || 'Mahali haijasajiliwa' %></p>
-              </div>
-            <% }); %>
-          </div>
+  <div class="form-group">
+    <label for="newClinic">Chagua Kliniki Mpya:</label>
+    <select name="newClinic" id="newClinic" required>
+      <% clinics.forEach(clinic => { %>
+        <option value="<%= clinic.id %>"><%= clinic.jina %></option>
+      <% }) %>
+    </select>
+  </div>
 
-          <button type="submit" class="btn btn-primary btn-block">
-            <i class="fas fa-exchange-alt"></i> Hamisha Mtumiaji
-          </button>
-        </form>
+  <button type="submit" class="btn btn-primary">Hamisha</button>
+</form>
       </div>
     </main>
     
@@ -434,93 +424,9 @@
     </footer>
   </div>
 
-  <script>
-    // Display current date
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('current-date').textContent = new Date().toLocaleDateString('sw-TZ', options);
-    
-    // User selection preview
-    const userSelect = document.getElementById('mtumiajiId');
-    const clinicSelect = document.getElementById('newClinicId');
-    const userPreview = document.getElementById('userPreview');
-    const userName = document.getElementById('userName');
-    const currentClinic = document.getElementById('currentClinic');
-    const clinicCards = document.querySelectorAll('.clinic-card');
-    
-    // User data from server (simulated)
-    const users = [
-      <% watumiaji.forEach(user => { %>
-        { 
-          id: '<%= user.id %>', 
-          name: '<%= user.jina %>', 
-          clinicId: '<%= user.clinicId %>',
-          clinicName: '<%= clinics.find(c => c.id === user.clinicId)?.jina || "Unknown" %>' 
-        },
-      <% }); %>
-    ];
-    
-    // Clinic data from server
-    const clinics = [
-      <% clinics.forEach(clinic => { %>
-        { id: '<%= clinic.id %>', name: '<%= clinic.jina %>' },
-      <% }); %>
-    ];
-    
-    // Show user preview when a user is selected
-    userSelect.addEventListener('change', function() {
-      const userId = this.value;
-      if (!userId) {
-        userPreview.style.display = 'none';
-        return;
-      }
-      
-      const selectedUser = users.find(u => u.id === userId);
-      if (selectedUser) {
-        userName.textContent = selectedUser.name;
-        currentClinic.textContent = selectedUser.clinicName;
-        userPreview.style.display = 'flex';
-      }
-    });
-    
-    // Update clinic selection when a card is clicked
-    clinicCards.forEach(card => {
-      card.addEventListener('click', function() {
-        // Remove selected class from all cards
-        clinicCards.forEach(c => c.classList.remove('selected'));
+  
         
-        // Add selected class to clicked card
-        this.classList.add('selected');
-        
-        // Update dropdown selection
-        const clinicId = this.getAttribute('data-id');
-        clinicSelect.value = clinicId;
-      });
-    });
     
-    // Update card selection when dropdown changes
-    clinicSelect.addEventListener('change', function() {
-      const clinicId = this.value;
-      
-      // Remove selected class from all cards
-      clinicCards.forEach(c => c.classList.remove('selected'));
-      
-      // Add selected class to corresponding card
-      if (clinicId) {
-        const selectedCard = document.querySelector(`.clinic-card[data-id="${clinicId}"]`);
-        if (selectedCard) {
-          selectedCard.classList.add('selected');
-        }
-      }
-    });
-    
-    // Initialize form with any existing selections
-    if (userSelect.value) {
-      userSelect.dispatchEvent(new Event('change'));
-    }
-    
-    if (clinicSelect.value) {
-      clinicSelect.dispatchEvent(new Event('change'));
-    }
-  </script>
+  
 </body>
 </html>
