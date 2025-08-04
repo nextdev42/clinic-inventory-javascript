@@ -368,65 +368,27 @@
     </a>
   </main>
 <script>
-  // Parse the chart data passed from the server
-  // Parse the chart data passed from the server
 const chartData = JSON.parse('<%- chartData %>');
 const clinicStats = <%- JSON.stringify(clinicStats) %>;
 const medicineStats = <%- JSON.stringify(medicineStats) %>;
 
-console.log('---------- RAW DATA FROM SERVER ----------');
-console.log('Full chartData:', chartData);
-console.log('Full clinicStats:', clinicStats);
-console.log('Full medicineStats:', medicineStats);
-
-// Prepare data for charts
 const clinicLabels = chartData.clinics.labels;
 const clinicTotalUsers = chartData.clinics.datasets[0].data;
 const clinicActiveUsers = chartData.clinics.datasets[1].data;
 const clinicInactiveUsers = clinicTotalUsers.map((total, index) => total - clinicActiveUsers[index]);
 
-console.log('\n---------- CLINIC DATA ----------');
-console.log('Clinic Labels:', clinicLabels);
-console.log('Total Users per Clinic:', clinicTotalUsers);
-console.log('Active Users per Clinic:', clinicActiveUsers);
-console.log('Inactive Users per Clinic:', clinicInactiveUsers);
-
 const medicineLabels = chartData.medicines.labels;
 const medicineUsage = chartData.medicines.data;
 
-console.log('\n---------- MEDICINE DATA ----------');
-console.log('Medicine Labels:', medicineLabels);
-console.log('Medicine Usage:', medicineUsage);
-console.log('Medicine Stats by Type:', medicineStats.byMedicine);
-
-// Prepare top medicines data
 const topMedicines = medicineStats.mostUsed;
 const topMedicineLabels = topMedicines.map(m => m.name);
 const topMedicineUsage = topMedicines.map(m => m.totalUsed);
 const topMedicineRemaining = topMedicines.map(m => m.remaining);
 
-console.log('\n---------- TOP MEDICINES DATA ----------');
-console.log('Top Medicine Labels:', topMedicineLabels);
-console.log('Top Medicine Usage:', topMedicineUsage);
-console.log('Top Medicine Remaining:', topMedicineRemaining);
-
-// Initialize charts when the page loads
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('\n---------- INITIALIZING CHARTS ----------');
-  
-  // 1. Clinic Chart - Stacked Bar Chart (with data reversal fix)
-  console.log('\n---------- DEBUGGING CLINIC DATA ----------');
-  console.log('Clinic Names:', clinicLabels);
-  console.log('Total Users:', clinicTotalUsers);
-  console.log('Active Users (should be high):', clinicActiveUsers);
-  console.log('Inactive Users (should be low):', clinicInactiveUsers);
-
-  // Get the correct active/inactive counts directly from clinicStats
+  // Clinic Chart
   const correctActiveUsers = clinicLabels.map(label => clinicStats.byClinic[label].activeUsers);
   const correctInactiveUsers = clinicLabels.map(label => clinicStats.byClinic[label].inactiveUsers);
-
-  console.log('Verified Active Users:', correctActiveUsers);
-  console.log('Verified Inactive Users:', correctInactiveUsers);
 
   const clinicChart = new Chart(document.getElementById('clinicChart'), {
     type: 'bar',
@@ -453,31 +415,18 @@ document.addEventListener('DOMContentLoaded', function() {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: {
-          stacked: true,
-          grid: {
-            display: false
-          }
-        },
+        x: { stacked: true, grid: { display: false } },
         y: {
           stacked: true,
           beginAtZero: true,
-          ticks: {
-            precision: 0
-          },
-          grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
-          }
+          ticks: { precision: 0 },
+          grid: { color: 'rgba(0, 0, 0, 0.05)' }
         }
       },
       plugins: {
         legend: {
           position: 'top',
-          labels: {
-            boxWidth: 12,
-            padding: 20,
-            usePointStyle: true
-          }
+          labels: { boxWidth: 12, padding: 20, usePointStyle: true }
         },
         tooltip: {
           backgroundColor: 'rgba(31, 41, 55, 0.95)',
@@ -497,19 +446,11 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
       },
-      interaction: {
-        intersect: false,
-        mode: 'index'
-      }
+      interaction: { intersect: false, mode: 'index' }
     }
   });
-  console.log('Clinic Chart initialized:', clinicChart);
 
-  // 2. Medicine Chart - Horizontal Bar Chart
-  console.log('Initializing Medicine Chart with data:', {
-    labels: medicineLabels,
-    data: medicineUsage
-  });
+  // Medicine Usage Chart (Horizontal Bar)
   const medicineChart = new Chart(document.getElementById('medicineChart'), {
     type: 'bar',
     data: {
@@ -529,28 +470,16 @@ document.addEventListener('DOMContentLoaded', function() {
       scales: {
         x: {
           beginAtZero: true,
-          ticks: {
-            precision: 0
-          },
-          grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
-          }
+          ticks: { precision: 0 },
+          grid: { color: 'rgba(0, 0, 0, 0.05)' }
         },
         y: {
-          grid: {
-            display: false
-          },
-          ticks: {
-            autoSkip: false,
-            maxRotation: 45,
-            minRotation: 45
-          }
+          grid: { display: false },
+          ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 }
         }
       },
       plugins: {
-        legend: {
-          display: false
-        },
+        legend: { display: false },
         tooltip: {
           backgroundColor: 'rgba(31, 41, 55, 0.95)',
           titleColor: '#ffffff',
@@ -560,10 +489,9 @@ document.addEventListener('DOMContentLoaded', function() {
           padding: 12,
           callbacks: {
             afterLabel: function(context) {
-              const index = context.dataIndex;
-              const medicine = medicineStats.byMedicine[medicineLabels[index]];
+              const label = context.label;
+              const medicine = medicineStats.byMedicine[label];
               const remaining = medicine ? medicine.remaining : 0;
-              console.log(`Tooltip for ${medicineLabels[index]}: Remaining = ${remaining}`);
               return `Kilichobaki: ${remaining}`;
             }
           }
@@ -571,14 +499,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
-  console.log('Medicine Chart initialized:', medicineChart);
 
-  // 3. Top Medicines Chart - Doughnut
-  console.log('Initializing Top Medicines Chart with data:', {
-    labels: topMedicineLabels,
-    data: topMedicineUsage,
-    remaining: topMedicineRemaining
-  });
+  // Top Medicines Chart (Doughnut)
   const topMedicinesChart = new Chart(document.getElementById('topMedicinesChart'), {
     type: 'doughnut',
     data: {
@@ -608,11 +530,7 @@ document.addEventListener('DOMContentLoaded', function() {
       plugins: {
         legend: {
           position: 'right',
-          labels: {
-            boxWidth: 12,
-            padding: 20,
-            usePointStyle: true
-          }
+          labels: { boxWidth: 12, padding: 20, usePointStyle: true }
         },
         tooltip: {
           backgroundColor: 'rgba(31, 41, 55, 0.95)',
@@ -623,9 +541,9 @@ document.addEventListener('DOMContentLoaded', function() {
           padding: 12,
           callbacks: {
             afterLabel: function(context) {
-              const index = context.dataIndex;
-              const remaining = topMedicineRemaining[index] || 0;
-              console.log(`Tooltip for ${topMedicineLabels[index]}: Remaining = ${remaining}`);
+              const label = context.label;
+              const match = topMedicines.find(m => m.name === label);
+              const remaining = match ? match.remaining : 0;
               return `Kilichobaki: ${remaining}`;
             }
           }
@@ -634,13 +552,8 @@ document.addEventListener('DOMContentLoaded', function() {
       cutout: '65%'
     }
   });
-  console.log('Top Medicines Chart initialized:', topMedicinesChart);
 
-  // 4. Clinic Activity Chart - Line Chart
-  console.log('Initializing Clinic Activity Chart with data:', {
-    labels: clinicLabels,
-    activeUsers: correctActiveUsers // Using the verified active users data
-  });
+  // Clinic Activity Chart
   const clinicActivityChart = new Chart(document.getElementById('clinicActivityChart'), {
     type: 'line',
     data: {
@@ -661,27 +574,15 @@ document.addEventListener('DOMContentLoaded', function() {
       scales: {
         y: {
           beginAtZero: true,
-          ticks: {
-            precision: 0
-          },
-          grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
-          }
+          ticks: { precision: 0 },
+          grid: { color: 'rgba(0, 0, 0, 0.05)' }
         },
-        x: {
-          grid: {
-            display: false
-          }
-        }
+        x: { grid: { display: false } }
       },
       plugins: {
         legend: {
           position: 'top',
-          labels: {
-            boxWidth: 12,
-            padding: 20,
-            usePointStyle: true
-          }
+          labels: { boxWidth: 12, padding: 20, usePointStyle: true }
         },
         tooltip: {
           backgroundColor: 'rgba(31, 41, 55, 0.95)',
@@ -694,10 +595,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
-  console.log('Clinic Activity Chart initialized:', clinicActivityChart);
-
-  console.log('\n---------- ALL CHARTS INITIALIZED ----------');
 });
 </script>
 </body>
 </html>
+
