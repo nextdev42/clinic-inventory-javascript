@@ -814,20 +814,21 @@ app.get('/admin/watumiaji', async (req, res, next) => {
       );
     }
     if (dawaContent) {
-      const searchTerm = dawaContent.toLowerCase();
-      filteredUsers = filteredUsers.filter(user => 
-        Object.values(user.dawaDetails).some(m => 
-          m.name.toLowerCase().includes(searchTerm)
-        )
-      );
-    }
+  const searchTerm = dawaContent.toLowerCase();
+  filteredUsers = filteredUsers.filter(user => 
+    Object.values(user.dawaDetails).some(m => 
+      m.name.toLowerCase().includes(searchTerm)
+    )
+  );
+}
     // NEW: Username search filter
     if (username) {
-      const searchTerm = username.toLowerCase();
-      filteredUsers = filteredUsers.filter(user => 
-        user.jina && user.jina.toLowerCase().includes(searchTerm)
-      );
-    }
+  const searchTerm = String(username).trim().toLowerCase();
+  filteredUsers = filteredUsers.filter(user => {
+    const userName = user.jina ? String(user.jina).trim().toLowerCase() : '';
+    return userName.includes(searchTerm);
+  });
+}
 
     // 11. Prepare medicine report (with remaining stock fix)
     let selectedMedicineReport = null;
