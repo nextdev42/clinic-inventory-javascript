@@ -510,7 +510,42 @@
                 <% }) %>
               </select>
             </div>
-            
+
+        <!-- Username Search Form -->
+<div class="user-search-container">
+  <form method="GET" action="/admin/watumiaji" class="flex items-center mb-4">
+    <div class="relative flex-grow">
+      <input 
+        type="text" 
+        name="username" 
+        value="<%= filters.username || '' %>"
+        placeholder="Tafuta mtumiaji kwa jina..." 
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+    </div>
+    <button 
+      type="submit" 
+      class="ml-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition"
+    >
+      <i class="fas fa-search"></i> Tafuta
+    </button>
+    
+    <!-- Preserve other filters -->
+    <% if (filters.clinicId) { %>
+      <input type="hidden" name="clinicId" value="<%= filters.clinicId %>">
+    <% } %>
+    <% if (filters.dawaType) { %>
+      <input type="hidden" name="dawaType" value="<%= filters.dawaType %>">
+    <% } %>
+    <% if (filters.dawaContent) { %>
+      <input type="hidden" name="dawaContent" value="<%= filters.dawaContent %>">
+    <% } %>
+    <% if (filters.selectedMedicine) { %>
+      <input type="hidden" name="selectedMedicine" value="<%= filters.selectedMedicine %>">
+    <% } %>
+  </form>
+</div>
+
             <div class="filter-group">
               <label class="filter-label">Tafuta dawa:</label>
               <input type="text" class="filter-input" name="dawaContent" value="<%= filters.dawaContent || '' %>" placeholder="Andika jina la dawa...">
