@@ -549,44 +549,88 @@ app.get('/', async (req, res, next) => {
   try {
     const [watumiaji, clinics] = await Promise.all([
       readSheet('WATUMIAJI'),
-      readSheet('CLINICS')  // Note: there's a typo? Should it be 'CLINICS'? (without the extra 'I' in your previous code it was 'CLINICS')
+      readSheet('CLINICS')
     ]);
-    res.render('transfer-user', { 
-      watumiaji, 
-      clinics,
-      successMessage: req.query.success || '',   // We can pass success from query string if present, or empty string
-      errorMessage: req.query.error || '' // Initialize errorMessage
-    });
+
+    // Fetch session messages
+    const successMessage = req.session.successMessage;
+    const errorMessage = req.session.errorMessage;
+
+    // Clear session messages after reading
+    delete req.session.successMessage;
+    delete req.session.errorMessage;
+
+    // ✅ Pass both successMessage and errorMessage
+    res.render('transfer-user', { watumiaji, clinics, successMessage, errorMessage });
+
   } catch (error) {
     next(error);
   }
 });
 
   
-  app.post('/mtumiaji/transfer', async (req, res) => {
+
+app.post('/mtumiaji/transfer', async (req, res, next) => {
   try {
-    const { mtumiajiId, newClinicId } = req.body;
+    const { userId, newClinic } = req.body;
     
-    // Validate input
-    if (!mtumiajiId || !newClinicId) {
-      return res.redirect('/mtumiaji/transfer?error=Muhimu%3A+Chagua+mtumiaji+na+kliniki');
+    // Validate inputs
+    if (!userId || !newClinic) {
+      return res.status(400).render('error', {
+        message: 'Tafadhali chagua mtumiaji na kliniki mpya'
+      });
     }
 
-    // Process transfer
-    const watumiaji = await readSheet('WATUMIAJI');
-    const index = watumiaji.findIndex(u => u.id === mtumiajiId);
-    
-    if (index === -1) {
-      return res.redirect('/mtumiaji/transfer?error=Mtumiaji+hayupo');
+    // Read current data
+    const [watumiaji, clinics] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('CLINICS')
+    ]);
+
+    // Verify clinic exists
+    const clinicExists = clinics.some(c => c.id === newClinic);
+    if (!clinicExists) {
+      return res.status(400).render('error', {
+        message: 'Kliniki iliyochaguliwa haipo kwenye mfumo'
+      });
     }
 
-    watumiaji[index].clinicId = newClinicId;
-    await writeSheet('WATUMIAJI', watumiaji);
+    // Find and update user
+    const userIndex = watumiaji.findIndex(u => u.id === userId);
+    if (userIndex === -1) {
+      return res.status(404).render('error', {
+        message: 'Mtumiaji aliyechaguliwa hayupo kwenye mfumo'
+      });
+    }
+
+    // Create updated array
+    const updatedWatumiaji = [...watumiaji];
+    updatedWatumiaji[userIndex] = {
+      ...updatedWatumiaji[userIndex],
+      clinicId: newClinic
+    };
+
+    // Write back to sheet
+    const writeSuccess = await writeSheet('WATUMIAJI', updatedWatumiaji);
+    if (!writeSuccess) {
+      throw new Error('Failed to save changes to Excel file');
+    }
+
+    // Verify the change was saved
+    const verifyData = await readSheet('WATUMIAJI');
+    const updatedUser = verifyData.find(u => u.id === userId);
     
-    res.redirect('/mtumiaji/transfer?success=Mtumiaji+amehamishwa+kikamilifu');
+    if (!updatedUser || updatedUser.clinicId !== newClinic) {
+      throw new Error('Verification failed - change not persisted');
+    }
+
+    // Redirect with success message
+    req.session.successMessage = 'Mtumiaji amehamishwa kwa mafanikio!';
+    res.redirect('/mtumiaji/transfer');
+
   } catch (error) {
-    console.error('Hitilafu ya kuhamisha:', error);
-    res.redirect(`/mtumiaji/transfer?error=${encodeURIComponent('Hitilafu ya mfumo: ' + error.message)}`);
+    console.error('Transfer error:', error);
+    next(error);
   }
 });
 
