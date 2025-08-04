@@ -554,7 +554,7 @@ app.get('/', async (req, res, next) => {
     res.render('transfer-user', { 
       watumiaji, 
       clinics,
-      successMessage: req.query.success || ''   // We can pass success from query string if present, or empty string
+      successMessage: req.query.success || '',   // We can pass success from query string if present, or empty string
       errorMessage: req.query.error || '' // Initialize errorMessage
     });
   } catch (error) {
