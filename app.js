@@ -545,43 +545,48 @@ app.get('/', async (req, res, next) => {
     }
   });
 
-  // User transfer routes
   app.get('/mtumiaji/transfer', async (req, res, next) => {
-    try {
-      const [watumiaji, clinics] = await Promise.all([
-        readSheet('WATUMIAJI'),
-        readSheet('CLINICS')
-      ]);
-      res.render('transfer-user', { watumiaji, clinics });
-    } catch (error) {
-      next(error);
-    }
-  });
+  try {
+    const [watumiaji, clinics] = await Promise.all([
+      readSheet('WATUMIAJI'),
+      readSheet('CLINICS')  // Note: there's a typo? Should it be 'CLINICS'? (without the extra 'I' in your previous code it was 'CLINICS')
+    ]);
+    res.render('transfer-user', { 
+      watumiaji, 
+      clinics,
+      successMessage: req.query.success || ''   // We can pass success from query string if present, or empty string
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
   app.post('/mtumiaji/transfer', async (req, res, next) => {
-    try {
-      const { mtumiajiId, newClinicId } = req.body;
-      if (!mtumiajiId || !newClinicId) {
-        return res.status(400).render('error', { 
-          message: 'Mtumiaji na kliniki vipaswa kuchaguliwa' 
-        });
-      }
-
-      const watumiaji = await readSheet('WATUMIAJI');
-      const index = watumiaji.findIndex(u => u.id === mtumiajiId);
-      if (index === -1) {
-        return res.status(400).render('error', { 
-          message: 'Mtumiaji hayupo' 
-        });
-      }
-
-      watumiaji[index].clinicId = newClinicId;
-      await writeSheet('WATUMIAJI', watumiaji);
-      res.redirect('/');
-    } catch (error) {
-      next(error);
+  try {
+    const { mtumiajiId, newClinicId } = req.body;
+    if (!mtumiajiId || !newClinicId) {
+      return res.status(400).render('error', { 
+        message: 'Mtumiaji na kliniki vipaswa kuchaguliwa' 
+      });
     }
-  });
+
+    const watumiaji = await readSheet('WATUMIAJI');
+    const index = watumiaji.findIndex(u => u.id === mtumiajiId);
+    if (index === -1) {
+      return res.status(400).render('error', { 
+        message: 'Mtumiaji hayupo' 
+      });
+    }
+
+    watumiaji[index].clinicId = newClinicId;
+    await writeSheet('WATUMIAJI', watumiaji);
+    
+    // Redirect back to transfer page with success message
+    res.redirect('/mtumiaji/transfer?success=Mtumiaji+amehamishwa+kikamilifu');
+  } catch (error) {
+    next(error);
+  }
+});
 
   // Admin users management
   
