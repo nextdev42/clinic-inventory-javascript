@@ -555,36 +555,38 @@ app.get('/', async (req, res, next) => {
       watumiaji, 
       clinics,
       successMessage: req.query.success || ''   // We can pass success from query string if present, or empty string
+      errorMessage: req.query.error || '' // Initialize errorMessage
     });
   } catch (error) {
     next(error);
   }
 });
 
-  app.post('/mtumiaji/transfer', async (req, res, next) => {
+  
+  app.post('/mtumiaji/transfer', async (req, res) => {
   try {
     const { mtumiajiId, newClinicId } = req.body;
+    
+    // Validate input
     if (!mtumiajiId || !newClinicId) {
-      return res.status(400).render('error', { 
-        message: 'Mtumiaji na kliniki vipaswa kuchaguliwa' 
-      });
+      return res.redirect('/mtumiaji/transfer?error=Muhimu%3A+Chagua+mtumiaji+na+kliniki');
     }
 
+    // Process transfer
     const watumiaji = await readSheet('WATUMIAJI');
     const index = watumiaji.findIndex(u => u.id === mtumiajiId);
+    
     if (index === -1) {
-      return res.status(400).render('error', { 
-        message: 'Mtumiaji hayupo' 
-      });
+      return res.redirect('/mtumiaji/transfer?error=Mtumiaji+hayupo');
     }
 
     watumiaji[index].clinicId = newClinicId;
     await writeSheet('WATUMIAJI', watumiaji);
     
-    // Redirect back to transfer page with success message
     res.redirect('/mtumiaji/transfer?success=Mtumiaji+amehamishwa+kikamilifu');
   } catch (error) {
-    next(error);
+    console.error('Hitilafu ya kuhamisha:', error);
+    res.redirect(`/mtumiaji/transfer?error=${encodeURIComponent('Hitilafu ya mfumo: ' + error.message)}`);
   }
 });
 
